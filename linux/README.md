@@ -13,3 +13,9 @@ git.html     git
 install.html 软件安装
 
 server       相关服务(apache nginx)
+
+command.html 相关命令
+
+user.html    用户
+
+scp.html     scp
