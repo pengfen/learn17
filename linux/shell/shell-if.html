@@ -17,6 +17,8 @@
     [条件判断式] 就是使用 test 命令判断 所以中括号和条件判断式之间必须有空格
     then 后面跟符合条件之后执行的程序 可以放在 [] 之后 用 ':' 分割 也可以换行驶写入 就不需要 ";" 了
 
+案例 if-root.sh --- code/if-root.sh
+-------------------------------------------------------
     例子1 判断登录的用户是否 root
 	[root@peng1 shell]# vi if-root.sh
 	#!/bin/bash
@@ -29,22 +31,35 @@
 
 	[root@peng1 shell]# chmod 755 if-root.sh
 	[root@peng1 shell]# ./if-root.sh
+	root
 	Current user is root.
 
+	[root@iZ94f2imuwkZ shall]# adduser peng
+	[root@iZ94f2imuwkZ shall]# passwd peng
+	Changing password for user peng.
+	New password: # peng0712
+	Retype new password: 
+	passwd: all authentication tokens updated successfully.
+	[root@iZ94f2imuwkZ shall]# su peng
+	[peng@iZ94f2imuwkZ shall]$ ./if-root.sh 
+    peng
 
+
+rate.sh --- code/rate.sh
+---------------------------------------------------------
     例子2 判断分区使用率
     #!/bin/bash
     #统计根分区使用率
     rate=$(df -h | grep "/dev/sda3" | awk '{print $5}' | cut -d "%" -f1) #把根分区使用率作为变量值赋予变量rate
 
-    if [$rate -ge 80]
+    if [ $rate -ge 80 ]
     then 
     echo "Warning! /dev/sda3 is full!!"
     fi
 
 
-
-
+if.sh --- code/if.sh
+-----------------------------------------------------------
     [root@peng1 ~]# mkdir shell
 	[root@peng1 ~]# cd shell
 
@@ -55,6 +70,7 @@
 	read content
 
 	#if [ "$content" -lt 10 ]  # 要么换行 要么加 ";" [] 中加空格会作为指定去执行
+	# integer expression expected 出现此错 [] 换成 [[]]
 	#then echo "The content is smaller than 10"
 	#fi
 
@@ -73,3 +89,4 @@
 	Please input your content :
 	2
 	The content is smaller than 10
+

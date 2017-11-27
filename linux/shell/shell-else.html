@@ -8,6 +8,9 @@
 
     [-d /root] && echo "yes" || echo "no" #第一个判断命令如果正确执行 则打印 "yes" 否则打印 "no"
 
+
+isdir.sh --- code/isdir.sh
+-----------------------------------------------------------
     判断是否是目录
     #!/bin/bash
 
@@ -18,8 +21,18 @@
     else
     echo "no no no"
     fi
-    if []
+    
+    [root@iZ94f2imuwkZ shall]# chmod 755 isdir.sh 
+    [root@iZ94f2imuwkZ shall]# ./isdir.sh 
+    Please input a dir : shall
+    you are wrong
+    [root@iZ94f2imuwkZ shall]# ./isdir.sh 
+    Please input a dir : /root/shall
+    you are right
+
  
+isstart.sh code/isstart.sh
+------------------------------------------------------------
     判断 apache 是否启动
     #!/bin/bash
     test=$(ps aux | grep httpd | grep -v grep) #截取 httpd 进程 并把结果赋予变量 test
@@ -30,7 +43,14 @@
     /etc/rc.d/init.d/httpd start &>/dev/null
     echo "$(date) restart httpd !!" >> /tmp/autostart-err.log
     fi
+    [root@iZ94f2imuwkZ shall]# chmod 755 isstart.sh
+    [root@iZ94f2imuwkZ shall]# ./isstart.sh 
+    Tue Jul 12 15:29:41 CST 2016 restart httpd !!
 
+
+
+else.sh --- code/else.sh
+------------------------------------------------------
     # 复杂的 if ... then ... else ... fi
     [root@peng1 shell]# vi else.sh
     #!/bin/bash
@@ -42,6 +62,12 @@
     else
     echo "The content is bigger than 10"
     fi
+    [root@iZ94f2imuwkZ shall]# chmod 755 else.sh
+    [root@iZ94f2imuwkZ shall]# ./else.sh 
+    Please input your content : 
+    11
+    The content is bigger than 10
+
 
     [root@peng1 shell]# ll
     总用量 8
@@ -67,6 +93,10 @@
     当所有条件都不成立时 最后执行此程序
     fi
 
+
+
+calc.sh --- code/calc.sh
+-----------------------------------------------------------------
     #!/bin/bash #字符界面加减乘除计算器
 
     read -t 30 -p "Please input num1: " num1
@@ -114,6 +144,10 @@
 
     echo " $num1 $ope $num2 : $sum" #输出数值运算的结果
 
+
+
+isfile.sh --- code/isfile.sh
+-------------------------------------------------------------------------
     判断用户输入的是什么文件
     #!/bin/bash #判断用户输入的是什么文件
     read -p "Please input a filename: " file #接收键盘的输入 并赋予变量 file
@@ -135,3 +169,17 @@
     else
     echo "$file is an other file!"
     fi
+
+    [root@iZ94f2imuwkZ shall]# chmod 755 isfile.sh 
+    [root@iZ94f2imuwkZ shall]# ./isfile.sh 
+    Please input a filename : 
+    Error, please input a filename
+    [root@iZ94f2imuwkZ shall]# ./isfile.sh 
+    Please input a filename : /root
+    /root is a directory
+    [root@iZ94f2imuwkZ shall]# ./isfile.sh 
+    Please input a filename : isfil ^H
+    Your input is not a file!
+    [root@iZ94f2imuwkZ shall]# ./isfile.sh 
+    Please input a filename : isfile.sh
+    isfile.sh is a regulare file

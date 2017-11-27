@@ -1,0 +1,24 @@
+shell 参数传递
+
+[root@iZ94f2imuwkZ shall]# vim test.sh
+#!/bin/bash
+
+echo $1; // 打印出脚本命令的第一个参数
+
+[root@iZ94f2imuwkZ shall]# chmod 755 test.sh 
+[root@iZ94f2imuwkZ shall]# ./test.sh 
+[root@iZ94f2imuwkZ shall]# ./test.sh start
+start
+
+
+[root@iZ94f2imuwkZ shall]# vim test.sh
+#!/bin/bash
+
+echo $1;
+
+echo "第二个参数是 $2";
+
+[root@iZ94f2imuwkZ shall]# ./test.sh start second
+start
+第二个参数是 second
+

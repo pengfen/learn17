@@ -28,6 +28,7 @@ b) insert mode  一般会通过输入 "i" 来进入插入模式  修改内容后
 注意 可以使用 "/" + content 的方式进行了字符串的搜索
 
 
+=========================================================
 
 Shell 基础
 
@@ -67,13 +68,16 @@ echo [选项] [输出内容]
 #\e[1;开启颜色输出 \e[0m 关闭 输出颜色 30m=黑色 31m=红色 32m=绿色 33m=黄色 34m=蓝色 35m=洋红 36m=青色 37m=白色
 
 第一个脚本
-[root@localhost sh]# vi hello.sh
+[root@localhost sh]# vi wel.sh
 #!/bin/bash
 #The first program
 
 脚本执行
 赋予执行权限 直接运行
-chmod 755 hello.sh #如果不给权限会提示 permission denied
-./hello.sh
+chmod 755 wel.sh #如果不给权限会提示 permission denied
+./wel.sh
 能过 bash 调用执行脚本
-bash hello.sh
+bash wel.sh
+
+
+wel.sh --- code/wel.sh
