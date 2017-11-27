@@ -1,0 +1,17 @@
+index.php 入口文件
+classes (对应于模型 Model)
+   API 数据库接口
+   ... 具体类
+       themeroute.php 主题皮肤选择路由类 (后台管理 卖家管理的控制器)
+config 配置
+database 数据库文件备份
+backup 备份文件
+plugins 插件
+language 语言包
+install 安装文件
+log 日志
+lib (框架) 核心文件
+   controller_class.php (验证码 getCaptcha ---> captcha 验证码生成类)
+upload 上传文件
+controllers 控制器
+views 视图

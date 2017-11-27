@@ -1,0 +1,80 @@
+周五例会内容如下：
+ 
+曹鹏：
+         之前工作内容：设计师二期相关页面 购物车页规格参数显示
+         工作计划：研究图片存储功能接口
+ 
+君志：
+         之前工作内容：设计师收藏功能
+         工作计划：完成收藏剩余相关
+ 
+莎莎：
+         之前工作内容: 修改之前的接口数据 购物车页对应接口
+         工作计划：按app 计划完成完成
+ 
+张婷：
+         之前工作内容：产品图片等 
+         工作计划：四十款产品的上线
+ 
+建宇：
+         之前工作内容：首页数据 
+         工作计划：导航数据
+ 
+国林：
+         之前工作内容：设计师收藏页 app 商品详情页
+         工作计划：按app 计划完成完成
+顾秦：
+         之前工作内容：研究手机开发 (数据绑定)
+         工作计划：继续研究手机开发
+ 
+陶尚虎：
+         之前工作内容：安卓打包发布 
+         相关问题：证书的申请 (google 帐号申请)
+         工作计划：app 测试打包
+ 
+王展：
+         请假 而未参加
+
+青青：
+         之前工作内容：app 的测试平台
+         工作计划：测试设计师模块
+
+
+         投资一个月了，每天收益五元左右，好好努力，一二年之内打造日收益一百
+
+
+         {if:isset($img_explain[$key])?$img_explain[$key]:0}
+
+
+
+         //          if (!empty($str)) {
+//             foreach ($cartInfo['goods']['value'] as $key=>$val) {
+//                if ($gid == $key) {
+//                   foreach ($val as $k=>$v) {
+//                      $value = explode(':', $v);
+//                      $name = explode(',', $str);
+//                      foreach ($name as $nk => $nv) {
+//                         $nvalue = explode(':', $nv);
+//                         echo $value[1].':'.$nvalue[1];
+//                         if ($value[1] != $nvalue[1]) {
+//                            $cartInfo[$type][$gid][1] = $num;
+//                         } else {
+//                            $cartInfo[$type][$gid] += $num;
+//                         }
+//                      }
+//                }
+//                }
+//             }
+//          } else {
+//             $cartInfo[$type][$gid][0] += $num;
+//          }
+
+[{"id":"75","type":"2","value":"upload/2015/11/26/20151126104953856.png","name":"参数1"},{"id":"76","type":"1","value":"1","name":"参数2"},
+
+{elseif:$item['store_nums'] == 0}
+                        <p class="gray-3 f-14 p-top5 p-bottom10" style="color:red;height: 37px;">即将上线{$item['store_nums']}</p>
+                        {elseif:$item['store_nums'] == -1}
+                        <p class="gray-3 f-14 p-top5 p-bottom10" style="color:red;height: 37px;">需要计算运费</p>
+                        {/if}
+
+

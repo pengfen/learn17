@@ -1,0 +1,5 @@
+svn 开发流程 checkout ---> code change (本地测试 ---> code change ---> 迭代) ---> update ---> commit
+
+git 开发流程 pull ---> code change (本地测试 ---> code change ---> 迭代) ---> commit ---> pull ---> push ( 直接在主分支上开发 )
+
+git 多分支开发流程 pull ---> 本地分支上开发 code change (本地测试 ---> code change ---> 迭代) ---> git commit ---> git push ---> 代码审查 ---> 整合代码

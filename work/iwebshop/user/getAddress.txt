@@ -1,0 +1,66 @@
+// 根据地址的 id 获取地址的 name
+
+$temp = area::name($this->order_info['province'],$this->order_info['city'],$this->order_info['area']);
+        $province = isset($temp[$this->order_info['province']])?$temp[$this->order_info['province']]:1;
+        $areas[$this->order_info['province']] = $province;
+        $areas[$this->order_info['city']]     = $temp[$this->order_info['city']];
+        $areas[$this->order_info['area']]     = $temp[$this->order_info['area']];
+
+$this->areas = $areas;
+
+public static function name() // 获取地址的name
+{
+	$result     = array();
+	$paramArray = func_get_args(); // 获取参数
+	$areaDB     = new IModel('areas');
+	$areaData   = $areaDB->query("area_id in (".trim(join(',',$paramArray),",").")");
+
+	foreach($areaData as $key => $value)
+	{
+		$result[$value['area_id']] = $value['area_name'];
+	}
+	return $result;
+}
+
+// js 中加载是pid 是 0 (表示国家) 而不是 1 (表示省份)
+// js 处理地址
+
+//DOM加载完毕
+$(function(){
+    //初始化地域联动
+    template.compile("areaTemplate",areaTemplate);
+
+    // 获取省市区的id (用于修改地址)
+    $province = $('input[name=province_id]').val();
+    $city = $('input[name=city_id]').val();
+    $area = $('input[name=area_id]').val();
+    if ($province != undefined) { // 用于修改地址界面
+        createAreaSelect('province',1,$province);
+        createAreaSelect('city',$province,$city);
+        createAreaSelect('area',$city,$area);
+    } else { // 用于添加地址界面
+        createAreaSelect('province',1,'');
+    }
+});
+
+//修改地址
+function form_back(obj)
+{
+    //自动填充表单
+    var form = new Form('form');
+    form.init(obj);
+
+    createAreaSelect('province',1,obj.province);
+    createAreaSelect('city',obj.province,obj.city);
+    createAreaSelect('area',obj.city,obj.area);
+}
+
+// 生成地域js联动下拉框 name 省 市 区 parent_id 父id select_id 当前选择的id
+function createAreaSelect(name,parent_id,select_id)
+{
+    //生成地区
+    $.getJSON("{url:/block/area_child}",{"aid":parent_id,"random":Math.random()},function(json)
+    {
+        $('[name="'+name+'"]').html(template.render('areaTemplate',{"select_id":select_id,"data":json}));
+    });
+}

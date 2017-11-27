@@ -1,0 +1,99 @@
+
+{if: in_array($orderStatus, array(1,4) )}
+            <td>
+                <span class="red-2">付款完成</span>
+            </td>
+            <td>
+                <a href="javascript:void(0);" class="btn btn-bgddd btn-sm w100">等待商家发货</a>
+            </td>
+            {/if}
+            {if: in_array($orderStatus, array(3, 11) )}
+            <td>
+                <span class="red-2">商家发货</span>
+            </td>
+            <td>
+                <a href="{url:/ucenter/order_status/op/confirm/new/confirm/order_id/$orderInfo['id']}" class="btn btn-bgddd btn-sm w100">确认收货</a>
+            </td>
+            {/if}
+            {if: $orderStatus == 6}
+            <td>
+                <span class="red-2">交易完成</span>
+            </td>
+            <td>
+                <a href="javascript:void(0);" class="btn btn-bgddd btn-sm w100">申请退货</a>
+            </td>
+            {/if}
+
+
+
+
+
+{else:}
+            <td>
+                ¥{echo:number_format($this->order_info['order_amount'], 2)}
+            </td>
+
+
+
+
+
+
+{if:$orderStatus == 2}
+            <td>
+                <span class="red-2">订单完成</span>
+            </td>
+            <td>
+
+                {set:$extend = ''}
+                {query:name=order_extend where=order_id eq $order_id item=$order_extend limit=1}
+                {set:$extend = $order_extend['id']}
+                {/query}
+                </label>
+                {if:!empty($extend)}
+                <a href="{url:/simple/order_extend/order_id/$order_id}" class="btn btn-primary btn-sm w100">立即支付</a>
+                {else:}
+                <a href="{url:/block/doPay/order_id/$order_id}" class="btn btn-primary btn-sm w100" target="_blank">立即支付</a>
+                {/if}
+            </td>
+            {/if}
+
+
+
+
+{if: in_array($orderStatus, array(1,4) )}
+            <td>
+                <span class="red-2">付款完成</span>
+            </td>
+            <td>
+                <a href="javascript:void(0);" class="btn btn-bgddd btn-sm w100">等待商家发货</a>
+            </td>
+            {/if}
+
+
+
+
+
+{if: in_array($orderStatus, array(3, 11) )}
+            <td>
+                <span class="red-2">商家发货</span>
+            </td>
+            <td>
+                <a href="javascript:void(0);" class="btn btn-bgddd btn-sm w100">确认收货</a>
+            </td>
+            {/if}
+
+
+{set:$goods_id = $goods['goods_id'];$order_id = $goods['order_id']}
+            {set:$refundObj = new IModel('refundment_doc');$refundInfo=$refundObj->getObj('order_id ='.$order_id.' and goods_id ='.$goods_id.' and user_id ='.$user_id);}
+            {if: $orderStatus == 6}
+            <td>
+                <span class="red-2">交易完成</span>
+            </td>
+            <td>
+                {if:!empty($refundInfo)&&isset($refundInfo)}
+                <a class="btn btn-bgddd btn-sm w100" href="{url:/ucenter/returns}"></a>
+                {else:}
+                <a href="{url:/ucenter/order_returned/order_id/$goods['order_id']/order_goods_id/$goods['id']/goods_id/$goods['goods_id']}" class="btn btn-bgddd btn-sm w100" >申请退货</a>
+                {/if}
+            </td>
+            {/if}

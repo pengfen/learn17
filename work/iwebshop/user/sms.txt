@@ -1,0 +1,75 @@
+// 发送手机邀请码
+function sendCode(){
+    $mobilePhone = IFilter::act(IReq::get('mobile','get')); // 获取手机号
+    $mobileCode = rand(100000,999999); // 获取随机码
+    $msg = smsTemplate::checkCode(array('{mobile_code}' => $mobileCode)); // 调用模板
+    $result = Hsms::send($mobilePhone,$msg); // 发送
+    if($result == 'success') // 成功
+    {
+        //验证码保存到Session中
+        ISession::set("mobileCode",array(
+            'mobile' => $mobilePhone,
+            'hash'    => $mobileCode,
+            'addtime' => time(),
+        ));
+        $message =  '短信发送成功';
+    }else{
+        $message =  '短信发送失败';
+    }
+    if($message){
+        Util::showMessage($message);
+    }
+}
+
+/**
+ * @brief 手机短信校验码
+ * @param array $data 替换的数据
+ */
+public static function checkCode($data = null)
+{
+	$templateString = "您的验证码为：{mobile_code}，请注意保管！";
+	return strtr($templateString,$data);
+}
+
+/**
+* @brief 发送短信
+* @param string $mobile
+* @param string $content
+* @return
+*/
+public static function send($mobile,$content)
+{
+$config = self::getConfig();
+
+$post_data = array(
+    'userid'   => $config['userid'],
+    'account'  => $config['username'],
+    'password' => $config['userpwd'],
+    'content'  => $content,
+    'mobile'   => $mobile,
+    'sendtime' => '',
+);
+
+$url    = 'http://www.duanxin10086.com/sms.aspx?action=send';
+$string = '';
+foreach ($post_data as $k => $v)
+{
+    $string .="$k=".urlencode($v).'&';
+}
+
+$post_string = substr($string,0,-1);
+
+$logObj = new Log();
+$logObj->write("operation", array("Send SMS", $post_string));
+
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_POST, 1);
+curl_setopt($ch, CURLOPT_HEADER, 0);
+curl_setopt($ch, CURLOPT_URL,$url);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $post_string);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); //如果需要将结果直接返回到变量里，那加上这句。
+$result = curl_exec($ch);
+curl_close($ch);  /* close the instance */
+
+return self::response($result);
+}

@@ -1,0 +1,17 @@
+模板文件 
+{js:dialog} 
+
+{js:name} 引用系统内核封装的js 文件
+
+{js:validate} 验证器
+
+pattern 的值如 required email qq id ip zip phone mobi url data datatime int float 等
+
+控制器中使用
+
+if ('条件') {
+	$message = "回显信息";
+	$this->redirect('inquiry', false); // 非重定向
+	Util::showMessage($message); // echo  script 弹出回复信息
+	exit;
+}

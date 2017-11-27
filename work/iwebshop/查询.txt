@@ -1,0 +1,15 @@
+查询 select * from 表名 where 条件
+
+$obj = new IModel('表名'); // 实例化
+$list = $obj->query('条件'， 要查询字段);
+
+$obj = new IQuery('表名'); // 实例化
+$obj->where = 条件;
+$obj->fields = 查询字段;
+$list = $obj->find();
+
+模块中查询
+{query:name=表名 where=条件 ...}{/query}
+
+通过Api 来查询
+{set:$list = Api::run('getList', $id)}

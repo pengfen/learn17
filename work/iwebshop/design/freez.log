@@ -1,0 +1,17 @@
+// 添加设计师冻结金额日志
+$designLog = new Designlog_class($invit['user_id']);
+$remark = "用户:{$invit['user_id']} 推广码：{$name}  冻结金额处理：{$freezing}";
+$designLog->freezing($freezing, $remark);
+
+$designLog = new IModel('designer_log'); // 实例化
+$balance = $invit['freezing'] + $freezing; // 余额
+$designLogArray = array( // 表数据
+	'user_id' => $invit['user_id'],
+	'money' => $freezing,
+	'balance' => $balance,
+	'type' => 3,
+	'remark' => "用户：{$username} 推广码：{$name} 获得金额: {$freezing} 账户余额：{$balance}",
+	'create_time' => time()
+);
+$designLog->setData($designLogArray);
+$designLog->add(); // 执行添加

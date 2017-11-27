@@ -1,0 +1,46 @@
+输出标签
+{echo:content}
+
+地址标签
+{url:path}
+
+{webroot:file} 产品根目录下的文件目录
+{webroot:image/logo.png}
+
+{theme:file} 当前主题目录下js文件
+{theme:js/main.js}
+
+{skin:file} 当前主题目录下皮肤路径 (css)
+
+{js:name} 系统内核封装的 js 文件
+
+{set:expression} 赋值标签
+
+{if: condition}expression{elseif:condition}expression{else:}expression{/if}
+
+{while:condition}expression{/while} while 循环标签
+
+{for:attribute}{/for} for 循环标签
+from 起始值 upto 结束值(增) downto 结束值(减) step 步长  item 变量名(默认为$i)
+
+{foreach:attribute}{/foreach} 遍历标签
+items 必选 要遍历的数组
+key key 键值
+item item 每项名
+
+{query:attribute}{/query} 查询标签
+name 表名(不带表前缀)
+fields 表字段
+where 查询条件
+join 表连接
+group 分组
+having 条件
+order 排序
+limit 
+distinct 检索
+page 分页数
+pagesize 每页记录数
+pagelength 分页展示栏展示的页码数
+item 每一记录
+id 每一个对象的唯一标识
+key 每一项键值

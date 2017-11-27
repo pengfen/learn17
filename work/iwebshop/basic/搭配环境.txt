@@ -1,0 +1,44 @@
+安装所需软件
+
+建立项目目录
+
+phpstorm ---> checkout from version control ---> git 
+
+git repository URL : git 代码库
+parent directory   : 选择项目路径
+directory name     : 项目名
+
+使用 git bash
+cd /d/... 项目目录
+
+git init 初始化代码库
+
+git remote add origin 代码库 如 git@github.com:pengfen/yii2.git
+
+配置虚拟主机 apache 安装目录\conf\extra
+<VirtualHost *:80>
+    ServerAdmin pengcao@163.com # 管理邮箱
+    DocumentRoot "C:/Users/Administrator.USER-20150828WA/Desktop/project/mallyy" # 文档目录
+    ServerName dev.work.com # 访问路径
+    <Directory "C:/Users/Administrator.USER-20150828WA/Desktop/project/mallyy">
+
+     Options Indexes FollowSymLinks
+
+     DirectoryIndex index.html index.htm index.php
+
+     AllowOverride all
+
+     Order Deny,Allow
+
+     Allow from all
+
+     Require all granted
+
+    </Directory>
+
+    ##ErrorLog "logs/dummy-host2.example.com-error.log"
+    ##CustomLog "logs/dummy-host2.example.com-access.log" common
+</VirtualHost>
+
+C:\Windows\System32\drivers\etc\hosts 配置本地访问hosts
+127.0.0.1 dev.work.com

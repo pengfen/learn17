@@ -1,0 +1,29 @@
+git 的使用
+
+git init # git 初始化
+
+git remote add origin 代码库 # 连接 git 远端
+
+git remote rm origin # 移除当前主分支
+
+git checkout master # 切换到主分支
+
+git pull # 拉主分支代码
+
+git pull origin master # 当前分支下拉主分支
+
+git branch peng_188 # 创建分支
+
+git checkout -b peng_188 # 创建并切换到分支
+
+git branch # 查看分支
+
+git add . # 添加所有修改文件 
+
+git commit -m  '提示信息' # 提交分支
+
+git push origin peng_188 # 推送分支
+
+git push ( git fetch + git merge)
+
+git branch -d peng_188 删除分支

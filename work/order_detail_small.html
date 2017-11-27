@@ -1,0 +1,305 @@
+{set:
+$site_config=new Config('site_config');
+$seo_data=array();
+$seo_data['title']          = '订单详情-'.$site_config->name;
+seo::set($seo_data);
+}
+{set:$user_id = $this->user['user_id']}
+{set:$orderStatus = Order_Class::getOrderStatus($this->order_info)}
+{set:$order_id = $this->order_info['order_id']}
+<div class="u-title clearfix">
+  <span class="f-24"><a href="{url:/ucenter/order}" class="a-black3">我的订单</a></span><span class="m-w5">&gt;</span>查看订单详情
+</div>
+<div class="order-step">
+  <div class="step-line"></div>
+  <ul class="step-style2">
+    <li class="active {if:in_array($orderStatus, array(1, 2, 3, 4, 6, 11))}on{/if}">
+      <div class="line"></div>
+      <div class="step-no"><span class="no">1</span> <i class="glyphicon glyphicon-ok d-n"></i></div>
+      <span class="f-16">订单完成</span>
+    </li>
+    <li class="{if:in_array($orderStatus, array(3, 4, 6, 11))}active on{/if}">
+      <div class="line"></div>
+      <div class="step-no"><span class="no">2</span> {if:in_array($orderStatus, array(1, 4, 3, 6, 11))}<i class="glyphicon glyphicon-ok d-n"></i>{/if}</div>
+      <span class="f-16">付款完成</span>
+    </li>
+    <li class="{if:in_array($orderStatus, array(3, 6, 11))}active on{/if}">
+      <div class="line"></div>
+      <div class="step-no"><span class="no">3</span>{if:in_array($orderStatus, array(3, 6, 11))} <i class="glyphicon glyphicon-ok d-n"></i>{/if}</div>
+      <span class="f-16">商家发货</span>
+    </li>
+    <li>
+    <li class="{if:$orderStatus == 6}active on{/if}">
+      <div class="line"></div>
+      <div class="step-no"><span class="no">4</span>{if:$orderStatus == 6} <i class="glyphicon glyphicon-ok d-n"></i>{/if}</div>
+      <span class="f-16">交易完成</span>
+    </li>
+  </ul>
+</div>
+
+  <div class="logistics-content m-bottom30">
+    <div class="bottom-ccc p-bottom10 m-bottom10">
+      <h4>订单状态</h4>
+    </div>
+      <div class="logistics">
+          <ul>
+              {if:$orderStatus == 6}
+              <li {if:$orderStatus == 6} class="active"{/if}>
+              <p>用户已签收 交易完成</p>
+              <p class="f-12">{$this->order_info['completion_time']}</p>
+              <em></em>
+              </li>
+              {/if}
+              {set:$order_goods = Api::run('getOrderGoodsListByGoodsid', array('#order_id#', $this->order_info['order_id']))}
+              {foreach:items = $order_goods item=$goods limit=1}
+              {/foreach}
+              {if:isset($goods)}
+              {set:$shipper = $goods['ShipperOrderNo']}
+              {query: name=4px_push_track where=ShipperOrderNo eq '$shipper' order=Trackingtime desc}
+              {if:(trim($item['TrackingContent']) != '支付成功')&&(trim($item['TrackingContent']) != '订单信息已收到')}
+              <li class="{if:$key == 0 && $orderStatus != 6} active {/if}">
+                  <p>{$item['TrackingContent']}</p>
+                  <p class="f-12">{$item['TrackingTime']}</p>
+                  <em></em>
+              </li>
+              {/if}
+              {/query}
+              {/if}
+              {if:in_array($orderStatus, array(3, 6))}
+              <li {if:$orderStatus == 3 && !isset($goods)} class="active"{/if}>
+              <p>海外商家已发货</p>
+              <p class="f-12">{$this->order_info['send_time']}</p>
+              <em></em>
+              </li>
+              {/if}
+              {if:in_array($orderStatus, array(3, 4, 6))}
+              <li {if:$orderStatus == 4} class="active"{/if}>
+              <p>支付完成 等待海外商家发货</p>
+              <p class="f-12">{$this->order_info['pay_time']}</p>
+              <em></em>
+              </li>
+              {/if}
+              {if:in_array($orderStatus, array(2, 3, 4, 6))}
+              <li {if:$orderStatus == 2} class="active"{/if}>
+                  <p>订单完成 等待付款</p>
+                  <p class="f-12">{$this->order_info['create_time']}</p>
+                  <em></em>
+              </li>
+              {/if}
+          </ul>
+      </div>
+  </div>
+  <div class="detail-box">
+  <div class="bottom-ddd p-bottom15 clearfix">
+    <span class="fr gray-3">成交时间：{$this->order_info['create_time']}</span>
+    <span class="fr gray-3 p-right30">订单编号：{$this->order_info['order_no']}</span>
+    <h4>订单信息</h4>
+  </div>
+  <ul class="row m-bottom20">
+      {set:$tb_order = new IModel('order');
+      $orderInfo = $tb_order->getObj('order_no = '.$this->order_info['order_no'].' and user_id ='.$this->user['user_id']);}
+      {set:$area_id = $orderInfo['province'];$area_id .=','.$orderInfo['city'];$area_id .= ','.$orderInfo['area']}
+    <li class="col-md-5"><strong>收货人姓名：</strong>{$orderInfo['accept_name']}</li>
+    <li class="col-md-7"><strong>身份证号：</strong>{$orderInfo['idCard']}</li>
+    <li class="col-md-5"><strong>手机号码：</strong>{$orderInfo['mobile']} </li>
+    <li class="col-md-7"><strong>邮箱：</strong>{$orderInfo['email']}</li>
+    <li class="col-md-12"><strong>地址：</strong>{if:!empty($area_id)&&isset($area_id)}{foreach:items = Api::run('getAreaInfo',array('#area_id#',$area_id))}{$item['area_name']} {/foreach}{/if} {$orderInfo['address']}</li>
+    <li class="col-md-12"><strong>配送方式：</strong>{$this->order_info['freight']['freight_name']}</li>
+  </ul>
+  <div class="u-table table-responsive">
+    <table class="table table-bordered b0" width="100%">
+      <tr>
+      <th>商品名称</th>
+      <th class="tc">商品价格</th>
+      <th class="tc">优惠金额</th>
+      <th class="tc">应付金额</th>
+      <th class="tc">订单状态</th>
+      <th class="tc">操作</th>
+      </tr>
+        {set:$order_goods = Api::run('getOrderGoodsListByGoodsid', array('#order_id#', $this->order_info['order_id']))}
+        {set:$x = 0}
+        {foreach:items = $order_goods item=$goods}
+        <tr>
+            <td class="t1">
+                <a href="{url:/site/product_detail/goods_id/$goods['goods_id']}" target="_blank">
+                <img src="{url:/pic/thumb/img/$goods['img']/w/70/h/70}" class="img-thumbnail fl">
+                    </a>
+                <div class="o-text m-left10">
+                    {set:$goods_info = JSON::decode($goods['goods_array'])}
+                    <p class="m-bottom10">
+                        <a href="{url:/site/product_detail/goods_id/$goods['goods_id']}" target="_blank">
+                            {$goods_info['name']}
+                        </a>
+                    </p>
+                    <p class="gray-3">x{$goods['goods_nums']}
+                        {if:!empty($goods_info['value'])}
+                        {if:is_array($goods_info['value'])}
+                        {foreach:items=$goods_info['value'] item=$spec}
+                        {if:$spec['type'] != 2}
+                        {$spec['name']}:{$spec['value']}
+                        {elseif:!empty($goods_info['param'])}
+                        {$goods_info['param']}
+                        {/if}
+                        {/foreach}
+                        {else:}
+                        {$goods_info['value']}
+                        {/if}
+                        {/if}
+                        </p>
+                </div>
+            </td>
+            <td>
+                ¥{echo:Util::exchange($goods['goods_price'])}
+            </td>
+            <td>
+                {if:isset($goods['usetoken'])}
+                <span class="btn-yellow btn-sm">优惠码</span>
+                {/if}
+            </td>
+            {set:$count = count($order_goods)}
+
+            {if:count($order_goods) > 1 and ($key + 1) == count($order_goods)}
+            {elseif:$count > 1 && $x == 0}
+            {set:$x = 1}
+            <td rowspan="{$count}">
+                ¥{echo:number_format($this->order_info['order_amount'], 2)}
+            </td>
+            {if:$orderStatus == 2}
+            <td rowspan="{$count}">
+                <span class="red-2">订单完成{$x}</span>
+            </td>
+            <td rowspan="{$count}">
+
+                {set:$extend = ''}
+                {query:name=order_extend where=order_id eq $order_id item=$order_extend limit=1}
+                {set:$extend = $order_extend['id']}
+                {/query}
+                </label>
+                {if:!empty($extend)}
+                <a href="{url:/simple/order_extend/order_id/$order_id}" class="btn btn-primary btn-sm w100">立即支付</a>
+                {else:}
+                <a href="{url:/block/doPay/order_id/$order_id}" class="btn btn-primary btn-sm w100" target="_blank">立即支付</a>
+                {/if}
+            </td>
+            {/if}
+            {if: in_array($orderStatus, array(1,4) )}
+            <td rowspan="{$count}">
+                <span class="red-2">付款完成</span>
+            </td>
+            <td rowspan="{$count}">
+                <a href="javascript:void(0);" class="btn btn-bgddd btn-sm w100">等待商家发货</a>
+            </td>
+            {/if}
+            {if: in_array($orderStatus, array(3, 11) )}
+            <td rowspan="{$count}">
+                <span class="red-2">商家发货</span>
+            </td>
+            <td rowspan="{$count}">
+                <a href="{url:/ucenter/order_status/op/confirm/new/confirm/order_id/$orderInfo['id']}" class="btn btn-bgddd btn-sm w100">确认收货</a>
+            </td>
+            {/if}
+            {if: $orderStatus == 6}
+            <td rowspan="{$count}">
+                <span class="red-2">交易完成</span>
+            </td>
+            <td rowspan="{$count}">
+                <a href="javascript:void(0);" class="btn btn-bgddd btn-sm w100">申请退货</a>
+            </td>
+            {/if}
+            {else:}
+            <td rowspan="{$count}">
+                ¥{echo:number_format($this->order_info['order_amount'], 2)}
+            </td>
+            {if:$orderStatus == 2}
+            <td rowspan="{$count}">
+                <span class="red-2">订单完成</span>
+            </td>
+            <td rowspan="{$count}">
+                {set:$extend = ''}
+                {query:name=order_extend where=order_id eq $order_id item=$order_extend limit=1}
+                {set:$extend = $order_extend['id']}
+                {/query}
+                </label>
+                {if:!empty($extend)}
+                <a href="{url:/simple/order_extend/order_id/$order_id}" class="btn btn-primary btn-sm w100">立即支付</a>
+                {else:}
+                <a href="{url:/block/doPay/order_id/$order_id}" class="btn btn-primary btn-sm w100" target="_blank">立即支付</a>
+                {/if}
+            </td>
+            {/if}
+            {if: in_array($orderStatus, array(1,4) )}
+            <td rowspan="{$count}">
+                <span class="red-2">付款完成</span>
+            </td>
+            <td rowspan="{$count}">
+                <a href="javascript:void(0);" class="btn btn-bgddd btn-sm w100">等待商家发货</a>
+            </td>
+            {/if}
+            {if: in_array($orderStatus, array(3, 11) )}
+            <td rowspan="{$count}">
+                <span class="red-2">商家发货</span>
+            </td>
+            <td rowspan="{$count}">
+                <a href="javascript:void(0);" class="btn btn-bgddd btn-sm w100">确认收货</a>
+            </td>
+            {/if}
+            {set:$goods_id = $goods['goods_id'];$order_id = $goods['order_id']}
+            {set:$refundObj = new IModel('refundment_doc');$refundInfo=$refundObj->getObj('order_id ='.$order_id.' and goods_id ='.$goods_id.' and user_id ='.$user_id);}
+            {if: $orderStatus == 6}
+            <td rowspan="{$count}">
+                <span class="red-2">交易完成</span>
+            </td>
+            <td rowspan="{$count}">
+                {if:!empty($refundInfo)&&isset($refundInfo)}
+                <a class="btn btn-bgddd btn-sm w100" href="{url:/ucenter/returns}"></a>
+                {else:}
+                <a href="{url:/ucenter/order_returned/order_id/$goods['order_id']/order_goods_id/$goods['id']/goods_id/$goods['goods_id']}" class="btn btn-bgddd btn-sm w100" >申请退货</a>
+                {/if}
+            </td>
+            {/if}
+            {/if}
+
+
+        </tr>
+        {/foreach}
+
+      <!--<tr>-->
+        <!--<td class="t1">-->
+            <!--<img src="/onramp-web/upload/2015/09/08/20150908064239620.jpg" class="img-thumbnail fl">-->
+            <!--<div class="o-text m-left10">-->
+                <!--<p class="m-bottom10">NATUZZI OPERA 沙发组合 19+200</p>-->
+                <!--<p class="gray-3">x2</p>-->
+            <!--</div>-->
+        <!--</td>-->
+        <!--<td>-->
+            <!--¥52,300.00-->
+        <!--</td>-->
+        <!--<td>-->
+        <!--<p>-¥2958.00</p>-->
+        <!--<span class="btn-yellow btn-sm">优惠码</span>-->
+        <!--</td>-->
+        <!--<td>-->
+            <!--¥43,658.00-->
+        <!--</td>-->
+        <!--<td>-->
+            <!--<span class="red-2">待付定金</span>-->
+        <!--</td>-->
+        <!--<td>-->
+          <!--<a href="" class="btn btn-black btn-sm w100">支付尾款 <i class="glyphicon glyphicon-question-sign order_tool" data-toggle="tooltip" data-placement="bottom" title="关于尾款支付的说明关于尾款支付的说明关于尾款支付的 关于尾款支付的说明说明" ></i></a>-->
+        <!--</td>-->
+      <!--</tr>-->
+
+    </table>
+  </div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
