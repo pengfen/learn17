@@ -1,0 +1,38 @@
+use yii\data\ActiveDataProvider;
+use yii\elasticsearch\Query;
+
+$query = new Query();
+$query->fron('yiitest', 'user');
+$provider = new ActiveDataProvider([
+    'query' => $query,
+    'pagination' => [
+        'pageSize' => 10,
+    ]
+]);
+$models = $provider->getModels();
+
+use yii\data\ActiveDataProvider;
+use app\models\User;
+
+$provider = new ActiveDataProvider([
+    'query' => User::find(),
+    'pagination' => [
+        'pageSize' => 10,
+    ]
+]);
+$models = $provider->getModels();
+
+use yii\elasticsearch\ActiveDataProvider;
+use yii\elasticsearch\Query;
+
+$query = new Query();
+$query->from('yiitest', 'user')->addAggregation('foo', 'terms', []);
+$provider = new ActiveDataProvider([
+    'query' => $query,
+    'pagination' => [
+        'pageSize' => 10,
+    ]
+]);
+$models = $provider->getModels();
+$aggregations = $provider->getAggregations();
+$fooAggregation = $provider->getAggregation('foo');

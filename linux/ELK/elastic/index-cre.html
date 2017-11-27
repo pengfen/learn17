@@ -1,0 +1,54 @@
+创建索引
+
+索引库名称必须要全部小写 不能以下划线开头 也不能包含逗号
+
+cu apeng
+bin/elasticsearch
+
+打开另一个客户端
+curl -XPOST http://192.168.233.132:9200/log/testlog -d '{"user":"caopeng"}'
+{"_index":"log","_type":"testlog","_id":"","_version":1,"result":"created","_shards":...}
+_index 索引名
+
+页面查询
+http://192.168.233.132:9200/logstash-2016.01.16/_search?q=caopeng
+查询的串
+{"took":178,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":1,"max_score":0.2876821,"hits":[{"_index":"logstash-2016.01.16","_type":"testlog","_id":"AVjSYrQ8ylfM4pFRIx9x","_score":0.2876821,"_source":{"user":"caopeng"}}]}}
+
+php添加数据
+--------------------------------------------------------------------------
+$url = 'http://192.168.233.132:9200/logstash-2015.01.19/testlog';
+
+$data = array (
+	'date' => time(),
+	'user' => 'welcome',
+	'mes' => 'welcome to here'
+	);
+$ch = curl_init();
+curl_setopt( $ch, CURLOPT_URL, $url );
+curl_setopt( $ch, CURLOPT_POST, 1 );
+curl_setopt( $ch, CURLOPT_HEADER, 0 );
+curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+curl_setopt( $ch, CURLOPT_POSTFIELDS, json_encode($data) );
+$res = curl_exec( $ch );
+curl_close( $ch );
+var_dump($res);
+exit;
+
+yii2-elasticsearch
+use frontend\models\EAuth;
+use frontend\models\Auth;
+--------------------------------------------------------------------------
+public function actionAdd() 
+{
+	$info = Auth::find()->select("id, name, pid, controller, action")->asArray()->all();
+	$auth = new EAuth();
+	foreach ($info as $key => $value) {
+		$auth->primaryKey = $value['id'];
+		$auth->name = $value['name'];253
+		$auth->pid = $value['pid'];
+		$auth->controller = $value['controller'];
+		$auth->action = $value['action'];
+		$res = $auth->save();
+	}
+}

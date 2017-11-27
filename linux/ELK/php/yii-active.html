@@ -1,0 +1,90 @@
+Class Customer extends \yii\elasticsearch\ActiveRecord
+{
+    // @return array  the list of attributes for this record
+    public function attributes()
+    {
+        // path mapping for '_id' is setup to field 'id'
+        return ['id', 'name', 'address', 'registration_date'];
+    }
+
+    // @return ActiveQuery defines a relation to the Order record (can be in other database, e.g. redis or sql)
+    public function getOrders()
+    {
+        return $this->hasMany(Order::className(), ['customer_id' => 'id'])->orderBy('id');
+    }
+
+    // Defines a scope that modifies the "$query" to return only active(status = 1) customers
+    public static function active($query) {
+        $query->andWhere(['status' => 1]);
+    }
+}
+
+// 控制器调用
+$customer = new Customer();
+$customer->primaryKey = 1; //  in this case equivalent to $customer->id = 1;
+$customer->attributes = ['name' => 'test'];
+$customer->save();
+
+$customer = Customer::get(1); // get a record by pk
+$customer = Customer::mget([1,2,3]); // get multiple records by pk
+$customer = Customer::find()->where(['name' => 'test'])->one();
+$xustomer = Customer::find()->active()->all();
+
+$result = Acticle::find()->query(['match' => ["title" => 'yii']])->all();
+
+$query = Article::find()->query([
+    'fuzzy_like_this' => [
+        'fields' => ['title', 'description'],
+        'like_text' => '',
+        'max_query_terms' => 12
+    ]
+]);
+
+$query->all();
+$query->addStatisticalFacet('click_stats', ['field' => 'visit_count']);
+$query->search(); 
+
+// 复杂查询
+class CustomerQuery extends ActiveQuery
+{
+    public static function name($name)
+    {
+        return ['match' => ['name' => $name]];
+    }
+
+    public static function address($address)
+    {
+        return ['match' => ['address' => $address]];
+    }
+
+    public static function registrationDateRange($dateFrom, $dateTo)
+    {
+        return ['range' => ['registration_date' => [
+            'gte' => $dateFrom,
+            'lte' => $dateTo,
+        ]]]
+    }
+}
+
+// 控制器
+$customer = Customer::find()->filter([
+    CustomerQuery::registrationDateRange('2019-01-01', '2016-01-20'),
+])->query([
+    'bool' => [
+        'should' => [
+            CustomerQuery::name('John'),
+            CustomerQuery::address('London'),
+        ],
+        'must_not' => [
+            CustomerQuery::name('Jack');
+        ],
+    ]
+])->all();
+
+// 聚合 Aggregation
+$aggData = Customer::find()->addAggregation('customers_by_date', 'terms', [
+    'field' => 'registration_date',
+    'order' => ['_count' => 'desc'],
+    'size' => 10,
+])->search(null, ['search_type' => 'count']);
+$customerByDate = ArrayHelper::map($aggData['aggregations']['customers_by_date']['buckets'], 'key', 'doc_count');

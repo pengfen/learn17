@@ -1,0 +1,51 @@
+elasticsearch logstash随着kibana的命名升级直接从2.4跳跃到了5.0，5.x版本的elk在版本对应上要求相对较高，不再支持5.x和2.x的混搭，同时elastic做了一个package，对原本的watch，alert做了一个封装，形成了x-pack
+
+安装 x-pack
+elasticsearch ---> bin/elasticsearch-plugin install x-pack (监控以前版本使用bin/plugin -i elasticsearch/marvel/latest)
+kibana ---> bin/kibana-plugin install x-pack
+
+bin/elasticsearch
+bin/kibana
+
+http://192.168.233.132:9200
+输入用户名elastic密码changeme
+http://192.168.233.132:5601
+输入用户名elastic密码changeme
+
+http://192.168.233.132:9200/_search?pretty=true
+查看当前库里所有的索引
+
+修改elastic用户的密码
+curl -XPUT -u elastic '192.168.233.132:9200/_xpack/security/user/elastic/_password' -d '{"password" : "123456"}'
+修改kibana用户的密码
+curl -XPUT -u elastic '192.168.233.132:9200/_xpack/security/user/kibana/_password' -d '{"password" : "123456"}'
+
+创建用户组和角色 创建所属用户
+创建beats_admin用户组 该用户组对filebeat*有all权限 对.kibana*有manage read index权限
+curl -XPOST -u elastic '192.168.233.132:9200/_xpack/security/role/beats_admin' -d '{"indices" : {{"names" : [ "filebeat*" ],"privileges" : ["all"]}, {"names" : [".kibana*"], "privileges" : ["manage", "read", "index"]}}}'
+创建jackbeat用户 密码是jackbeat
+curl -XPOST -u elastic '192.168.233.132:9200/_xpack/security/user/jackbeat' -d '{"password" : "jackbeat", "full_name" : "jack beat", "email" : "john.doe@anony.nous", "roles" : { "beats_admin" }}'
+
+xpack 的 elk 之间的数据传递保护
+kibana --- elasticsearch
+vim kibana.yml
+elasticsearch.username: "elastic"
+elasticsearch.password: "changeme"
+logstash --- elasticsearch
+input {
+	stdin {
+	    beats {
+	        port => 5044
+	    }
+	}
+}
+output {
+	elasticsearch {
+	    hosts => ["http://192.168.233.132:9200"]
+	    user => elastic
+	    password => changeme
+	}
+	stdout {
+	    codec => rubydebug
+	}
+}

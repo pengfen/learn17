@@ -1,0 +1,67 @@
+
+
+require 'vendor/autoload.php'; // 相对于 log/inde.php文件
+
+use Elasticsearch\ClientBuilder;
+
+// 创建本地客户端连接
+$client = ClientBuilder::create()->build();
+
+// 创建客户端连接连到指定IP服务器上
+$hosts = [
+    '192.168.8.173:9200'
+];
+$client = ClientBuilder::create()->setHosts($hosts)->build();
+
+// 获取文档索引
+$params = [
+    'index' => 'source_logs',
+    'type' => 'source_log',
+    'body' => ['today' => '24']
+];
+$response = $client->index($params);
+//var_dump($response); array(5) { ["_index"]=> string(11) "source_logs" ["_type"]=> string(10) "source_log" ["_id"]=> string(20) "AVqCisRGObgq0S9Hs6x6" ["_version"]=> int(1) ["created"]=> bool(true) }
+
+// 获取文档
+$params = [
+    'index' => 'source_logs',
+    'type' => 'source_log',
+    'id' => 'AVqCisRGObgq0S9Hs6x6'
+];
+$response = $client->get($params);
+//var_dump($response); array(6) { ["_index"]=> string(11) "source_logs" ["_type"]=> string(10) "source_log" ["_id"]=> string(20) "AVqCisRGObgq0S9Hs6x6" ["_version"]=> int(1) ["found"]=> bool(true) ["_source"]=> array(1) { ["today"]=> string(2) "24" } }
+
+// 搜索文档
+$params = [
+    'index' => 'source_logs',
+    'type' => 'source_log',
+    'body' => [
+        'query' => [
+            'match' => [
+                'today' => 24
+            ]
+        ]
+    ]
+];
+// 查询三条数据
+$response = $client->search($params);
+
+// 删除文档
+$params = [
+    'index' => 'source_logs',
+    'type' => 'source_log',
+    'id' => ''
+];
+//$response = $client->delete($params);
+
+// 创建索引
+$params = [
+    'index' => 'source_logs',
+    'body' => [
+        'settings' => [
+            'number_of_shards' => 2,
+            'number_of_replicas' => 0
+        ]
+    ]
+];
+//$response = $client->indices()->create($params);

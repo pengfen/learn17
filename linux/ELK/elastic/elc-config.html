@@ -1,0 +1,10 @@
+elasticsearch 配置
+
+cd /opt/elastic/elasticsearch-5.1.1/config
+vi elasticsearch.yml
+cluster.name: #判断节点是否是统一集群
+node.name: #从节点名
+path.data: #数据存放路径 /opt/data/es
+path.log: #日志路径 /var/log/es
+bootstrap.mlockall: true #锁住内存 使内存不会再swap中使用
+

@@ -1,0 +1,48 @@
+yii2-elasticsearch 安装 (参考 php ---> frame)
+
+配置elasticsearch
+------------------------------------------------------------
+main-local.php 文件中 components 中配置如下内容
+'elasticsearch' => [
+    'class' => 'yii\elasticsearch\Connection',
+    'nodes' => [
+        ['http_address' => '192.168.233.132:9200'],
+    ],
+],
+
+编写模型
+------------------------------------------------------------
+namespace frontend\models;
+
+use yii\elasticsearch\ActiveRecord;
+
+class EAuth extends ActiveRecord
+{
+	// 属性列表
+	public function attributes()
+	{
+		return ['id', 'name', 'pid', 'controller', 'action'];
+	}
+}
+
+添加数据
+------------------------------------------------------------
+// 添加数据
+public function actionAdd() 
+{
+	$info = Auth::find()->select("id, name, pid, controller, action")->asArray()->all();
+	$auth = new EAuth(); // 实例化索引库
+	foreach ($info as $key => $value) {
+		$auth->primaryKey = $value['id'];
+		$auth->name = $value['name'];
+		$auth->pid = $value['pid'];
+		$auth->controller = $value['controller'];
+		$auth->action = $value['action'];
+		$res = $auth->save();
+	}
+}
+
+查询
+------------------------------------------------------------
+http://192.168.233.132:9200/_search?pretty=true #查询所有索引
+http://192.168.233.132:9200/eauths/eauth/_search?q=权限

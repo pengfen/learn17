@@ -1,0 +1,21 @@
+<?php
+
+require 'vendor/autoload.php';
+
+use Elasticsearch\ClientBuilder;
+
+$hosts = ['192.168.8.173:9200'];
+$client = ClientBuilder::create()->setHosts($hosts)->build();
+
+$params = [
+    'index' => 'source-logs',
+    'type' => 'source-log',
+    'body' => [
+        'query' => [
+            'term' => ['create_time' => 14]
+        ]
+    ],
+    'size' => 20
+];
+
+$response = $client->search($params);

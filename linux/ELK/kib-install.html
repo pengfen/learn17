@@ -1,0 +1,17 @@
+https://www.elastic.co/downloads/elasticsearch 下载 tar.gz包
+
+uname -a #查看linux的版本 (下载对应的版本kibana)
+mkdir /opt/kibana
+将tar.gz包上传到/opt/kibana
+cd /opt/kibana
+tar -zxvf kibana-5.1.1.tar.gz
+cd kibana-5.1.1
+
+修改配置
+vi config/kibana.yml
+server.host: "192.168.233.132"
+elasticsearch.url: "http://192.168.233.132:9200"
+kibana.index: ".kibana"
+
+bin/kibana
+http://192.168.233.132:5601/server.port: 5601

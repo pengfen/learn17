@@ -1,0 +1,14 @@
+elasticsearch 分布式搜索
+
+lotstash 日志收集
+四大组件
+shipper 发送事件(events)到logstash 远程代理端(agent)只需要运行这个组件即可
+broker and indexer 接收并索引化事件
+search and storage 允许对事件进行搜索和存储
+web interface 基于web的展示界面
+主机分类
+代理主机(agent host) 作为事件的传递者(shipper) 将各种日志数据发送到中心主机 只需运行logstash 代理(agent)程序
+中心主机(central host) 可运行包括中间转发器(broker) 索引器(indexer) 搜索和存储器(search and storage) web界面端(web interface) 在内的各个组件 以实现对日志数据的接收 处理和存储
+
+kibana
+logstash 的web界面

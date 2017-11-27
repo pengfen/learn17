@@ -1,0 +1,30 @@
+cu apeng
+bin/elasticsearch
+
+bin/kibana
+
+使用xshell客户端添加数据
+curl -XPOST http://192.138.233.132:9200/logstash-2017.01.19/testlog -d '{"date":"","user":"","mes":""}';
+
+使用php添加数据
+public function actionIndex() {
+	$url = "http://192.168.233.132/logstash-2017.01.19/testlog";
+
+	$data = array (
+	'date' => time(),
+	'user' => 'welcome',
+	'mes' => 'welcome to here'
+	);
+
+	$ch = curl_init();
+	curl_setopt( $ch, CURLOPT_URL, $url );
+	curl_setopt( $ch, CURLOPT_POST, 1 );
+	curl_setopt( $ch, CURLOPT_HEADER, 0 );
+	curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+	curl_setopt( $ch, CURLOPT_POSTFIELDS, json_encode($data) );
+	$res = curl_exec( $ch );
+	curl_close( $ch );
+	var_dump($res);
+	exit;
+}
+string(174) "{"_index":"logstash-2015.01.19","_type":"testlog","_id":"AVm23Cb5OxuqLwJhr1YI","_version":1,"result":"created","_shards":{"total":2,"successful":1,"failed":0},"created":true}"

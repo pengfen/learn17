@@ -1,0 +1,56 @@
+elastic 安装
+-----------------------------------------------
+https://www.elastic.co/downloads/elasticsearch 下载 tar.gz包
+
+mkdir /opt/elastic
+将tar.gz包上传到/opt/elastic目录下
+cd  /opt/elastic
+tar -zxvf elasticsearch-5.1.1.tar.gz
+cd elasticsearch-5.1.1
+
+新建用户 (使用root用户会报错 can not run elasticsearch as root)
+useradd apeng
+passwd apeng
+
+组目录添加用户权限 (不然会报错 could not register mbeans : access denied)
+cd /opt/elastic
+sudo chown -R apeng elasticsearch-5.1.1
+sudo chgrp -R apeng elasticsearch-5.1.1
+cd /opt/
+sudo chown -R apeng es
+sudo chgrp -R apeng es
+
+max file descriptors[4096] for elasticsearch likely to low, increase to al least [65536]
+无法创建本地文件问题
+
+vi /etc/security/limits.conf #添加以下内容 (* 指所有用户)
+* soft nofile 65536
+* hard nofile 131072
+* soft nproc 2048
+* hard nproc 4096
+
+max number of threads [1024] for user [es] likely too low, increase to at least[2048]
+无法创建本要线程问题
+vi /etc/security/limits.d/90-nproc.conf
+* soft nproc 1024 ---> * soft nproc 2048
+
+max virtual memory areas vm.max_map_count [65530] likely too low, increase to at least [262144]
+最大虚拟内存大小
+vi /etc/sysctl.conf #添加以下内容
+vm.max_map_count=655360
+修改后并执行命令
+sysctl -p
+
+unable to install syscall filter
+警告 (linux系统版本过低)
+
+su apeng
+cd /opt/elastic/elasticsearch
+vim config/el.yml
+path.data: /opt/es/data
+path.logs: /opt/es/logs
+network.host: 192.168.233.132
+http.port: 9200
+
+bin/elasticsearch
+页面访问 192.168.233.132:9200

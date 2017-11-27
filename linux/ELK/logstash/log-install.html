@@ -1,0 +1,65 @@
+logstash 安装
+
+yum 方式安装
+------------------------------------------
+java -version 检测环境是否安装java
+rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
+vi /etc/yum.repos.d/logstash.repo
+[logstash-5.x]
+name=Elastic repository for 5.x packages
+baseurl=https://artifacts.elastic.co/packages/5.x/yum
+gpgcheck=1
+gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
+enabled=1
+autorefresh=1
+type=rpm-md
+
+sudo yum install logstash
+
+手动安装
+------------------------------------------
+https://www.elastic.co/downloads/logstash 下载 tar.gz包
+
+mkdir /opt/logstash
+将tar.gz包上传到/opt/logstash目录下
+cd /opt/logstash
+tar -zxvf logstash-5.1.1.tar.gz
+cd logstash-5.1.1
+
+第一个事件
+------------------------------------------
+bin/logstash -e 'input { stdin { } } output { stdout {} }'
+the stdin plugin is now waiting for input: #控制台提示输入
+welcome to logstash world
+2016-12-05T08:04:32.142Z 0.0.0.0 hello welcome to logstash world
+
+bin/logstash -e 'input{stdin{}}output{stdout{codec=>rubydebug}}'
+welcome to logstash world
+{
+    "@timestamp" => 2016-12-05T11:51:12.840Z,
+      "@version" => "1",
+          "host" => "0.0.0.0",
+       "message" => "welcome to logstash world",
+          "tags" => []
+}
+
+@timestamp 标记事件的发生时间
+message 客户端输入信息
+host 标记事件发生在哪里
+tags 标记事件的某方面属性
+
+使用配置文件
+------------------------------------------
+vi logstash.conf #注意换行
+
+input {stdin {}}
+output {stdout {codec => rubydebug {}}}
+bin/logstash -f logstash.conf
+welcome to logstash world
+{
+    "@timestamp" => 2016-12-05T11:51:12.840Z,
+      "@version" => "1",
+          "host" => "0.0.0.0",
+       "message" => "welcome to logstash world",
+          "tags" => []
+}

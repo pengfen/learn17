@@ -1,0 +1,25 @@
+stdout 标准输出
+
+vi file.conf
+input { stdin { } }
+filter { }
+output { stdout { } }
+
+bin/logstash -f file.conf
+welcome # 输入
+2016-12-06T05:01:27.056Z 0.0.0.0 welcome # 输出
+
+vi logstash.conf
+input { stdin { } }
+filter { }
+output { stdout { codec => rubydebug { } } }
+
+bin/logstash -f logstash.conf
+welcome # 输入
+{
+    "@timestamp" => 2016-12-06T05:07:33.662Z,
+      "@version" => "1",
+          "host" => "0.0.0.0",
+       "message" => "welcome",
+          "tags" => []
+}

@@ -1,0 +1,56 @@
+1.下载yii
+-----------------------------------------------
+直接解压yii压缩包 (E:\log) 并执行 init.bat
+配置项目访问路由 (E:\files\xampp\apache\conf\extra\httpd-vhost.conf)
+<VirtualHost *:80>
+    DocumentRoot "E:\log\frontend\web"
+    ServerName dev.log.com
+    <Directory "E:\log\frontend\web">
+        Options Indexes FollowSymLinks
+        Order Deny,Allow
+        Allow from all
+    </Directory>   
+</VirtualHost>
+配置主机 (C:\Windows\System32\drivers\etc)
+127.0.0.1 dev.log.com
+
+2.安装插件
+-----------------------------------------------
+安装 yii + elasticsearch
+打开cmd 进入E盘 e: 
+E:\>cd log
+composer require --prefer-dist yiisoft/yii2-elasticsearch
+修改配置 (common/config/main-local.php) 配置components子元素
+'elasticsearch' => [
+    'class' => 'yii\elasticsearch\Connection',
+    'nodes' => [
+        ['http_address' => '192.168.233.132:9200'],
+    ],
+],
+
+3.添加数据
+-----------------------------------------------
+使用脚本向 elasticsearch 中添加数据
+编写models (log.php)
+<?php
+
+namespace frontend\models;
+
+use yii\elasticsearchn\ActiveRecord;
+
+class Log extends ActiveRecord
+{
+	public function attributes()
+	{
+		return ['id', 'today', 'month', 'all', 'create_time', 'create_timestamp'];
+	}
+}
+
+编写controller (LogController.php)
+
+
+4.读取数据
+-----------------------------------------------
+
+5.js画图
+-----------------------------------------------

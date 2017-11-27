@@ -1,0 +1,26 @@
+-e 执行
+bin/logstash -e 与 bin/logstash -e 'input{}output{}'相同
+
+-config或-f 执行配置文件
+vi logstash.conf
+
+input {stdin {}}
+output {stdout {codec => rubydebug {}}}
+bin/logstash -f logstash.conf
+
+-t 测试  读取配置文件语法是否能正常解析
+bin/logstash -t logstash.conf
+
+-log或-l 日志  默认输出日志到标准错误
+bin/logstash -l logs/logstash 统一存储日志
+
+-filterworker或-w  工作线程  
+bin/logstash -w 5 运行过滤插件的5个线程
+不支持输入插件的多线程
+输出插件的多线程
+
+-pluginpath或-P 自己写的插件 bin/logstash -plugingpath /path/to/own/plugins 加载它们
+
+-verbose 输出一定的调试日志 bin/logstash -v
+
+-debug 输出更多的调试日志 bin/logstash -vv

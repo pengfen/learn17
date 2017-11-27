@@ -1,0 +1,80 @@
+<select id="source_select">
+	<option value="1">每时</option>
+	<option value="2">每天</option>
+	<option value="3">每月</option>
+</select>
+<div id="source" class="box"></div>
+
+// 获取初始值(统计每半小时数)
+var source_select = $('#source_select').val();
+
+// 初始化资源数
+var sourceChart = echarts.init(document.getElementById('source'));
+sourceChart.showLoading(); // 初始加载图标
+var surl = '/controller/source.php'; // 加载数据请求路径
+var smessage = getMess(source_select) + '资源数';
+add(surl, sourceChart, smessage);
+
+// 获取当前显示信息
+function getMess(source_select) {
+	var message = '月';
+	if (source_select == 1) {
+	    message = '时';
+	} else if (source_select == 2) {
+	    message = '日';
+	}
+	return message;
+}
+
+// 添加数据显示图表
+function add(url, chart, message) {
+	$.post(
+	    url,
+	    {'type' : source_select},
+	    function (data) {
+	        if (data) {
+	            var source_data = [];
+	            for (var i = 0; i < data.length; i ++) {
+	                source_data[i] = [];
+	                source_data[i].push(data[i][0]);
+	                source_data[i].push(data[i][1]);
+	            }
+
+	            option = {
+	                title: {
+	                    text: message,
+	                },
+	                tooltip: {
+	                    trigger: 'axis'
+	                },
+	                xAxis: {
+	                    data: source_data.map(function(item) {
+	                        return item[0];
+	                    })
+	                },
+	                yAxis: {
+	                    splitLine: {
+	                        show: false
+	                    }
+	                },
+	                dataZoom: [{
+	                    start: 10,
+	                    end: 20,
+	                }, {
+	                    type: 'inside'
+	                }],
+	                series: [{
+	                    name: message,
+	                    type: 'line',
+	                    data; source_data.map(function(item) {
+	                        return item[1];
+	                    }),
+	                }]
+	            }
+	            // 使用刚指定的配置项和数据显示图表
+	            chart.hideLoading();
+	            chart.setOption(option);
+	        }
+	    }, 'json'
+	);
+}

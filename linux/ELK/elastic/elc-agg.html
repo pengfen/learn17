@@ -1,0 +1,4 @@
+聚合(aggregations) 允许你在数据上生成复杂的分析统计
+
+curl -XGET -u elastic http://192.168.233.132:9200/eauths/employee/_search -d '{"aggs" : {"all_interests" : {"terms" : {"field": "interests"}}}}'
+# 有错误 (可能版本不兼容)

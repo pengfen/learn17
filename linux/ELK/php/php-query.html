@@ -1,0 +1,20 @@
+查询数据
+
+xshell 查询数据
+curl -XGET http://192.168.233.132:9200/logstash-2015.01.19/testlog/AVm23Cb5OxuqLwJhr1YI
+
+php 查询数据
+public function actionQuery() {
+	$url = 'http://192.168.233.132:9200/logstash-2015.01.19/testlog/AVm23Cb5OxuqLwJhr1YI';
+	$ch = curl_init();
+	curl_setopt( $ch, CURLOPT_URL, $url );
+	curl_setopt( $ch, CURLOPT_HEADER, 0 );
+	curl_setopt( $ch, CURLOPT_REFURNTRANSfer, 1);
+	$res = curl_exec( $ch );
+	curl_close( $ch );
+	$data = json_decode($res, true);
+	var_dump( $data );
+	exit;
+}
+http://192.168.199.28:50000/index.php?r=test/query
+array(6) { ["_index"]=> string(19) "logstash-2015.01.19" ["_type"]=> string(7) "testlog" ["_id"]=> string(20) "AVm23Cb5OxuqLwJhr1YI" ["_version"]=> int(1) ["found"]=> bool(true) ["_source"]=> array(3) { ["date"]=> int(1484802798) ["user"]=> string(7) "welcome" ["mes"]=> string(15) "welcome to here" } }

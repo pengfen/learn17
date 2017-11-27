@@ -1,0 +1,68 @@
+输入插件 input{}
+
+标准输入 stdin input{stdin{}}
+---------------------------------------------------------
+stdin{
+	add_field => {"key" => "value"}
+	codec => "plain"
+	tags => ["add"]
+	type => "std"
+}
+type 标记事件类型
+tags 在数据处理过程中 由具体的插件来添加或删除
+codec 解码编码
+logstash 处理流程
+input ---> decode ---> filter ---> encode ---> output
+plain是一个空的解析器 它可以让用户自己指定格式
+codec => plain
+如果事件数据是json格式 可以加入 codec => json来进行解析
+codec => json
+tcp {codec=>json_lines{#如果你的json文件比较长 需要换行那么就需得到json_lines的编码方式}}
+将采用ruby awsome print 库来解析日志
+codec => rubydebug
+multiline多行事件编码 有时候有的日志会用很多行去展现 这么多行其实都是一个事件 比如JAVA的异常日志
+codec => multiline {
+	charset => ...      # 字符编码 可选
+	max_bytes =>        # bytes 类型 设置最大的字节数 可选
+	max_lines =>        # number类型 设置最大的行数 默认是500行 可选
+	multiline_tag =>    # string类型 设置一个事件标签 默认是“multiline” 可选
+	pattern => ...      # string类型 设置匹配的正则表达式 必选
+	patterns_dir => ... # array类型 可以设置多个正则表达式 可选
+	negate => ...       # boolean类型 设置正向匹配还是反向匹配 默认是false 可选
+	what => ...         # 设置未匹配的内容是向前合并还是向后合并 previous next 两个值选择 必选
+}
+
+文件输入
+---------------------------------------------------------
+file {
+	path => ["/var/log/*.log", "/var/log/message"]
+	type => "system"
+	start_position => "beginning"
+}
+可配置项
+discover_interval logstash每隔多久去检查一次被监听的path下是否有新文件 默认值是 15秒
+exclude 不想被监听的文件可以排除出去 这里跟path一样支持glob展开
+close_older 一个已经监听中的文件 如果超过这个值的时间内没有更新内容 就关闭监听它的文件句柄 默认是3600秒 即一小时
+ignore_older 在每次检查文件列表的时候 如果一个文件的最后修改时间超过这个值 就忽略这个文件 默认是86400秒 即一天
+sincedb_path 如果你不想用默认的 $HOME/.sincedb(windows平台上为%USERPROFILE%\.sincedb 该变量默认值是 c:\windows\system32\config\systemprofile) 可以通过这个配置定义sincedb文件到其他位置
+.sincedb的数据库文件来跟踪被监听日志文件的当前读取位置
+sincedb_write_interval logstash每隔多久写一次sincedb文件 默认是15秒
+stat_interval logstash每隔多次检查一次被监听文件状态(是否有更新) 默认是1秒
+start_position logstash从什么位置开始读取文件数据 默认是结束位置 也就是说logstash进程会以类似 tail -f 的形式运行 如果你是要导入原有数据 把这个设定改成 beginning logstash进程就从头开始读取 类似less +F的形式运行
+
+vi file.conf
+input {
+	file {
+	    path => "/var/log/yum.log"
+	    start_position => "beginning" #从文件开始处读写
+	}
+	#stdin{} #可以从标准输入读数据
+}
+filter {}
+output { stdout { } }
+
+syslog输入
+---------------------------------------------------------
+
+tcp输入
+---------------------------------------------------------

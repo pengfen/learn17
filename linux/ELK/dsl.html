@@ -1,0 +1,19 @@
+get /_search
+{
+"query":{"match":{"message":"this is a test"}}
+}
+
+get /_search
+{"query":{"match":{"message":{"query":"this is a test","operator":"and"}}}}
+
+get /_search
+{"query":{"match":{"message":{"query":"to be or not to be", "operator":"and","zero_terms_query":"all"}}}}
+
+get /_search
+{"query":{"match":{"message":{"query":"to be or not to be","cutoff_frequency":0.001}}}}
+
+post _search
+{"query":{"term":{"user":"jack"}}}
+
+get _search
+{"query":{"bool":{"should":[{"term":{"status":{"value":"urgent","boost":2.0}}},{"term":{"status":"normal"}}]}}}

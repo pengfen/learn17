@@ -1,0 +1,35 @@
+老版本 bin/plugin list 查看本机有多少插件可用
+新版本 bin/logstash-plugin list
+
+安装插件 bin/logstash-plugin install plugin_name
+更新插件 bin/logstash-plugin update plugin_name
+
+运行方式
+-----------------------------------
+标准的service方式 如service mysqld start
+采用rpm deb发行包安装的可以用service来运行
+rpm例 /etc/init.d/logstash脚本中 会加载/etc/init.d/functions库文件 利用其中的daemon函数 将logstash进程作为后台程序运行
+将配置文件放在/etc/logstash/目录下(以.conf结尾的文件) 然后运行service logstash start
+
+nohup运行
+nohup永久执行 &后台运行
+如 nohup command > /var/log &
+nohup运行命令可以使命令永久的执行下去 和用户终端没有关系 如断开SSH连接都不会影响它的运行机制
+&后台运行 当用户挂起的时候 命令自动退出
+nohup COMMAND &  使命令永久的在后台执行
+
+使用daemontools方式
+yum -y install supervisord --enablerepo=epel
+vi /etc/supervisord.conf
+[program:log_1]
+environment=LS_HEAP_SIZE=5000m
+directory=/opt/logstash
+command=/opt/logstash/bin/logstash -f /etc/logstash/index.conf -w 10 -i /var/log/logstash/log1.log
+[program:log_2]
+environment=LS_HEAP_SIZE=5000m
+directory=/opt/logstash
+command=/opt/logstash/bin/logstash -f /etc/logstash/index.conf -w 10 -i /var/log/logstash/log2.log
+
+service supervisord start
+启动某一个进程
+supervisord stop log_2

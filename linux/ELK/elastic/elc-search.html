@@ -1,0 +1,47 @@
+检索文档
+
+检索单个员工
+-----------------------------------------
+GET /eauths/employee/1
+curl -XGET -u elastic http://192.168.233.132:9200/eauths/employee/1
+[root@peng5 elasticsearch-5.1.1]# curl -XGET -u elastic http://192.168.233.132:9200/eauths/employee/1?pretty
+eauths/employee/1 # 查询的数据是串 
+eauths/employee/1?pretty # 查询的数据经过修饰 ---> print_r
+{"_index":"eauths","_type":"employee","_id":"1","_version":1,"found":true,"_source":{"first_name" : "cao", "last_name" : "peng", "age" : 28, "about" : "welcome to kibana", "interests" : ["sports", "music"]}}
+浏览器访问 http://192.168.233.132:9200/eauths/employee/1
+
+简单搜索
+-----------------------------------------
+[root@peng5 elasticsearch-5.1.1]# curl -XGET -u elastic http://192.168.233.132:9200/eauths/employee/_search
+Enter host password for user 'elastic':
+{"took":71,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":3,"max_score":1.0,"hits":[{"_index":"eauths","_type":"employee","_id":"2","_score":1.0,"_source":{"first_name" : "peng", "last_name" : "cao", "age" : 28, "about" : "welcome to logstash", "interests" : ["music"]}},{"_index":"eauths","_type":"employee","_id":"1","_score":1.0,"_source":{"first_name" : "cao", "last_name" : "peng", "age" : 28, "about" : "welcome to kibana", "interests" : ["sports", "music"]}},{"_index":"eauths","_type":"employee","_id":"3","_score":1.0,"_source":{"first_name" : "elastic", "last_name" : "search", "age" : 30, "about" : "welcome to elasticsearch", "interests" : ["forestory"]}}]}}
+http://192.168.233.132:9200/eauths/employee/_search/
+
+http://192.168.233.132:9200/eauths/employee/_search?q=peng&pretty (#可搜索二条记录)
+http://192.168.233.132:9200/eauths/employee/_search?q=last_name:peng&pretty
+
+DSL语句查询
+-----------------------------------------
+DSL(Domain Specific Language特定领域语言)
+
+查询字符串搜索便于通过命令行完成特定(ad hoc)的搜索 但是它也有局限性
+Elasticsearch提供丰富且灵活的查询语言叫做DSL查询(Query DSL) 它允许你构建更加复杂 强大的查询
+
+curl -XGET -u elastic http://192.168.233.132:9200/eauths/employee/_search -d '{"query": {"match" : {"last_name" : "peng"}}}'
+与以下语句结果相同
+curl -XGET -u elastic http://192.168.233.132:9200/eauths/employee/_search?q=last_name:peng
+
+更复杂的搜索
+-----------------------------------------
+first_name为elastic age=30
+curl -XGET -u elastic http://192.168.233.132:9200/eauths/employee/_search -d '{"query": {"filtered": {"filter": {"range": {"age": {"gt": 30}}}, "query": {"match" : {"first_name": "elastic"}}}}'
+会出现错误 (可能版本不兼容)
+
+全文搜索
+-----------------------------------------
+curl -XGET -u elastic http://192.168.233.132:9200/eauths/employee/_search -d '{"query" : {"match" : {"about" : "peng"}}}'
+
+短语搜索
+-----------------------------------------
+相要确切的匹配若干个单词或者短语(phrases) 将match查询变更为match_phrase查询
+curl -XGET -u elastic http://192.168.233.132:9200/eauths/employee/_search -d '{"query" : {"match_phrase" : {"about" : "peng"}}}'

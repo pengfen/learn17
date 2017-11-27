@@ -1,0 +1,25 @@
+<?php
+
+use Elasticsearch\Clientbuilder;
+
+$hosts = ['192.168.8.173:9200'];
+$client = ClientBuilder::create()->setHosts($hosts)->build();
+
+$params = [
+    'index' => 'source-logs',
+    'type' => 'source-log',
+    'body' => [
+        'query' => [
+            'range' => [
+                'today' => [
+                    'gt' => '20161214',
+                    'lte' => '20161216'
+                ]
+            ]
+        ],
+        'sort' => ['create_timestamp' => 'desc'], // asc 升序 desc 隆序
+        'size' => 20
+    ]
+];
+
+$response = $client->search($params);

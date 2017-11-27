@@ -1,0 +1,24 @@
+<?php
+
+require 'vendor/autoload.php';
+
+use Elasticsearch\ClientBuilder;
+
+$hosts = ['192.168.8.173:9200'];
+$client = ClientBuilder::create()->setHosts($hosts)->build();
+
+// 默认的standard analyzer分词规则 去掉在部分标点符号 并以此分割原词为多个词 把分割后的词转为小写放入token组中 对于not-analyzed的词 直接把原词放入token组中
+// matchQuery 的机制是 先检查字段类型是否是analyzed 如果是 则先分词 再去匹配token 如果不是则直接去匹配token
+// termQuery的机制是 直接去匹配token
+$params = [
+    'index' => 'source-logs',
+    'type' => 'source-log',
+    'body' => [
+        'query' => [
+            'match' => ['create_time' => 14]
+        ],
+        'sort' => ['create_timestamp' => 'desc'],
+        'size' => 20
+    ]
+];
+$response = $client->search($params);

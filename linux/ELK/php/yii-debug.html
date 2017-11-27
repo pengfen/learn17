@@ -1,0 +1,11 @@
+修改配置
+
+'bootstrap' => ['debug'],
+'modules' => [
+    'debug' => 'yii\\debug\\Module',
+    'panels' => [
+        'elasticsearch' => [
+            'class' => 'yii\\elasticsearch\\DebugPanel',
+        ]
+    ]
+]

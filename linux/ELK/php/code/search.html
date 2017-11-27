@@ -1,0 +1,32 @@
+
+require 'vendor/autoload.php';
+
+use Elasticsearch\ClientBuilder;
+
+$hosts = [
+    '192.168.8.173:9200'
+];
+$client = ClientBuilder::create()->setHosts($hosts)->build();
+
+$params = [
+    'index' => 'source-logs',
+    'type' => 'source-log',
+    'body' => [
+        'query' => [
+            'filtered' => [
+                'filter' => [
+                    'range' => [
+                        'create_timestamp' => [
+                            'gt' => '1481671800',
+                            'lt' => '1481798000'
+                        ]
+                    ]
+                ]
+            ]
+        ],
+        'size' => 20 // 每次返回查询的记录总数 默认每次查询十条数据
+    ]
+];
+$response = $client->search($params);
+
+// 查询二个时间段中的二十条记录数
