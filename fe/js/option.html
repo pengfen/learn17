@@ -1,0 +1,35 @@
+option 加载数据
+
+// 获取被转派小组成员
+$('select[name="be_team"]').change(function() {
+    var obj = $(this);
+    getTeamUser(obj, 'send_user', true);
+});
+
+// 根据对应的组获取对应的成员
+function getTeamUser(obj, name, flag) {
+    var id = obj.val();
+    if (flag == true) { // 置空数据
+        $('.te2').find('span').text(0);
+        $('.te2').find('input').val(0);
+    }
+    
+    if (id == 0) { // 加载数据
+        obj.next("select[name=" + name + "]").html('<option value="0">请选择员工</option>');
+        return false;
+    }
+    if (id) {
+        $.post('', {'id' : id, 'state' : 3}, 
+            function(data) {
+                // option加载数据时可以使用 hmtl 来加载 
+                // 也可以使用append来加载 使用append加载时使用remove清除数据(除第一个元素以外的所有数据) $('select[name=""] option:gt(0)').remove();
+                var groupMemberOpts = '<option value="0">请选择员工</option>';
+                for (var i=0; i < data.length; i++) {
+                    groupMemberOpts += "<option value=" + data[i].uid + ">" + data[i].name +"</option>";
+                }
+
+                //obj.next("select[name=" + name + "] option:gt(0)").remove(); //清除以前option
+                obj.next("select[name=" + name + "]").html(groupMemberOpts);
+            }, 'json');
+    }
+}

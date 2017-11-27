@@ -1,0 +1,26 @@
+#对searchform表单数据进行系列化 (常用于参数过多的情况)
+var data = $("#searchform").serializeArray();
+data = JSON.stringify(data);
+
+// 针对 IE8 进行转码
+if(navigator.userAgent.indexOf("MSIE") > 0)  {
+    if(navigator.userAgent.indexOf("MSIE 8.0") > 0) { 
+        eval(" var data = '" + data +"';");
+    }  
+} 
+        
+$.post("{:U('')}", {'data' : data, 'state' : 3},
+function(data) {
+    console.log(data);
+});
+
+php端处理js数据
+$data = json_decode(stripslashes($_POST['data']),true);
+$arr = array();
+// 对系列化的数据进行重组 
+// array(0 => array('name' => 'key', 'value' => 'value')) 
+// array('key' => 'value')
+foreach ($data as $val) {
+    $arr[$val['name']] = $val['value'];
+}
+exit;

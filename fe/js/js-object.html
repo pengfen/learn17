@@ -1,0 +1,43 @@
+// 定义对象
+var options = {11:"市场一部",12:"市场二部",13:"市场三部",14:"市场四部",15:'市场五部',16:'市场六部',17:'市场七部',18:'市场八部'};
+
+// 调用函数
+$('slector').func_name(options, ...);
+
+(function(){
+  $.fn.extend({
+      func_name: function(options, ...) {
+          $.each(options, function(i, n){
+              // i 对象属性名
+              // n 对象属性值
+          });
+      }
+  });
+})(jQuery);
+
+----------------------------------------------
+var data = {}; // 定义一个对象 (用于存放数据)
+data.id = id;
+data.name = name;
+data.parent = parent;
+data.route = route;
+data.display = display;
+data.order = order;
+
+var method_arr = []; // 定义数组用于存放所有的方法
+
+// 获取修改方法的数据
+$('input[name="method_name"]').each(function(i) {
+    var method = {}; // 定义用于存放方法数据
+    var id = $(this).parent().nextAll('input[name="method_id"]').val();
+    var name = $(this).val();
+    var route = $(this).parent().next('span').children().val();
+    method.id = id;
+    method.name = name;
+    method.route = route;
+    method_arr.push(method);
+});
+data.method = method_arr; 
+
+data 作为参数传至后台 控制器中直接处理数组
+array('data' => array('id' => 1, 'name' => '系统首页', 'parent' => 0, 'route' => 'home/index', 'display' => 1, 'order' => 1, 'state' => 0, 'method' => array('id' => 1057, 'name' => '全部数据', 'route' => 'q020001_all')))

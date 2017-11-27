@@ -1,0 +1,235 @@
+一 感受angularJS的四大核心特性
+二 MVC 模块化与依赖注入 双向数据绑定 指令 Service Provider 表单
+三 核心原理解析 Parser 双向数据绑定 依赖注入
+四 ng控件开发 用AngularJS改写JQuery控件 angularjs-ui 移动控件库ionic
+五 TDD和前端自动化测试 TDD 详解Jasmine与Protractor
+
+四大核心特性 MVC 模块化 指令系统 双向数据绑定
+M(Model) --- C(Controller) --- V(View)
+起源 1979年 Trygve Reenskaug第一次正式提出了MVC模式
+Model 数据模型层
+View 视图层 负责展示
+Controller 业务逻辑和控制逻辑
+好处 职责清晰 代码模块化
+问题 为什么二十三种设计模式里面没有MVC
+
+模块化Module
+Module(Config Routes Filter Directive Factory Service Provider
+Value Controller)
+
+目前大多数前端框架都是单向数据绑定 JQueryUI BackBone
+
+思考三个问题
+为什么其它所有前端框架都不实现双向数据绑定
+如果让你来实现双向数据绑定 你会怎么去实现
+双向数据绑定机制有什么潜在的缺点吗
+
+代码编辑器
+断点调试工具
+版本管理工具
+代码合并和混淆工具 grunt
+依赖管理工具 bower
+单元测试工具
+集成测试工具
+
+grunt
+JS文件合并
+JS代码自动压缩
+每次Ctrl+S的时候自动招待以上动作 
+还可以每次Ctrl+S自动运行单元测试 集成测试工具
+
+bower
+自动安装依赖的组件
+组件之间的依赖检测
+版本兼容性自动检测
+
+http-server
+一款简单的http-sever
+基于NodeJS的HTTP接口
+
+karma 一款用来跑测试用例的runner
+jasmine 类似Java里面的JUnit 提供了一套语法 用来编写测试用例
+
+专门为AngularJS定制的测试工具 Protractor
+Protractor 是一款集成测试工具 专门为AngularJS应用而设计
+Protractor 基于WebDriverJS 
+原理 利用WebDriverJS 可以借助于NodeJS直接调用浏览器的接口
+
+MVC
+为什么需要MVC (代码规模越来越大 切分职责是大势所趋 为了复用:很多逻辑是一模一样的 为了后期限维护方便 修改一块功能不影响其它功能  MVC只是手段 终极目标是模块化和复用)
+前端MVC的困难在哪里 (浏览器加载脚本 --- 加载完成之后JIT编译招待
+操作DOM的代码必须等待整个页面全部加载完成 多个JS文件之间互相依赖 程序员必须自己解决 JS的原型继承也给前端带来了很我困难)
+AngularJS语境下的MVC是如何实现的
+
+Controller 使用过程中的注意点
+不要试图去复用Controller 一个控制器一般只负责一小块视图
+不要在Controller中操作DOM 这不是控制器的职责
+不要在Controller里面做数据格式化 ng有很好用的表单控件
+不要在Controller里面做数据过滤操作 ng有$filter服务
+一般来说 Controller是不会互相调用的 控制器之间的交互会通过事件进行
+
+神奇的$scope
+$scope是一个POJO(Plain Old JavaScript Object)
+$scope提供了一些工具方法$watch()/$apply()
+$scope是表达式的执行环境(或者叫作用域)
+$scope是一个树型结构 与DOM标签平行
+子$scope对象会继承父$scope上的属性和方法
+每一个Angular应用只有一个根$scope对象(一般位于ng-app上)
+$scope可以传播事件 类似DOM事件 可以向上也可以向下
+$scope不仅是MVC的基础 也是后面实现双向数据绑定的基础
+可以用angular.element($0).scope()进行调试
+
+ng官方推荐的模块切分方式 
+app(controllers directives services routes filters)
+任何一个ng应用都是由控制器 指令 服务 路由 过滤器等有限的模块类型构成的
+控制器 指令 服务 路由 过滤器分别放在一个模块里面(可借助于grunt合并)
+用一个总的app模块作为入口点 它依赖其它所有模块
+
+取值表达式与ng-bind指令
+双向绑定的典型场景 --- 表单
+动态切换标签样式
+ng-snow ng-hide
+ng-class
+
+Ajax请示不会留下History记录
+用户无法直接通过URL进入应用中的指定页面(保存书签 链接分享给朋友)
+Ajax对SEO是个灾难
+
+前端路由的基本原理
+哈希#
+HTML5中新的history API
+路由的核心是给应用定义 状态
+使用路由机制会影响到应用的整体编码方式(需要预先定义好状态)
+考虑兼容性问题与 优雅降级
+
+解析最简单的指令hello:匹配模式restrict
+解析最简单的指令hello:template templateUrl $templateCache
+解析最简单的指令hello:replace与transclude
+comile与link (操作元素 添加CSS样式 绑定事件)
+指令与控制器之间的交互
+指令间的交互
+scope的类型与独立scope
+scope的绑定策略
+
+AngularJS内置的指令
+实例解析Expander
+实例解析Accordion
+指令的运行原理:compile和link
+总结 ERP类型的系统必备的UI组件
+总结 互联网/电商型系统必备的UI组件
+第三方指令库angular-ui
+Directive思想的起源和原理概述
+
+restrict --- 匹配模式
+
+E 元素 <my-menu title=Products></my-menu>
+A(默认) 属性 <div my-menu=Products></div>
+C 样式类 <div class=my-menu:Products></div>
+M 注释 <!-- directive:my-menu:Products -->
+推荐使用元素和属性的方式使用指令
+当需要创建带有自己的模板的指令时 使用元素名称的方式创建指令
+当需要为已有的HTML标签增加功能是 使用属性的方式创建指令
+
+compile与link
+加载阶段 加载angular.js 找到ng-app指令 确定应用的边界
+编译阶段 遍历DOM找到所有指令 根据指令代码中template replace transclude转换DOM结构 如果存在compile函数则调用
+链接阶段 对每一条指令运行link函数 link函数一般用来操作DOM绑定事件监听器
+
+compile函数用来对模板自身进行转换 而link函数负责在模型和视图之间进行动态关联
+作用域在链接阶段才会被绑到编译之后的link函数上
+compile函数仅仅在编译阶段运行一次 而对于指令的每个实例 link函数都会执行一次
+compile可以返回preLink和postLink函数 而link函数只会返回postLink函数
+如果需要修改DOM结构 应该在postLink中来做这件事情 而如果在preLink中做这件事件会导致错误
+大多数时候我们只要编写link函数即可
+
+scope的绑定策略
+@把当前属性作为字符串传递 你还可以绑定来自外层scope的值 在属性值中插入{{}}即可
+=与父scope中的属性进行双向绑定
+&传递一个来自父scope的函数 稍后调用
+
+AngularJS内置的指令 --- 共63个
+a ngBind ngClick ngHref ngMouseenter ngRepeat script
+form ngBindHtml ngCloak nglf ngMouseleave ngSelected select
+input ngBindTemplate ngController ngInclude ngMousemove ngShow texrarea
+input[checkbox] ngBlur ngCopy ngInit ngMouseover ngSrc
+input[email] ngChange ngCsp ngKeydown ngMouseup ngSrcset
+input[number] ngChecked ngCut ngKeypress ngNonBindable ngStyle
+input[radio] ngClass ngDbiclick ngKeyup ngOpen ngSubmit
+input[text] ngClassEven ngDisabled ngList ngPaste ngSwitch
+input[url] ngClassOdd ngFocus ngModel ngPluralize ngTransclude
+ngApp   ngForm ngMousedown ngReadonly ngValue
+
+form指令
+HTML原生的form表单是不能嵌套的 而Angular封装之后的form可以嵌套
+Angular为form扩展了自动校验 防止重复提交等功能
+Angular对input元素的type进行了扩展 一共提供了以下十种类型
+text number url email radio checkbox hidden button submit reset
+Angular为表单内置了四种CSS样式 ng-valid ng-invalid ng-pristine ng-dirty
+内置校验器 require minlength maxlength
+
+angular-ui.github.io
+gallery.kissyui.com kissy gallery
+
+使用$http服务
+创建自己的Service
+Service的特性
+Service Factory Provider本质上都是Provider
+使用$filter服务
+其它内置的Service介绍
+
+
+---------------------------------------------------
+angular js 简介
+
+通过指令扩展 HTML 
+通过表达式绑定数据到 HTML
+
+相关指令 ng-directives ng-app ng-model ng-bind
+通过ng-directives扩展HTML 
+ng-app 指令定义一个 AngularJS应用程序
+ng-model 指令把元素值(比如输入域的值)绑定到应用程序
+ng-bind 指令把应用程序数据绑定到HTML视图
+
+angular 简单模板如下
+<!doctype html>
+<html ng-app>
+    <head>
+	    <meta charset="utf-8">
+	</head>
+	<body>
+	</body>
+	<script src="js/angular-1.3.0.js"></script>
+</html>
+
+// 示例 页面输入后也会自动绑定到文本域
+	    <div>
+		    <p>
+			名字： <input type="text" ng-model="name"/>
+			</p>
+			<h1>Hello {{name}}</h1>
+		</div>
+		
+// 示例 也可使用bind (可以使用data-ng-来让网页对html5有效)
+	<div no-app='' ng-init="firstName='John'">
+	<p>姓名为 <span ng-bind="firstName"></span></p>
+	</div>
+	
+// 示例 使用模块
+	<div ng-app="myApp" ng-controller="myCtrl">
+	名：<input type="text" ng-model="firstName"><br/>
+	姓: <input type="text" ng-model="lastName"><br/>
+	<br/>
+	姓名: {{firstName + " " + lastName}}
+	</div>
+	
+	// 使用脚本先应先加载文件
+	<script>
+	// 使用模块 对应页面中ng-app
+	var app = angular.module('myApp', []);
+	
+	// 模块控制器 对应ng-controller
+	app.controller('myCtrl', function($scope) {
+	    $scope.firstName = "John";
+		$scope.lastName = "Doe";
+	});
+	</script>

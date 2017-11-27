@@ -1,0 +1,125 @@
+1 编写 html 代码
+<input type="text" name="search" id='search' value="" autocomplete="off" placeholder="请输入搜索词">
+
+2 加载相关js资源文件
+<script type="text/javascript" src="<?=Url::to('@web/js/jquery-1.8.2.min.js')?>"></script>
+<script type="text/javascript" src="<?=Url::to('@web/js/jquery.autocomplete.min.js')?>"></script>
+
+3 编写补全测试代码 (不要将方法autocomplete方法编写到$(function(){})中)
+$('#search').autocomplete({
+    serviceUrl: 'index.php?r=site/expand',
+    onSelect: function (suggestion) {
+    	console.log('测试 ' + suggestion.value);
+    }
+});
+
+4 编写php代码 ()
+/**
+ * 搜索关联词 （使用迅搜）2016-12-12
+*/
+public function actionExpand() {
+    $complete = array(
+        array('value' => 'a'),
+        array('value' => 'ab'),
+        );
+
+    // 注意必须使用suggestions作为参数来传递
+    $data = array(
+            'suggestions' => $complete
+        );
+    echo json_encode($data);
+    exit;
+}
+
+5 页面测试
+输入a --- 程序会调用 autocomplete 方法 --- 调用路由 --- 加载数据
+
+
+项目中使用
+<input type="text" id="targetUserId" value="" autocomplete="off" placeholder="请输入投顾">
+
+js异步请求 (页面显示样式可在css文件中使用类autocomplete-suggestions来控制)
+$('#targetUserId').autocomplete({
+    serviceUrl: 'index.php?r=customer/get-target-user&prefix=<?=$prefix?>',
+    onSelect: function (suggestion) {
+        var form = $('#searchForm');
+        var text = suggestion.data; // 读取的是控制器中$complete['data']数据
+        $('input[name="targetUserId"]').val(text);
+        $('input[name="queryCond"]').val($('.query_sel_cond').html());
+        form.append($('.query_sel_cond').html());
+        form.submit();
+    }
+});
+
+控制路由
+public function actionGetTargetUser() { // 获取投顾补全数据
+    $get = Yii::$app->request->get(); // 获取get传参prefix=...&query=...
+    $prefix = $get['prefix'];
+    $user = UserBase::getAuthUser($prefix); // 获取投顾相关数据
+    $complete = [];
+    $q = $get['query']; // 获取页面输入框输入的参数
+    foreach ($user as $key => $value) {
+        if (stripos($value['name'], $q) !== false) {
+            $complete[$key]['value'] = $value['name'];
+            $complete[$key]['data'] = $value['uid'];
+        }
+        
+    }
+    $data = array('suggestions' => $complete);
+    echo json_encode($data);
+    exit;
+}
+
+使用 jquery-ui.min.js
+<input type="text" id="targetUserId" value="" placeholder="请输入投顾">
+
+js异步请求
+$('#targetUserId').autocomplete({
+    source : 'index.php?r=customer/get-target-user&prefix=<?=$prefix?>',
+    select: function( event, ui ) {
+        var form = $('#searchForm');
+        var text = ui.item.value;
+        $('input[name="targetUserId"]').val(text);
+        $('input[name="queryCond"]').val($('.query_sel_cond').html());
+        form.append($('.query_sel_cond').html());
+        form.submit();
+    }
+});
+
+控制器路由
+public function actionGetTargetUser() { // 获取投顾补全数据
+    $get = Yii::$app->request->get(); // 获取get传参prefix=...&query=...
+    $prefix = $get['prefix'];
+    $user = UserBase::getAuthUser($prefix); // 获取投顾相关数据
+    $complete = [];
+    $q = $get['term']; // 获取页面输入框输入的参数 query --- term
+    foreach ($user as $key => $value) {
+        if (stripos($value['name'], $q) !== false) {
+            $complete[$key]['label'] = $value['name']; 
+            $complete[$key]['value'] = $value['uid'];
+            // 下拉显示标签label input显示value值
+        }
+        
+    }
+    //$data = array('suggestions' => $complete);
+    echo json_encode($data);
+    exit;
+}
+
+// 绑定回车事件 (手动操作)
+$('#targetUserId').bind('keyup', function(event) {
+    if (event.keyCode == '13') {
+        var value = $(this).val();
+        for (var i = 0; i < user_id.length; i ++) {
+            var str = user_id[i].split('_');
+            if (str[0] == value) {
+                $('input[name="targetUserId"]').val(str[1]);
+                break;
+            }
+        }
+        var form = $('#searchForm');
+        $('input[name="queryCond"]').val($('.query_sel_cond').html());
+        form.append($('.query_sel_cond').html());
+        form.submit();
+    }
+});
