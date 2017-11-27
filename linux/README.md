@@ -1,31 +1,27 @@
-intro.html   linux简介
+intro.html    linux简介
 
-vm           vm安装 centos安装
+vi.html       vi编辑器
 
-vi.html      vi编辑器
+crontab.html  定时任务
 
-alias.html   别名的使用
+git.html      git
 
-crontab.html 定时任务
+install.html  软件安装
 
-git.html     git
+user.html     用户
 
-install.html 软件安装
-
-server       相关服务(apache nginx)
-
-command.html 相关命令
-
-user.html    用户
-
-scp.html     scp
+scp.html      scp
 
 iptables.html iptables
 
 scan.html     扫描
 
-ELK           ELK
-
 net.html      网络
 
-shell         shell
+io.html       输入输出
+
+相关目录
+vm            vm安装 centos安装  
+shell         shell  
+server        相关服务(apache nginx)  
+ELK           ELK
