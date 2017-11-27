@@ -27,3 +27,4 @@ arith    算法
 linux    系统  
 bigdata  大数据(hadoop spark)  
 ai       人工智能  
+work     工作总结
