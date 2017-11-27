@@ -1,0 +1,289 @@
+    iptables 
+
+    如何用 iptables 搭建一套强大的安全防护盾
+    什么是 iptables
+    常见于 linux 系统下的应用层防火墙工具
+
+    常用人员 系统管理人员 网络工程人员 安全人员等等
+
+    场景 模拟用 iptables 控制并发的 http 访问
+    目标机器 [IP2]10.10.163.233 客户端机器 [IP1]10.10.163.232
+
+    场景描述 IP1(通过 ab 命令) -> IP2(http服务)
+
+    如何用 iptables 搭建一套如何企业实际使用的防火墙规则
+    如何用 iptables 进行防攻击
+    如何利用 iptables 进行数据包转发
+    明白 iptables 的强大及实际使用意义
+
+    netfilter
+    什么是 netfilter
+    netfilter 是 linux 操作系统核心层内部的一个数据包处理模块
+
+    什么是 hook point
+    数据包在 netfilter 中的挂载点 (PRE_ROUTING INPUT OUTPUT FORWARD POST_ROUTING)
+
+    iptables 规则组成
+    组成部分 四张表 + 五条链 (Hook point) + 规则
+    四张表 filter 表 nat 表 mangle 表 raw 表
+    五条链 INPUT OUTPUT FORWARD PREROUTING POSTROUTING
+
+    filter 表 访问控制 规则匹配
+    nat    表 地址转发
+    mangle 表 修改数据包 改变包头中内容 (TTL TOS MARK)
+    raw    表 数据包的跟踪和分析
+
+    数据包访问控制 ACCEPT DROP REJECT
+    数据包改写 SNAT DNAT
+    信息纪录 LOG
+
+    iptables -v #查看 iptables 的版本号
+    iptables -L #查看 iptables 的规则
+    iptables -nL #-n 是让主机名等不显示出来
+    iptables -F #表示清除之前设置的规则
+    iptables -I INPUT -p tcp --dport 80 -j ACCEPT #允许访问 80 端口
+
+    iptables -nL #无规则时显示
+    Chain INPUT (policy ACCEPT)
+    target prot opt source destination
+
+    Chain FORWARD (policy ACCEPT)
+    target prot opt source destination
+
+    Chain OUTPUT (policy ACCEPT)
+    target prot opt source destination
+
+    iptables -I INPUT -p tcp --dport 80 -j ACCEPT #允许通过tcp协议访问 80 端口
+    iptables -nL #添加规则后显示
+    Chain INPUT (policy ACCEPT)
+    target prot opt source destination
+    ACCEPT tcp  --  0.0.0.0/0 0.0.0.0/0 tcp dpt:80
+
+    Chain FORWARD (policy ACCEPT)
+    target prot opt source destination
+
+    Chain OUTPUT (policy ACCEPT)
+    target prot opt source destination
+
+    iptables -I INPUT -p tcp --dport 80 -j ACCEPT #允许通过tcp协议访问 80 端口
+    iptables -I INPUT -p tcp --dport 10:21 -j ACCEPT #允许通过tcp协议访问 10 ~ 21 端口 
+    iptables -I INPUT -p icmp -j ACCEPT #允许通过icmp 协议访问
+    iptables -A INPUT -j REJECT #拒绝其它所有协议
+
+    nmap -sS -p 0-1000 10.10.163.233 #端口扫描 nmap 不是需要安装
+
+    存在问题
+    本机无法访问本机 (iptables -I INPUT -i lo -j ACCEPT) (telnet 127.0.0.1 22)
+    本机无法访问其他主机 (iptables -I INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT)
+    修改只允许 访问本机的 httpd 服务
+
+    只允许某一台主机访问 httpd 
+    iptables -D INPUT -p tcp --dport 80 -j ACCEPT #删除
+    iptables -nL
+    iptables -I INPUT -p tcp -s 10.0.0.0 --dport 80 -j ACCEPT #只允许某一个台主机访问
+    iptables -nL
+	
+	    利用 iptables 防 cc 攻击
+
+    connlimit 模块
+
+    作用 用于限制每一个客户端 ip 的并发连接数
+    参数 -connlimit-above n #限制并发个数
+    iptables -I INPUT -p tcp --syn --dport 80 -m connlimit --connlimit-above 100 -j REJECT
+    iptables -L
+
+    limit 模块
+    作用 限速 控制流量
+    iptables -A INPUT -m limit --limit 3/hour
+    --limit-burst 默认值为 5
+
+    iptables -A INPUT -p icmp -m limit --Limit 1/m --limit-burst 10 -j ACCEPT
+    iptables -A INPUT -p icmp -j DROP
+    iptables -nL
+
+    iptables 实例脚本
+    系统化的介绍 iptables 规则配置
+    相应介绍 iptables 中的其它模块
+    防攻击策略补充
+
+    vim example_iptables.sh -R
+    #iptables rules
+    ###### 清理 iptables 规则
+    modprode ipt_MASQUERADE
+    modprode ip_conntrack_ftp
+    modprode ip_nat_ftp
+    iptables -F
+    iptables -t nat -F
+    iptables -X
+    iptables -t nat -X
+
+    #########
+    iptables -P INPUT DROP
+    iptables -A INPUT -m state --state ESTABLISHED,RELATEED -j ACCEPT
+
+    iptables -A INPUT -i lo -j ACCEPT
+
+    iptables -A INPUT -p tcp -m multiport --dports 110,80,25 -j ACCEPT
+    iptables -A INPUT -p tcp -s 10.10.0.0/24 --dport 139 -j ACCEPT #pop3 端口 110 smtp 端口 25
+
+    iptables -A INPUT -i eth1 -p udp -m multiport --dports 53 -j ACCEPT
+
+    iptables -A INPUT -p tcp --dport 1723 -j ACCEPT
+    iptables -A INPUT -p gre -j ACCEPT
+
+    iptables -A INPUT -s 192.186.0.0/24 -p tcp -m state --state ESTABLISHED,RELATED -j ACCEPT
+    iptables -A INPUT -i ppp0 -p tcp --syn -m connlimit --connlimit-above 15 -j DROP #使用 iptables 的 connlimit 模块来限制同一个 ip 发起的连接个数
+
+    iptables -A INPUT -p icmp -j DROP
+
+    iptables -t nat -A POSTROUTING -o ppp0 -s 10.10.0.0/24 -j MASQUERADE #nat 转发
+
+    ####### 防syn 攻击
+    iptables -N syn-flood
+    iptables -A INPUT -p tcp --syn -j syn-flood
+    iptables -I syn-flood -p tcp -m limit --limit 3/s --limit-burst 6 -j RETURN
+    iptables -A syn-flood -j REJECT
+
+    iptables -P FORWARD DROP
+    iptables -A FORWARD -p tcp -s 10.10.0.0/24 -m multiport --dports 80,110,21,25,1723 -j ACCEPT
+    iptables -A FORWARD -p udp -s 10.10.0.0/24 --dport 53 -j ACCEPT
+    iptables -A FORWARD -p gre -s 10.10.0.0/24 -j ACCEPT
+    iptables -A FORWARD -p icmp -s 10.10.0.0/24 -j ACCEPT
+    
+    iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
+    iptables -I FORWARD -p udp --dport 53 -m string --string "tencent" -m time --timestart 8:15 --timestop 12:30 --days Mon,Tue,Wed,Thu,Fri,Sat -j DROP #防止上QQ
+
+    iptables -I FORWARD -p udp --dport 53 -m string --string "TENCENT" -m time --timestart 8:15 --timestop 12:30 --days Mon,Tue,Wed,Thu,Fri,Sat -j DROP
+
+    iptables -I FORWARD -p udp --dport 53 -m string --string "tencent" -m time --timestart 13:30 --timestop 20:30 --days Mon,Tue,Wed,Thu,Fri,Sat -j DROP
+
+    iptables -I FORWARD -p udp --dport 53 -m string --string "TENCENT" -m time --timestart 13:30 --timestop 20:30 --days Mon,Tue,Wed,Thu,Fri,Sat -j DROP
+
+    iptables -I FORWARD -p udp --dport 53 -m string --string "qq.com" -m time --timestart 8:15 --timestop 12:30 --days Mon,Tue,Wed,Thu,Fri,Sat -j DROP
+    iptables -I FORWARD -p udp --dport 53 -m string --string "qq.com" -m time --timestart 13:30 --timestop 20:30 --days Mon,Tue,Wed,Thu,Fri,Sat -j DROP
+
+    iptables -I FORWARD -s 10.10.0.0/24 -m string --string "ay2000.net" -j DROP
+    iptables -I FOREARD -d 10.10.0.0/24 -m string --string "eroticism" -j DROP
+
+    iptables -A FOREARD -m ipp2p --edk --kazaa --bit -j DROP
+
+    sysctl -w net.ipv4.ip_forward=1 &>/dev/null
+    sysctl -w net.ipv4.tcp_syncookies=1 &>/dev/null
+
+    iptables -I INPUT -s 10.10.0.50 -j ACCEPT
+    iptables -I FORWARD -s 10.10.0.50 -j ACCEPT
+
+	    ftp 主动模式下 iptables 的规则配置
+    ftp 被动模式下 iptables 的规则配置
+
+    iptables 对于 FTP 主动模式 (同一网段可以采用主动模式 在实际中大部分服务器与开发不在同一网段 常采用被动模式)
+    ftp 连接的默认模式为被动模式
+    vsftpd 服务支持主动模式需要注意配置选项 (vi /etc/vsftpd/vsftpd.conf)
+    port_enable=yes
+    connect_from_port_20=YES
+    iptables 需要开启 (/etc/init.d/vsftpd restart) 21 端口的访问权限
+    #iptables -I INPUT -p tcp -dport 21 -j ACCEPT
+
+    安装 vsftpd
+    yum install vsftpd
+    客户端安装 ftp 客户端
+    yum install ftp
+    服务端执行 iptables 命令 规则如下
+    iptables -F
+    iptables -I INPUT -p tcp --dport 21 -j ACCEPT
+    iptables -I INPUT -p tcp --dport 22 -j ACCEPT
+    iptables -I INPUT -p icmp -j ACCEPT
+    iptables -I INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+    iptables -A INPUT -j REJECT
+    iptables -nL
+    对比将 passive off 后 及设置成被动模式后 ftp 正常访问
+    iptables -I INPUT -p tcp --dport 20:21 -j ACCEPT
+
+    iptables 对于 ftp 被动模式
+    为 vsftpd 指定数据端口 并且通过 iptables 开放相应需要传输的端口段
+    iptables -I INPUT -p tcp --dport 21 -j ACCEPT
+    vim /etc/vsftpd/vsftpd.conf
+    pasv_min_port=50000
+    pasv_max_port=60000
+    iptables -I INPUT -p tcp --dport 50000:60000 -j ACCEPT
+
+    方式二 使用连接追踪模块
+    iptables -I INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+    iptables -I INPUT -p tcp --dport 21 -j ACCEPT
+    modprobe nf_conntrack_ftp #临时
+    vim /etc/sysconfig/iptables-config #开机自动加载
+    IPTABLES_MODULES="nf_conntrack_ftp"
+
+    场景三
+    要求一 员工在公司内部 (10.10.155.0/24, 10.10.188.0/24) 能访问服务器上的任何服务
+    要求二 当员工出差例如在上海 通过 VPN 连接到公司 外网 (员工) === 拨号到 ==> VPN服务器 ====> 内网FTP, SAMBA, NFS, SSH
+    要求三 公司有一个门户网站需要允许公网访问
+
+    常见端口
+    常见允许外网访问的服务
+    网站 www http 80/tcp
+             https 443/tcp
+    邮件 mail smtp 25/tcp
+              smtps 265/tcp
+              pop3 110/tcp
+              pop3s 995/tcp
+              imap 143/tcp
+
+    一些常用不允许外网访问的服务
+    文件服务器 NFS 123/udp
+               SAMBA 137,138,139/tcp 445/tcp
+               FTP 20/tcp,21/tcp
+    远程管理 SSH 22/tcp
+    数据库   MYSQL 3306/tcp
+             ORACLE 1521/tcp
+
+    配置规则基本思路
+    ACCEPT 规则 
+        允许本地访问
+        允许已监听状态数据包通过
+        允许规则中允许的数据包通过 (注意开放 ssh 远程管理端口)
+
+    DENY 规则 拒绝未被允许的数据包 (iptables 规则保存成配置文件)
+
+    iptables -I INPUT -i lo -j ACCEPT #允许本地访问
+    iptables -I INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT #允许已监听的数据包通过
+    iptables -L #查看
+    iptables -A INPUT -s 10.10.155.0/24 -j ACCEPT #允许155 网段的访问
+    iptables -A INPUT -p tcp --dport 80 -j ACCEPT #允许 80 端口
+    iptables -A INPUT -p tcp --dport 1723 -j ACCEPT #允许 1723 (vpn) 端口
+    iptables -I INPUT -p icmp -j ACCEPT #允许 icmp 协议
+    iptables -A INPUt -j REJECT #拒绝其它端口
+
+    telnet 测试
+    telnet IP 端口号
+
+    将规则保存到配置文件中
+    /etc/init.d/iptables save
+    vim /etc/init.d/iptables
+    chkconfig iptables on #开机启动
+    chkconfig --list | grep iptables
+
+    #将规则写进.sh 文件中
+    vim /opt/iptable_ssh.sh
+    /bin/sh /opt/iptable_ssh.sh
+    vim /etc/rc.local
+    /bin/sh /opt/iptable_ssh.sh
+	
+	    iptables 防火墙 nat 表规则配置
+    snat 源地址转换 出口 POSTROUTING
+    dnat 目标地址转换 进口 PREROUTING
+    netstat -luntp | grep 80
+
+    转发需要打开 
+    vim /etc/sysctl.conf
+    net.ipv4.ip_forward = 1
+    sysctl -p #执行
+    sysctl -a | grep ip_forward
+    iptables -t nat -A POSTROUTING -s 10.10.188.0/24 -j SNAT --to 10.10.199.0/24
+    iptables -t nat -L #查看 nat 表中的内容
+
+    netstat -rn
+    cat /etc/sysconfig/network 
+    GATEWAY=120... #添加路由
+    或是 route 添加
+    route add 0.0.0.0 gw 10.10.177.232
