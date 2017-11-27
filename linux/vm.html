@@ -13,6 +13,25 @@ F2 --- configuration --- Intel Virtualization Technology --- Enabled --- Exit(�
 选择DVD盘 --- 选择 install or upgrade an existing system --- 选择skip --- 
 选择中文(简体) --- 
 
+安装完 linux 系统后 初始化
+
+vim /etc/sysconfig/network-scripts/ifcfg-eth0 
+
+ONBOOT=no --- ONBOOT=yes
+
+:wq 保存退出
+
+service network restart
+ifconfig
+
+ls (root 家目录)
+anaconda-ks.cfg  install.log  install.log.syslog
+
+cd /usr/local (local目录下初始目录)
+ls 
+bin etc games include lib libexec sbin share src
+
+
 下载 https://www.centos.org/download/ 单击DVD ISO
 安装centos7
 Install Centos7 安装centos7

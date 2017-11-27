@@ -20,9 +20,10 @@ git remote add origin https://github.com/pengfen/learn17.git
 git push origin master
 
 相关目录
-fe 前端(html css js)
-be 后端(php python)
-data 数据(mysql redis mongodb)
-linux 系统
-bigdata 大数据(hadoop spark)
-ai 人工智能
+fe       前端(html css js)  
+be       后端(php python)  
+data     数据(mysql redis mongodb)  
+arith    算法  
+linux    系统  
+bigdata  大数据(hadoop spark)  
+ai       人工智能  
