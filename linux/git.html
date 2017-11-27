@@ -1,0 +1,161 @@
+新电脑上连接github
+
+    进入 git 客户端
+    ssh-keygen.exe 生成公钥 私钥 (第一次git连接github)
+    将公钥复制到 github ---> setting ---> ssh keys ---> add ssh keys
+	
+	cd /f/lavarel # 进入项目目录
+	git init
+    git remote add origin git@github.com:pengfen/linux.git #添加远程主分支
+	git pull origin master
+	
+	git add .
+	git commit -m "message"
+	git push origin master
+	
+	第二次使用
+	git init
+	...
+	git push
+	
+	
+	    git 的安装
+
+    liunx (centos) yum -y install git
+
+    windows 直接双击安装
+
+
+    连接 github
+    =========================
+    进入 git 客户端
+    ssh-keygen.exe 生成公钥 私钥 (第一次git连接github)
+    将公钥复制到 github ---> setting ---> ssh keys ---> add ssh keys
+    git remote add origin git@github.com:pengfen/linux.git #添加远程主分支
+    git clone git@github.com:pengfen/linux.git #复制远端代码到本地
+
+
+    获取主分支
+    ==========================
+    git checkout master 切换到主分支
+    git pull 拉主分支代码 
+    git pull origin master 当前分支下拉主分支
+
+
+    创建分支
+    ==========================
+    git branch peng_188 创建分支
+    git checkout peng_188
+    git checkout -b peng_188 创建并切换分支
+
+
+    查看分支
+    ==========================
+    git branch -a 查看所有分支
+    git branch
+    git status 查看当有修改文件
+
+    删除分支
+    ==========================
+    git branch -d peng_188 删除分支
+    git branch -D peng_188
+
+    提交分支
+    ==========================
+    git status
+    git add . 添加所有修改文件 (不包括删除文件)
+    git commit -m '提示信息'
+    git push origin peng_188 推送分支
+    git push (git fetch + git merge)
+    git diff 查看修改的地方
+    git diff branch_v1 branch_v2
+    git diff branch 查看当前目录与 branch分支不同的地方
+
+    add . (包括添加 修改文件) add --all (包括添加 修改 删除文件)
+    git add . #添加所有文件(包括新加的及修改的)
+    git add --all #添加所有文件(包括新加的 修改的及删除的)
+
+
+    git clone
+    ==========================
+    打开 git 客户端
+    cd /f
+    git clone https://github.com/pengfen/chatroom.git # 克隆项目代码到本地
+
+
+    其它
+    ==========================
+    git 提交时 单个文件最大允许 50M
+    超过 50M 会报错
+    remote: warning: File Linux从初学到精通.pdf is 65.30 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+
+
+    git pull -f git@github.com.... develop:develop
+	
+	
+github 上操作
+---------------------------------
+
+github 添加一个项目
+New Repository ---- Repository Name ---- Description ---- Create Repository
+本地建一个与之对应的目录
+git init
+目录中添加内容 (而不要直接 git pull origin master 空目录时会失效)
+
+
+
+github 删除一个项目
+https://github.com/pengfen/data
+settings ---> Delete this repository ---> Please type in the name of the repository to confirm [输入项目名] I understand the consequences, delete this repository
+
+
+
+github 多个开发
+1) 关注主分支
+2) 创建目录
+3) git clone 主分支
+4) 编写代码
+5) 提交
+6) New pull request 创建合并请求
+7) create pull request
+8) 合并请求
+9) git pull 代码操作 (先创建合并请求)
+
+git 操作时注意单个文件不要超过50M
+$ git push origin book_v1
+Counting objects: 3, done.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 65.05 MiB | 1.15 MiB/s, done.
+Total 3 (delta 1), reused 0 (delta 0)
+remote: warning: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.
+remote: warning: See http://git.io/iEPt8g for more information.
+remote: warning: File Linux从初学到精通.pdf is 65.30 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+To git@github.com:pengfen/linux.git
+ * [new branch]      book_v1 -> book_v1
+
+文件过大上传不了， 最大允许 50 M
+
+
+gitlab
+----------------------------------------------------
+https://mirror.tuna.tsinghua.edu.cn/help/gitlab-ce/
+
+gitlub安装
+sudo yum install curl openssh-server openssh-clients postfix cronie
+sudo service postfix start
+sudo chkconfig postfix on
+sudo lokkit -s http -s ssh
+
+curl -sS https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.rpm.sh | sudo bash
+
+[gitlab-ce]
+name=gitlab-ce
+baseurl=http://mirrors.tuna.tsinghua.edu.cn/gitlab-ce/yum/el6
+repo_gpgcheck=0
+gpgcheck=0
+enabled=1
+gpgkey=https://packages.gitlab.com/gpg.key
+
+sudo yum makecache
+sudo yum install gitlab-ce
