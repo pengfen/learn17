@@ -1,0 +1,55 @@
+安装 yii-xunsearch 插件 (composer安装)
+cmd --- 进入项目目录 (注意 vendor/composer 目录下添加了一些配置文件)
+composer require --prefer-dist hightman/xunsearch "*@beta"
+
+linux 
+cd /home/wwwroot/resource
+
+配置插件
+common/config/main.php
+'xunsearch' => [
+    'class' => 'hightman\xunsearch\Connection',
+    // 搜索 ini 文件目录  默认@vendor/hightman/xunsearch/app
+    'iniDirectory' => '@common/config',
+    // 指定项目使用的默认编码 默认即是 utf-8 可不指定
+    'charset' => 'utf-8',
+],
+
+编写 ini 文件 (和配置文件放在同一目录)
+project.name = auth
+project.default_charset = utf-8
+server.index = 192.168.233.129:8383
+server.search = 192.168.233.129:8384
+
+[id]
+type = id
+
+[name]
+type = string
+
+上传 ini 文件 (搜索服务器 /usr/local/xunsearch/sdk/php/app)
+cd /usr/local/xunsearch/sdk/php/app
+vim auth.ini
+
+编写 AR 对象
+<?php
+namespace backend\models;
+
+/**
+ * 搜索模型
+ *
+ * @author caopeng
+*/
+class Se_auth extends \hightman\zunsearch\ActiveRecord
+{
+	
+}
+
+测试连接
+// 测试
+public function actionIndex()
+{
+	$model = new Se_auth();
+	var_dump($model);
+	exit;
+}

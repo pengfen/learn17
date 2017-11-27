@@ -1,0 +1,44 @@
+	下载
+
+	wget http://www.xunsearch.com/download/xunsearch-full-latest.tar.bz2
+
+	安装迅搜之前查看 gcc gcc-c++ zlib-devel包
+	rpm -q gcc
+	rpm -q gcc-c++
+	rpm -q zlib-devel
+	如果没有安装使用 yum -y install gcc gcc-c++ zlib-devel
+	
+	解压安装包
+	tar -xjf xunsearch-full-latest.tar.bz2
+	
+	cd xunsearch-full-1.4.9/
+	ls
+	sh ./setup.sh
+
+	安装目录
+	/usr/local/xunsearch
+	confirm the installation directory 请确认安装目录
+	y
+	cd /usr/local/xunsearch
+	ls
+	/usr/local/xunsearh/bin/xs-ctl.sh restart 开启服务
+
+	/usr/local/xunsearch/data 索引数据保存目录
+
+	/usr/local/xunsearch/sdk/php php-sdk目录
+
+	cd /usr/local/xunsearch/skd/php/app
+	ls
+	vim demo.ini
+
+	cd ../
+	ls
+	./util/Indexer.php  --source=csv --clean demo
+
+---------------------------------------------------------
+注意 启动服务器默认是绑定并监听在 127.0.0.1 上
+如果程序和服务器不在同一服务器 使用 -b inet 方式启动脚本
+bin/xs-ctl.sh -b local start     // 监听在本地回环地址 127.0.0.1 上
+bin/xs-ctl.sh -b inet start      // 监听在所有本地 IP 地址上
+bin/xs-ctl.sh -b a.b.c.d start   // 监听在指定 IP 上
+bin/xs-ctl.sh -b unix start      // 分别监听在 tmp/indexd.sock 和 tmp/searchd.sock
