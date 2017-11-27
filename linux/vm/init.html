@@ -1,0 +1,90 @@
+安装完 linux 系统后 初始化
+
+vim /etc/sysconfig/network-scripts/ifcfg-eth0 
+
+ONBOOT=no --- ONBOOT=yes
+
+:wq 保存退出
+
+service network restart
+ifconfig
+
+ls (root 家目录)
+anaconda-ks.cfg  install.log  install.log.syslog
+
+cd /usr/local (local目录下初始目录)
+ls 
+bin etc games include lib libexec sbin share src
+
+setup 手动设置 (常用于nat 连接)
+setup ---> 网络配置 ---> 设备配置 ---> 名称 设备 使用 DHCP (去掉 *) 静态 IP 子网掩码 (255.255.255.0) 默认网关 IP 主 DNS 服务器 第二 DNS 服务器 ---> 确认 
+防火墙设置
+网络配置
+    DNS 配置
+    设备配置
+系统服务
+验证配置
+
+关闭防火墙
+setup ---> 防火墙设置 ---> 运行工具 (按Tab 键) ---> 按空格取消 * ---> 确定(按 Tab 键) ---> 是(按 Tab 键) ---> 退出 (按 Tab 键)
+
+修改密码
+vim /etc/ssh/sshd_config
+/UseDNS 
+UseDNS yes ---> UseDNS no
+/GSSAPIAuth
+GSSAPIAuthentication no
+
+df 查看当前文件
+
+selinux 开启 linux 安全组件(增强安全组件)
+vim /etc/selinux/config
+SELINUX = disabled
+按 esc 键 
+:wq
+
+
+centos7后初始化
+----------------------------------------------
+df -h #查看硬盘情况
+free -m #查看内存
+cd /etc/sysconfig/newwork-scripts/ #进入网络配置文件目录
+vi ifcfg-eno #编辑配置文件 添加修改以下内容
+ONBOOT=yes #开启自动启用网络连接
+// 以下可以不设置 让系统自动分配
+IPADDR0=192.168.21.128  #设置IP地址
+PREFIXO0=24  #设置子网掩码
+GATEWAY0=192.168.21.2  #设置网关
+DNS1=8.8.8.8  #设置主DNS
+DNS2=8.8.4.4  #设置备DNS
+
+service network restart
+ip addr
+
+设置主机名
+vi /etc/hostname #编辑配置文件
+ricky1
+vi /etc/hosts #编辑配置文件
+127.0.0.1 localhost ricky1 #修改localhost.localdomain为ricky1
+
+ping #确定是否可以连接外网
+yum list | grep gcc #确定yum源
+
+iptables -L #列出所有iptables规则
+iptables -F #关闭所有iptables规则
+iptables -t nat -L #查看nat表中是否有
+iptables -t nat -F
+getenforce
+setenforce 0 #关闭
+
+yum -y install gcc gcc-c++ autoconf pcre pcre-devel make automake
+yum -y install wget httpd-tools vim
+
+cd /opt
+mkdir app
+mkdir download
+mkdir logs
+mkdir work
+mkdir backup
+
+拍摄快照:初始化

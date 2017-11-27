@@ -1,0 +1,37 @@
+新建虚拟机
+创建新的虚拟机 --- 典型 --- 稍后安装操作系统 --- 选择客户机操作系统(选择linux CentOS 64) ---
+命名虚拟机 --- 指定磁盘容量(选中 将虚拟磁盘存储为单个文件) --- 完成
+
+安装centos 64位时出现intel VT-x处理禁用问题
+F2 --- configuration --- Intel Virtualization Technology --- Enabled --- Exit(保存退出)
+
+下载 https://www.centos.org/download/ 单击DVD ISO
+安装centos7
+Install Centos7 安装centos7
+Test this media & install Centos7 测试安装文件并安装
+Troubleshooting 故障修复
+swap #交换分区 一般设置为内存的2倍
+/ #剩余所有空间
+选择DVD盘 --- china(选择简体中文) --- 点击安装位置 --- 选中 我要匹配分区 --- swap 2048 --- / 所有 
+--- 接受更改 --- 配置root密码 --- 完成
+
+df -h #查看硬盘情况
+free -m #查看内存
+cd /etc/sysconfig/newwork-scripts/ #进入网络配置文件目录
+vi ifcfg-eno #编辑配置文件 添加修改以下内容
+ONBOOT=yes #开启自动启用网络连接
+// 以下可以不设置 让系统自动分配
+IPADDR0=192.168.21.128  #设置IP地址
+PREFIXO0=24  #设置子网掩码
+GATEWAY0=192.168.21.2  #设置网关
+DNS1=8.8.8.8  #设置主DNS
+DNS2=8.8.4.4  #设置备DNS
+
+service network restart
+ip addr
+
+设置主机名
+vi /etc/hostname #编辑配置文件
+ricky1
+vi /etc/hosts #编辑配置文件
+127.0.0.1 localhost ricky1 #修改localhost.localdomain为ricky1
