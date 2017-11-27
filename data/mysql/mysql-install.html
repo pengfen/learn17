@@ -1,0 +1,59 @@
+linux 安装mysql
+centos 6.3 安装mysql yum -y install mysqld
+centos 6.5 安装mysql yum -y install mysql mysql-server
+service mysqld start
+mysql -uroot -p
+
+删除一个普通用户
+-----------------------------------------------
+使用root进入mysql服务器 mysql -u root -p password
+进入 'mysql' 数据库  use mysql;
+删除user表中的记录(删除空用户或非root用户)  delete from user where User = ''; (delete from from user where user != 'root') 
+刷新权限  flush privileges;
+
+修改root 的密码
+-----------------------------------------------
+使用root 进入mysql服务器 mysql -u root -p password
+进入 'mysql' 数据库  use mysql;
+修改user表中 root 的密码  update user set Password=password(123456) where User='root';
+刷新权限 flush privileges
+
+忘记root密码的时候
+-----------------------------------------------
+关闭mysql服务 (linux使用 service mysqld stop)
+安全模式 开启mysql服务 mysqld --skip-grant-tables
+root用户登录mysql服务器  mysql -u root
+修改 mysql数据库 下user表
+加载权限表 FLUSH PRIVILEGES
+退出mysql安全模式 mysqladmin -u root -p shutdown
+	
+给本地主机分配数据库访问权限
+-----------------------------------------------
+mysql -uroot -p
+show databases;
+use mysql
+select * from user \G;
+共五条记录
+Host: localhost  User: root
+Host: peng3      User: root
+Host: 127.0.0.1  User: root
+Host: localhost  User:
+Host: peng3      User:
+
+delete from user where User = ''; 或者 delete from user where user != 'root';
+
+select * from user \G;
+共三条记录
+Host: localhost  User: root
+Host: peng3      User: root
+Host: 127.0.0.1  User: root
+
+update user set password=password('20160903') where user='root';
+
+grant all on *.* to caopeng@'192.168.1.6' identified by '1234560.';
+grant all on *.* to caopeng@'%' identified by '1234560.';
+flush privileges;
+
+
+-----------------------------------------------
+windows 安装mysql

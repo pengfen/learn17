@@ -1,0 +1,55 @@
+mysql基础
+
+用户管理
+-----------------------------------------
+权限表 user db host tables_priv columns_priv procs_priv
+
+账户管理
+-----------------------------------------
+mysql服务器的登录(mysql -uroot -ppassword)和退出(exit)
+
+新建普通用户
+使用create user 语句来创建 create user username identified by password
+使用insert 子句来创建普通用户 insert into mysql.user(host, user, password) value(hostname, username, password(password))
+使用grant 来创建普通用户 grang auth on databasename.tablename to useranem@hostname identified by 'password'
+
+删除普通用户
+使用drop user  drop user username
+使用delete语句  delete from mysql.user where user='' and password=''
+flush privileges;
+
+root 用户修改自己的密码
+使用mysqladmin 命令来修改root 用户的密码 mysqladmin -u username -p password 'new-password' 注意 新密码用双引号 可能会不成功
+修改msyql数据库下的user表  update mysql.user set password=password(new-password) where user='' and host='';
+flush privileges;
+使用set语句  set password = password(new-password)
+flush privileges;
+
+root 修改普通用户密码
+使用set语句 set password for 'username'@'hostname'=password(new-password);
+修改mysql数据库user表
+用grant语句  grant auth on databasename.tablename to username@hostname identified by "password"
+
+普通用户修改密码
+set password = password(new-password)
+
+root用户丢失的解决方法
+关闭mysql服务
+安全模式 开启mysql服务 mysqld --skip-grant-tables
+root用户登录mysql服务器 mysql -u root
+修改mysql数据库下user表
+加载权限表 flush privileges
+退出mysql安全模式 mysqladmin -uroot -p shutdown
+
+权限管理
+-----------------------------------------
+mysql的各种权限
+
+授权 
+grant priv_type[(column_list)] on database.table to user [identified by [password] 'password'] [, [identified by [password] 'password']] ... [with with_option [with_option] ... ]
+
+收回权限
+revoke priv_type[(column_list)] ... on database.table from 'user'@'host' [, 'user'@'host'] ...
+
+查看权限
+show grants for 'username'@'hostname'

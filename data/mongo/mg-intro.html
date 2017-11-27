@@ -1,0 +1,72 @@
+db.ids.find({})
+
+// 查出所有
+db.mg_CustomerInfo.find({}).sort({id:-1});
+
+// 显示渠道
+db.mg_CustomerInfo.find({},{chanel:1})
+
+// 查出数据里有哪些渠道(跟mysql中对比查有效的渠道)
+db.mg_CustomerInfo.aggregate({$match:{"distribution":11}},{$group:{"_id":{"chanel":"$chanel"},"count":{"sum":1}}},{"$sort":{"_id":1}})
+
+db.mg_CustomerInfo.aggregate() //matches documents
+      //.project("gender _id")
+      //.unwind("$arrayField")
+      //.group({ _id: "$gender", count: { $sum: 1 } })
+      //.sort("-count")
+      //.limit(5)
+
+// 查出组织下的分的的资源数量   ({age:{$in:[11,22]}})
+
+db.mg_CustomerInfo.aggregate({ $match :{ "distribution" : 21 }},{$group:{ "_id" :{"chanel" : "$channel","organization_id": "$allot_organization_id"},"count" : { "$sum" : 1 }}},{"$sort": {"channel":-1}});
+
+db.mg_CustomerInfo.aggregate({ $match :{ "distribution" : 21 }},{$group:{"_id": {"organization_id": "$allot_organization_id"},"count" : { "$sum" : 1 }}},{"$sort": {"channel":-1}});
+
+db.mg_CustomerInfo.aggregate({ $match :{ "distribution" : {$in: [21,20] }}},{$group:{"_id": {"organization_id": "$allot_organization_id"},"count" : { "$sum" : 1 }}},{"$sort": {"channel":-1}});
+
+db.mg_CustomerInfo.find({});
+
+//tougu
+db.mg_CustomerInfo.aggregate({ $match :{ "distribution" : {$in: [31,30] }}},{$group:{"_id": {"organization_id": "$allot_organization_id"},"count" : { "$sum" : 1 }}},{"$sort": {"channel":-1}});
+
+db.mg_CustomerInfo.aggregate({ $match :{ "distribution" : {$in: [41,40] }}},{$group:{"_id": {"chanel" : "$channel","organization_id": "$allot_organization_id"},"count" : { "$sum" : 1 }}},{"$sort": {"channel":-1}});
+
+db.mg_CustomerInfo.aggregate({ $match :{ "distribution" : {$in: [51,50] }}},{$group:{"_id": {"chanel" : "$channel","organization_id": "$allot_organization_id"},"count" : { "$sum" : 1 }}},{"$sort": {"channel":-1}});
+
+db.mg_CustomerInfo.find({}).max({"$distribution":1.39});
+
+db.mg_CustomerInfo.update({},{"distribution":11});
+
+db.mg_CustomerInfo.aggregate({ $match :{ "distribution" : 50,}},{$group:{ "_id" :{"chanel" : "$channel","organization_id": "$user_contorl.userid"},"count" : { "$sum" : 1 }}});
+
+db.mg_CustomerInfo.aggregate({ $match :{ "distribution" : 21}}
+
+//二次派发首先查区分状态为50，51，保护期《0，当前时间减最后分配时间小于7（可配置）
+
+db.mg_CustomerInfo.aggregate({ $match :{ "distribution" :{"$in":[50,51]},"save_rest_days":{"$lt":0}}});
+
+db.mg_CustomerInfo.find({customer_from:"地推"});
+
+db.mg_CustomerInfo.find({channel:"360_"});
+
+db.mg_CustomerInfo.find({allot_count:1});
+
+db.mg_CustomerInfo.find({sex:0});
+
+db.mg_CustomerInfo.find({"last_supervisor_time":{ $gte: "2016-10-01T15:57:38+08:00", $lte: "2016-10-30T15:57:38+08:00"}});
+
+db.mg_CustomerInfo.find({"fromtime":{ $gte: "2016-10-01T15:57:38+08:00", $lte: "2016-10-30T15:57:38+08:00"}});
+
+db.mg_CustomerInfo.find({allot_organization_id:"11"});
+
+db.mg_CustomerInfo.find({province:" 江苏省"});
+
+db.mg_CustomerInfo.find({city:" 南京市"});
+
+db.mg_CustomerInfo.find({area:" 闵行区"});
+
+db.mg_CustomerInfo.find({save_rest_days:{ $gte: 0, $lte: 1}});
+
+db.mg_CustomerInfo.find({});
+
+db.mg_CustomerInfo.find({_id:1000013784});

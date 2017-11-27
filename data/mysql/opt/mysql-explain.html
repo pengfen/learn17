@@ -1,0 +1,19 @@
+
+2. EXPLAIN 你的 SELECT 查询 
+
+使用 EXPLAIN 关键字可以让你知道MySQL是如何处理你的SQL语句的。这可以帮你分析你的查询语句或是表结构的性能瓶颈。 
+
+EXPLAIN 的查询结果还会告诉你你的索引主键被如何利用的，你的数据表是如何被搜索和排序的……等等，等等。 
+
+挑一个你的SELECT语句（推荐挑选那个最复杂的，有多表联接的），把关键字EXPLAIN加到前面。你可以使用phpmyadmin来做这个事。然后，你会看到一张表格。下面的这个示例中，我们忘记加上了group_id索引，并且有表联接：
+
+当我们为 group_id 字段加上索引后：
+
+我们可以看到，前一个结果显示搜索了 7883 行，而后一个只是搜索了两个表的 9 和 16 行。查看rows列可以让我们找到潜在的性能问题。 
+
+explain select 语句
+id select_type table      type possible_keys key key_len ref rows extra
+1  SIMPLE      tb_OrgInfo ALL                                79
+
+添加索引后再次使用
+explain select 语句 可以查看性能是否提高

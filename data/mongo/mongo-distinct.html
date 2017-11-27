@@ -1,0 +1,15 @@
+TP 中实现
+public function total($sql) {
+	return $this->comman($sql); // 返回结果
+}
+
+private function _num() {
+	$api = new ActionApi();
+	$boy = array('sex' => 1, 'uid' => array('$in' => $people));
+	$girl = array('sex' => '2');
+	$country = array('country' => 'cn');
+	$sql_arr = array('$or' => array($boy, $girl, $country));
+	$all = array('distince' => 'action', 'key' => 'uid', 'query' => $sql_arr);
+	$res = $api->total($all);
+	return $res;
+}

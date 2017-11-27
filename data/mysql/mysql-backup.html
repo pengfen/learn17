@@ -1,0 +1,29 @@
+数据备份与还原
+
+数据备份
+--------------------------------------
+使用mysqldump命令备份
+
+备份一个数据库
+mysqldump -u username -p dbname table1 table2 ... > backupname.sql
+dbname 表示数据库名
+table 表名 没有改参数备份整个数据库
+
+备份多个数据库
+mysqldump -u username -p --database dbname1 dbname2 ... > backupname.sql
+
+备份全部数据库
+mysqldump -u username -p --all-databases > backname.sql
+
+复制数据库目录
+
+数据还原
+--------------------------------------
+使用mysql命令还原
+mysql -u root -p [dbname] < backup.sql
+
+复制数据库目录
+
+source命令
+user database;
+source backup.sql;

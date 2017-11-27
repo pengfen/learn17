@@ -1,0 +1,137 @@
+// 相关配置
+$username = 'analysis';
+$password = 'analysis';
+$db = 'IACRMS_EX';
+$url = 'http://192.168.8.173:9200';
+
+// 初始化时间
+date_default_timezone_set('Asia/Shanghai');
+$time = tim();
+#$curr_time = strtotime(date('Y-m-d', $time).' 00:00:00');
+#$mon_time = strtotime(date('Y-m', $time).'-01 00:00:00');
+#$today = new MongoDate($curr_time);
+#$month = new MongoDate($mon_time);
+$all = new MongoDate(strtotime('2016-12-12'));
+#echo '当前查询时间 : '.date('Y-m-d H:i:s', $today->sec);
+#echo ' --- 当前月份查询时间 --- '.date('Y-m-d H:i:s', $month->sec);
+echo ' --- 当前总数起始时间 --- '.date('Y-m-d H:i:s', $all->sec);
+
+// 连接mongo数据库
+$con = new MongoClient('mongodb://192.168.40.170:20000', array('username' => $username, 'password' => $password, 'db' => $db));
+$db = $con->IACRMS_EX;
+
+foreach($date as $key => $value) {
+    // 初始时间
+    $curr_time = strtotime($value.' 00:00:00');
+    if (date('m', $curr_time) == 12) {
+        $mon_time = strtotime('2016-12-12 00:00:00');
+    } else {
+        $mon_time = strtotime(date('Y-m', $curr_time).'-01 00:00:00');
+    }
+    $start_day = new MongoDate($curr_time);
+    $start_mon = new MongoDate($mon_time);
+    foreach($time_quanturn as $val) {
+        $end_time = strtotime($value.' '.$val);
+        $end_day = new MongoDate($end_time);
+        echo ' --- 当前查询时间 --- '.date('Y-m-d H:i:s', $start_day->sec).' --- 当前查询结束时间 --- '.date('Y-m-d H:i:s', $end_day->sec).' 当前月查询时间 '.date('Y-m-d H:i:s', $start_mon->sec);
+
+        #资源数 $gte >=  $lt <
+        $source_today = $db->mg_CustomerInfo->find(array('create_time' => array('$gte' => $start_day, '$lt' => $end_day)))->count();
+        $source_month = $db->mg_CustomerInfo->find(array('create_time' => array('$gte' => $start_mon, '$lt' => $end_day)))->count();
+        $source_all = $db->mg_CustomerInfo->find(array('create_time' => array('$gte' => $all, '$lt' => $end_day)))->count();
+echo ' --- 今日资源数 --- '.$source_today.' --- 当月资源数 --- '.$source_month.' --- 所有数据数 --- '.$source_all;
+        $data = array(
+            'source_today' => $source_today,
+            'source_month' => $source_month,
+            'source_all' => $source_all
+        );
+        $surl = $url.'/source-logs/source-log';
+        add($data, $end_time,  $surl);
+
+        #好友数
+        $friend_today = $db->mg_CustomerInfo->find(array('first_contact_time' => array('$gte' => $start_day, '$lt' => $end_day)))->count();
+        $friend_month = $db->mg_CustomerInfo->find(array('first_contact_time' => array('$gte' => $start_mon, '$lt' => $end_day)))->count();
+        $friend_all = $db->mg_CustomerInfo->find(array('first_contact_time' => array('$gte' => $all, '$lt' => $end_day)))->count();
+        echo ' --- 当日好友数 --- '.$friend_today.' --- 当月好友数 --- '.$friend_month.' --- 所有好友数 --- '.$friend_all;
+        $data = array(
+            'friend_today' => $friend_today,
+            'friend_month' => $friend_month,
+            'source_all' => $source_all
+        );
+        $furl = $url.'/friend-logs/friend-log';
+        #add($data, $end_time, $furl);
+
+        #激活数
+        $active_today = $db->mg_OrderHistory->find(array('risk_confirm' => 1, 'pay_time' => array('$gte' => $start_day, '$lt' => $end_day)))->count();
+        $active_month = $db->mg_OrderHistory->find(array('risk_confirm' => 1, 'pay_time' => array('$gte' => $start_mon, '$lt' => $end_day)))->count();
+        $active_all = $db->mg_OrderHistory->find(array('risk_confirm' => 1, 'pay_time' => array('$gte' => $all, '$lt' => $end_day)))->count();
+        echo ' --- 当日激活数 --- '.$active_today.' --- 当月激活数 --- '.$active_month.' --- 所有激活数 --- '.$active_all;
+        $data = array(
+            'active_today' => $active_today,
+            'active_month' => $active_month,
+            'active_all' => $active_all
+        );
+        $aurl = $url.'/active-logs/active-log';
+        #add($data, $end_time, $aurl);
+
+        # 二次开发
+        #$db->commmand(array('distinct' => 'mg_CirculationHistory', 'key' => 'cid', 'query' => array('create_time' => array('$gte' => $date))));
+        $his_today = $db->mg_CirculationHistory->distinct('cid', array('create_time' => array('$gte' => $start_day, '$lt' => $end_day), 'action_note' => '二次分配:系统分配部门到小组'));
+        $his_month = $db->mg_CirculationHistory->distinct('cid', array('create_time' => array('$gte' => $start_mon, '$lt' => $end_day), 'action_note' => '二次分配:系统分配部门到小组'));
+        $his_all = $db->mg_CirculationHistory->distinct('cid', array('create_time' => array('$gte' => $all, '$lt' => $end_day), 'action_note' => '二次分配:系统分配部门到小组'));
+        echo ' --- 当日二次派发数 --- '.count($his_today).' --- 当月二次派发数 --- '.count($his_month).' --- 所有二次派发数 --- '.count($his_all);
+        $data = array(
+            'his_today' => count($his_today),
+            'his_month' => count($his_month),
+            'his_all' => count($his_all)
+        );
+        $hurl = $url.'/his-logs/his-log';
+        #add($data, $end_time, $hurl);
+
+        #新资源
+        $new_today = $db->mg_CustomerInfo->find(array('first_contact_time' => null, 'allot_count' => 1, 'save_rest_days' => array('$lt'=>0)))->count();
+        echo ' --- 新资源数 --- '.$new_today;
+        $data = array(
+            'new_today' => $new_today,
+        );
+        $nurl = $url.'/new-logs/new-log';
+        #add($data, $end_time, $nurl);
+
+        #七天未开发
+        $over_today = $db->mg_CustomerInfo->find(array('is_over_seven_days' => 1, 'allot_count' => 1))->count();
+        echo ' --- 七天未开发数 --- '.$over_today;
+        $data = array(
+            'over_today' => $over_today,
+        );
+        $ourl = $url.'/over-logs/over-log';
+        #add($data, $end_time, $ourl);
+
+        #进线数
+        $again_cid = $db->mg_AgainInfo->distinct('cid', array('create_time' => array('$gte' => $start_day, '$lt' => $end_day)));
+        $again_id = $db->mg_CustomerInfo->distinct('_id', array('create_time' => array('$gte' => $start_day, '$lt' => $end_day)));
+        $again =  count(array_merge($again_cid, $again_id)) - count(array_intersect($again_cid, $again_id));
+echo ' --- 进线数 --- '.$again;
+        $data = array(
+            'again' => $again
+        );
+        $agurl = $url.'/again-logs/again-log';
+        #add($data, $end_time, $agurl);
+    }
+}
+
+function add($data, $time, $url) {
+    $data['create_timestamp'] = $time;
+    $data['create_time'] = date('Y-m-d H:i:s', $time);
+    $data['today'] = date('Ymd', $time);
+    $data['month'] = date('m', $time);
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_HEADER, 0);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    $res = curl_exec($ch);
+    if (!$res) {
+        echo date('Y-m-d H:i:s', time()).' ---> fail';
+    }
+}

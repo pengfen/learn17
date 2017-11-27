@@ -1,0 +1,103 @@
+var date= new Date()
+var year=date.getFullYear()
+var month=date.getMonth()+1
+var day=date.getDate()
+var datestr=year+"/"+month+"/"+day
+var m=year+"/"+month+"/01"
+var month=new Date(m)
+var today=new Date(datestr)
+var all= new Date("2016/12/12")
+
+//资源数
+var item=db.getCollection('mg_CustomerInfo').find({create_time:{$gte:today}}).size();
+printjson(item);
+var item=db.getCollection('mg_CustomerInfo').find({create_time:{$gte:month}}).size();
+printjson(item);
+var item=db.getCollection('mg_CustomerInfo').find({create_time:{$gte:all}}).size();
+printjson(item);
+
+// php 获取资源数
+$username = '';
+$password = '';
+$time = time();
+$curr_time = strtotime(date('Y-m-d', $time).' 00:00:00');
+$mon_time = strtotime(date('Y-m', $time).'-01 00:00:00');
+$today = new MongoDate($curr_time);
+$month = new MongoDate($mon_time);
+$all = new MongoDate(strtotime('2016-12-12'));
+
+$con = new MongoClient('mongodb://192.168.40.170:20000', array('username' => $username, 'password' => $password, 'db' => $db));
+$db = $con->IACRMS_EX;
+
+$source_today = $db->mg_CustomerInfo->find(array('create_time' => array('$gte' => $today)))->count();
+$source_month = $db->mg_CustomerInfo->find(array('create_time' => array('$gte' => $month)))->count();
+$source_all = $db->mg_CustomerInfo->find(array('create_time' => array('$gte' => $all)))->count();
+
+//好友数
+var item=db.getCollection('mg_CustomerInfo').find({first_contact_time:{$gte:today}}).size();
+printjson(item);
+var item=db.getCollection('mg_CustomerInfo').find({first_contact_time:{$gte:month}}).size();
+printjson(item);
+var item=db.getCollection('mg_CustomerInfo').find({first_contact_time:{$gte:all}}).size();
+printjson(item);
+
+// php 获取好友数
+$friend_today = $db->mg_CustomerInfo->find(array('first_contact_time' => array('$gte' => $today)))->count();
+$friend_month = $db->mg_CustomerInfo->find(array('first_contact_time' => array('$gte' => $month)))->count();
+$friend_all = $db->mg_CustomerInfo->find(array('first_contact_time' => array('$gte' => $all)))->count();
+
+//激活数
+var item=db.getCollection('mg_OrderHistory').find({pay_time:{$gte:today}}).size();
+printjson(item);
+var item=db.getCollection('mg_OrderHistory').find({pay_time:{$gte:month}}).size();
+printjson(item);
+var item=db.getCollection('mg_OrderHistory').find({pay_time:{$gte:all}}).size();
+printjson(item);
+
+// php 获取激活数
+$active_today = $db->mg_OrderHistory->find(array('pay_time' => array('$gte' => $today)))->count();
+$active_month = $db->mg_OrderHistory->find(array('pay_time' => array('$gte' => $month)))->count();
+$active_all = $db->mg_OrderHistory->find(array('pay_time' => array('$gte' => $all)))->count();
+
+//二次开发
+var item=db.mg_CirculationHistory.distinct("cid",{action_note:"二次分配:系统分配部门到小组",create_time:{$gte:today}}).length;
+printjson(item);
+var item=db.mg_CirculationHistory.distinct("cid",{action_note:"二次分配:系统分配部门到小组",create_time:{$gte:month}}).length;
+printjson(item);
+var item=db.mg_CirculationHistory.distinct("cid",{action_note:"二次分配:系统分配部门到小组",create_time:{$gte:all}}).length;
+printjson(item);
+
+// php 获取二次开发数
+$his_today = $db->mg_CirculationHistory->distinct('cid', array('create_time' => array('$gte' => $today), 'action_note' => ''));
+count($his_today);
+$his_month = $db->mg_CirculationHistory->distinct('cid', array('create_time' => array('$gte' => $month), 'action_note' => ''));
+count($his_month);
+$his_all = $db->mg_CirculationHistory->distinct('cid', array('create_time' => array('$gte' => $all), 'action_note' => ''));
+count($his_all);
+
+//派发1次2天非好友数资源
+var item=db.getCollection('mg_CustomerInfo').find({first_contact_time:null,allot_count:1,save_rest_days:{$lt:0}}).size();
+printjson(item);
+
+// php 获取新资源数
+$new_today = $db->mg_CustomerInfo->find(array('first_contact_time' => null, 'allot_count' => 1, 'save_rest_days' => array('$lt' => 0)))->count();
+
+//派发1次7天未开发好友数
+var item=db.getCollection('mg_CustomerInfo').find({is_over_seven_days:1,allot_count:1}).size();
+printjson(item);
+
+// php 获取7天未开发好友数
+$over_today = $db->mg_CustomerInfo->find(array('is_over_seven_days' => 1, 'allot_count' => 1))->count();
+
+//今天进线数
+var tmp=db.mg_AgainInfo.distinct("cid",{create_time:{$gte:today}})
+db.tmp.insert( {_id:1,id:tmp} )
+var tmp=db.mg_CustomerInfo.distinct("_id",{create_time:{$gte:today}})
+db.tmp.insert( {_id:2,id:tmp} )
+var item=db.tmp.distinct("id",{}).length
+printjson(item);
+db.tmp.drop()
+
+// php 获取进线数
+$again = $db->mg_againInfo->distinct('cid', array('create_time' => array('$gte' => $today)));
+count($again);

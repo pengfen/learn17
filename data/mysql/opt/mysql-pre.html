@@ -1,0 +1,34 @@
+12. Prepared Statements 
+
+Prepared Statements很像存储过程，是一种运行在后台的SQL语句集合，我们可以从使用 prepared statements 获得很多好处，无论是性能问题还是安全问题。 
+
+Prepared Statements 可以检查一些你绑定好的变量，这样可以保护你的程序不会受到“SQL注入式”攻击。当然，你也可以手动地检查你的这些变量，然而，手动的检查容易出问题，而且很经常会被程序员忘了。当我们使用一些framework或是ORM的时候，这样的问题会好一些。 
+
+在性能方面，当一个相同的查询被使用多次的时候，这会为你带来可观的性能优势。你可以给这些Prepared Statements定义一些参数，而MySQL只会解析一次。 
+
+虽然最新版本的MySQL在传输Prepared Statements是使用二进制形势，所以这会使得网络传输非常有效率。 
+
+当然，也有一些情况下，我们需要避免使用Prepared Statements，因为其不支持查询缓存。但据说版本5.1后支持了。 
+
+在PHP中要使用prepared statements，你可以查看其使用手册：mysqli 扩展 或是使用数据库抽象层，如： PDO. 
+复制代码 代码如下:
+
+// 创建 prepared statement 
+if ($stmt = $mysqli->prepare("SELECT username FROM user WHERE state=?")) { 
+
+// 绑定参数 
+$stmt->bind_param("s", $state); 
+
+// 执行 
+$stmt->execute(); 
+
+// 绑定结果 
+$stmt->bind_result($username); 
+
+// 移动游标 
+$stmt->fetch(); 
+
+printf("%s is from %s\n", $username, $state); 
+
+$stmt->close(); 
+}
