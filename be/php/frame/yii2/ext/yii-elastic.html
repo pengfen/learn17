@@ -1,0 +1,36 @@
+检查composer (composer -v)
+
+搜索 yii2-elasticsearch
+
+php composer.phar require --prefer-dist yiisoft/yii2-elasticsearch
+以上命令改为以下命令执行
+f:
+cd project\WWW
+composer require --prefer-dist yiisoft/yii2-elasticsearch
+
+查看elasticsearch是否安装成功
+查看目录 ...\vendor\yiisoft\yii2-elasticsearch
+查看文件 ...\vendor\yiisoft\extensions.php
+'yiisoft/yii2-elasticsearch' => 
+  array (
+    'name' => 'yiisoft/yii2-elasticsearch',
+    'version' => '2.0.4.0',
+    'alias' => 
+    array (
+      '@yii/elasticsearch' => $vendorDir . '/yiisoft/yii2-elasticsearch',
+    ),
+  ),
+
+修改配置
+return [
+    //....
+    'components' => [
+        'elasticsearch' => [
+            'class' => 'yii\elasticsearch\Connection',
+            'nodes' => [
+                ['http_address' => '127.0.0.1:9200'],
+                // configure more hosts if you have a cluster
+            ],
+        ],
+    ]
+];

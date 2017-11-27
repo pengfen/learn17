@@ -1,0 +1,519 @@
+    控制器中执行发送信息脚本
+    =============================================================
+    $command = "/opt/php-5.6.8/bin/php $filePath/Employees/sms.php $table $content $jobnumber $total $id $where >> /tmp/sms.log";
+    echo '正在发送短信,请稍候看邮件';
+    exec($command); // 执行相关命令 exec($command);
+    exit;
+
+    // 群发短信 2016/06/26 caopeng
+    // 获取相关配置文件内容
+    ini_set('memory_limit', '500M');
+    set_time_limit(0);
+    date_default_timezone_set('PRC');
+    $config = require_once substr(dirname(__FILE__), 0, -26).'Common/Conf/config.php';
+    require_once(dirname(__FILE__).'/email.class.php');
+    // require_once(dirname(__FILE__).'/nusoap.php');
+    $privkey = $config['DATA_AUTH_KEY']; // 手机解密密钥
+    $email = $config['EMAIL_ADDR'];
+    // 2016-11-02 需求变更:使用石墨短信接口 Added by Caopeng start
+    $shimo = $config['shimo'];
+    $IP = $shimo['IP'];
+    $account = $shimo['account'];
+    $password = $shimo['password'];
+    $userid = $shimo['userid'];
+    $sign = $shimo['sign'];
+
+    //$account = $config['SMS_ACCOUNT'];
+    //$password = $config['SMS_PASSWORD'];
+    // 2016-11-02 需求变更:使用石墨短信接口 Added by Caopeng end
+
+    // 2016-11-30 需求变更：调用希奥接口发送短信 Added By Caopeng start;
+    $xiao = $config['xiao'];
+    $ip = $xiao['ip'];
+    $uid = $xiao['uid'];
+    $code = $xiao['code'];
+    $password = $xiao['password'];
+    $auth = md5($code.$password);
+    // 2016-11-30 需求变更：调用希奥接口发送短信 Added By Caopeng end;
+
+    // 2016-08-15 需求变更:增加额外的手机号 Added by Caopeng start
+    $mobilephone = $config['SMS_MOBILE'];
+    // 2016-08-15 需求变更:增加额外的手机号 Added by Caopeng end
+
+    // 发送短信后返回的消息错误
+    // 自己平台
+    // $errorMsg = array(
+    // 	'1' => '消息错误',
+    // 	'2' => '手机号码不能为空',
+    // 	'3' => '短信内容不能为空',
+    // 	'4' => '手机号码数据类型错误',
+    // 	'5' => '短信内容数据类型错误',
+    // 	'6' => '手机号码格式错误'
+    // 	);
+
+    // 建周平台
+    $errorMsg = array(
+        '-1' => '余额不足',
+        '-2' => '账号或密码错误',
+        '-3' => '连接服务商失败',
+        '-4' => '超时',
+        '-5' => '其他错误，一般为网络问题，IP受限等',
+        '-6' => '短信内容为空',
+        '-7' => '目标号码为空',
+        '-8' => '用户通道设置不对，需要设置三个通道',
+        '-9' => '捕获未知异常',
+        '-10' => '超过最大定时时间限制',
+        '-11' => '目标号码在黑名单里',
+        '-13' => '没有权限使用该网关',
+        '-14' => '找不到对应的Channel ID',
+        '-17' => '没有提交权限，客户端帐号无法使用接口提交或非绑定IP提交',
+        '-20' => '超速提交(一般为每秒一次提交)',
+        '-21' => '扩展参数不正确',
+        '-22' => 'Ip 被封停'
+        );
+
+    if ($config['CRM_NAME'] == 'BYC') {  // 百业成CRM系统
+        // 百业成数据库连接
+        $mysql_server_name= $config['DB_HOST'];                       //mysql数据库服务器
+        $mysql_username= $config['DB_USER'];                          //mysql数据库用户名
+        $mysql_password= $config['DB_PWD'];                           //mysql数据库密码
+        $mysql_database= $config['DB_NAME'];                          //mysql数据库名
+        $conn = mysqli_connect($mysql_server_name,$mysql_username,$mysql_password,$mysql_database) or die("error connecting") ; // 连接数据库
+        mysqli_query($conn,"set names utf8");    // 数据库输出编码
+
+    } elseif ($config['CRM_NAME'] == 'TXYT') {
+        // 天下易通数据库连接
+        $mysql_server_name= $config['DB_HOST'];                       //mysql数据库服务器
+        $mysql_username= $config['DB_USER'];                          //mysql数据库用户名
+        $mysql_password= $config['DB_PWD'];                           //mysql数据库密码
+        $mysql_database= $config['DB_NAME'];                          //mysql数据库名
+        $conn = mysqli_connect($mysql_server_name,$mysql_username,$mysql_password,$mysql_database) or die("error connecting") ; // 连接数据库
+        mysqli_query($conn,"set names utf8");    // 数据库输出编码
+
+    }
+    // 获取执行脚本的参数
+    $table = $argv[1];
+    $content = $argv[2];
+    $jobnumber = $argv[3];
+    $total = $argv[4];
+    $id = $argv[5];
+    $where = $argv[6];
+
+    if ($content) {
+        $content = urldecode($content);
+        $content = iconv("utf-8","gbk",$content);
+    }
+
+    if ($where) {
+    	$where = urldecode($where);
+    }
+
+    // 处理一个月不能越三次一天不能超一次的条件
+    $sql = "SELECT CID from zt_msghistory where sendtime > (UNIX_TIMESTAMP(now()) - 86400)
+UNION
+SELECT CID from zt_msghistory where sendtime > (UNIX_TIMESTAMP(now()) - 2592000) GROUP BY CID HAVING count(CID) >= 3
+UNION
+SELECT CID from zt_poolmsghistory where Createtime > (UNIX_TIMESTAMP(now()) - 86400)
+UNION
+SELECT CID from zt_poolmsghistory where Createtime > (UNIX_TIMESTAMP(now()) - 2592000) GROUP BY CID HAVING count(CID) >= 3";
+
+    $cid = mysqli_query($conn, $sql);
+    $cid_where = '';
+    if ($cid && mysqli_num_rows($cid) > 0) {
+        $cids = array();
+        while ($row = mysqli_fetch_assoc($cid)) {
+            $cids[] = $row;
+        }
+
+        $ids = array();
+        if (isset($cids)) {
+            foreach ($cids as $k => $v) {
+                $ids[$k] = $v['CID'];
+            }
+        }
+        unset($cids);
+
+        $cid_where = implode(',', $ids);
+        unset($ids);
+        if ($cid_where) {
+        	$cid_where = " ( CID not in (".$cid_where.")) and";
+        } 
+    }
+    unset($cid);
+
+    if ($where || $cid_where) {
+    	$where = " where ".$cid_where.$where;
+    	unset($cid_where);
+    }
+
+    // 根据条件查询手机号
+    $sql = "select CID,UsedPhone from $table ".$where." limit $total";
+
+    $res = mysqli_query($conn, $sql);
+    if ($res && mysqli_num_rows($res) > 0) {
+    	// echo date('Y-m-d H:i:s', time())." 执行查询 ".$sql.PHP_EOL;
+        $phone = array();
+        while ($row = mysqli_fetch_assoc($res)) {
+            $phone[] = $row;
+        }
+        $count = count($phone);
+        $success = 0;
+
+        // 2016-08-15 需求变更:增加额外的手机号 Added by Caopeng start
+        if ($mobilephone) {
+            // 2016-11-07 需求变更: 短信单发改为短信群发 Added by Caopeng start
+            $mobile = implode(',', $mobilephone);
+            // 2016-11-30 需求变更：调用希奥接口发送短信 Added By Caopeng start
+            //$url = $IP.'/sms.aspx?action=send&userid='.$userid.'&account='.$account.'&password='.$password.'&mobile='.$mobile.'&content='.urlencode($sign.$content).'&sendTime=&extno=';
+            //exec_shimo($url);
+            //echo date("Y-m-d H:i:s", time()).' 当前手机号是'.$mobile;
+            $url = $ip.'?uid='.$uid.'&auth='.$auth.'&mobile='.$mobile.'&msg='.urlencode($content).'&expid=0';
+            $res = exec_xiao($url);
+            if (strpos($res, '0') !== false) {
+                echo date("Y-m-d H:i:s", time()).' send success, current mobile:'.$mobile;
+            } else {
+                echo date("Y-m-d H:i:s", time()).' error code: '.$res;
+            }
+            // 2016-11-30 需求变更：调用希奥接口发送短信 Added By Caopeng end;
+
+            // foreach ($mobilephone as $value) {
+            //     // 2016-11-02 需求变更:使用石墨短信接口 Added by Caopeng end
+            //     $url = $IP.'/sms.aspx?action=send&userid='.$userid.'&account='.$account.'&password='.$password.'&mobile='.$value.'&content='.urlencode($sign.$content).'&sendTime=&extno=';
+            //     exec_shimo($url);
+            //     echo date("Y-m-d H:i:s", time()).' 当前手机号是'.$value;
+            //     //$stat = exec_sendsms($value, $content, $account, $password);
+            //     //echo date("Y-m-d H:i:s", time()).' 当前手机号是'.$value.', 发送短信后返回的值是'.$stat.PHP_EOL;
+            //     // 2016-11-02 需求变更:使用石墨短信接口 Added by Caopeng end
+            // }
+            // 2016-11-07 需求变更: 短信单发改为短信群发 Added by Caopeng end
+        } else {
+            echo date("Y-m-d H:i:s", time())." 当前没有配置手机号".PHP_EOL;
+        }
+        // 2016-08-15 需求变更:增加额外的手机号 Added by Caopeng end
+
+        $sql = "insert into zt_poolmsghistory(CID,MsgID,SendStatus,Createtime,CreateUser) values";
+        $err = array();
+        $mob = '';
+        $stat = 0;
+        foreach ($phone as $key => $val) {
+            $mobile = decrypt($val['UsedPhone'], $privkey); // 解密手机号
+            // $res = exec_sendsms_self($mobile, $content); // 发送短信
+            // $mess = json_decode($res, true);
+            // $stat = $mess['status'];
+            // if ($stat == 0) {
+            // 	$success ++;
+            // } else {
+            // 	$err[] = $stat;
+            // }
+
+            // 2016-11-07 需求变更: 短信单发改为短信群发 Added by Caopeng start
+            // 2016-11-02 需求变更:使用石墨短信接口 Added by Caopeng end
+            // $url = $IP.'/sms.aspx?action=send&userid='.$userid.'&account='.$account.'&password='.$password.'&mobile='.$mobile.'&content='.urlencode($sign.$content).'&sendTime=&extno=';
+            // $res = exec_shimo($url);
+            // if ($res) {
+            //     $success++;
+            // }
+
+            $mob .= $mobile.',';
+            if (($key + 1) % 50 == 0) {
+                $mob = substr($mob, 0, -1);
+                // $url = $IP.'/sms.aspx?action=send&userid='.$userid.'&account='.$account.'&password='.$password.'&mobile='.$mob.'&content='.urlencode($sign.$content).'&sendTime=&extno=';
+                // $res = exec_shimo($url);
+                // 2016-11-30 需求变更：调用希奥接口发送短信 Added By Caopeng start;
+                $url = $ip.'?uid='.$uid.'&auth='.$auth.'&mobile='.$mobile.'&msg='.urlencode($content).'&expid=0';
+                $res = exec_xiao($url);
+                if (strpos($res, '0') !== false) {
+                    $len = count(explode(',', $mob));
+                    $success = $success + $len;
+                } else {
+                    $stat = $res;
+                    echo date("Y-m-d H:i:s", time()).' error code: '.$res;
+                }
+                $mob = '';
+            }
+            // 2016-11-30 需求变更：调用希奥接口发送短信 Added By Caopeng end;
+            // 2016-11-07 需求变更: 短信单发改为短信群发 Added by Caopeng end
+
+            // 调用建周接口
+            // $stat = exec_sendsms($mobile, $content, $account, $password);
+            // if ($stat) {
+            //     if ($stat < 0) {
+            //         $err[] = $stat;
+            //     } else {
+            //         $success ++;
+            //     }
+            // } else {
+            //     $title = "新趋势<群发短信>";
+            //     $content = "网络不通可能IP被封";
+                
+            //     echo date('Y-m-d H:i:s', time())." 本次发送邮件内容为 ".$content.PHP_EOL;
+            //     $res = sendEmail($title, $content, $email); // 发送邮件
+            //     if ($res == true) {
+            //         echo date('Y-m-d H:i:s', time())." 发送邮件成功 ".PHP_EOL;
+            //     } else {
+            //         echo '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.PHP_EOL;
+            //         echo date('Y-m-d H:i:s', time())." 发送邮件失败 ".PHP_EOL;
+            //         echo '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.PHP_EOL;
+            //     }
+            //     exit;
+            // }
+            // 2016-11-02 需求变更:使用石墨短信接口 Added by Caopeng end
+            
+
+            $sql .= "({$val['CID']}, $id, '{$stat}', ".time().", '{$jobnumber}'),";
+
+            if (($key + 1) % 1000 == 0) {
+            	$sql = substr($sql, 0, -1);
+            	$res = mysqli_query($conn, $sql); // 添加到群发短信历史表中
+            	if ($res) {
+            		echo date('Y-m-d H:i:s', time())." 执行添加成功 ".$sql.PHP_EOL;
+            	} else {
+            		echo '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.PHP_EOL;
+            		echo date('Y-m-d H:i:s', time())." 执行添加失败 ".$sql.PHP_EOL;
+            		echo '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.PHP_EOL;
+            	}
+            	
+                // 重置sql
+            	$sql = "insert into zt_poolmsghistory(CID,MsgID,SendStatus,Createtime,CreateUser) values";
+            }
+            
+        }
+
+        // 2016-11-07 需求变更: 短信单发改为短信群发 Added by Caopeng start
+        if ($mob) {
+            $mob = substr($mob, 0, -1);
+            // 2016-11-30 需求变更：调用希奥接口发送短信 Added By Caopeng start;
+            // $url = $IP.'/sms.aspx?action=send&userid='.$userid.'&account='.$account.'&password='.$password.'&mobile='.$mob.'&content='.urlencode($sign.$content).'&sendTime=&extno=';
+            // $res = exec_shimo($url);
+            $url = $ip.'?uid='.$uid.'&auth='.$auth.'&mobile='.$mobile.'&msg='.urlencode($content).'&expid=0';
+            exec_xiao($url);
+            if ($res) {
+                $len = count(explode(',', $mob));
+                $success = $success + $len;
+            }
+            // 2016-11-30 需求变更：调用希奥接口发送短信 Added By Caopeng end;
+        }
+        // 2016-11-07 需求变更: 短信单发改为短信群发 Added by Caopeng end
+
+        unset($phone);
+        $sql = substr($sql, 0, -1);
+        echo date('Y-m-d H:i:s', time())." 本次短信内容为 : ".$content.PHP_EOL;
+        //echo date('Y-m-d H:i:s', time()).$sql.PHP_EOL;
+        $res = mysqli_query($conn, $sql);
+        if ($res) {
+    		echo date('Y-m-d H:i:s', time())." 执行添加成功 ".$sql.PHP_EOL;
+    	} else {
+    		echo '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.PHP_EOL;
+    		echo date('Y-m-d H:i:s', time())." 执行添加失败 ".$sql.PHP_EOL;
+    		echo '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.PHP_EOL;
+    	}
+        if ($err) $err = array_unique($err);
+
+        // 处理邮件内容
+        $content = "本次群发短信{$total}条，成功发出{$success}条";
+        if (($count - $success) > 0) {
+        	$error = $count - $success;
+        	$content .= "，失败{$error}条，失败原因:";
+        	foreach ($err as $value) {
+	    		if (array_key_exists($value, $errorMsg)) {
+	    			$content .= $errorMsg[$value]." ";
+	    		} else {
+	    			echo '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.PHP_EOL;
+	    			echo date('Y-m-d H:i:s', time())." 错误号是 ".$value.PHP_EOL;
+	    			echo '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.PHP_EOL;
+	    			$content .= " 未知错误";
+	    		}
+	    	}
+        }
+
+        if (($total - $count) > 0) {
+            $num = $total - $count;
+            $content .= ", 被一天不超过一次一个月不超过三次的条件过滤掉{$num}条";
+        }
+
+    } else {
+    	echo date('Y-m-d H:i:s', time())." 没有查到数据,查询sql是 ".$sql.PHP_EOL;
+        $content = "数据全被一天不超过一次一个月不超过三次的条件过滤掉, 共过滤掉{$total}条";
+    }
+
+    $title = "新趋势<群发短信>";
+    echo date('Y-m-d H:i:s', time())." 本次发送邮件内容为 : ".$content.PHP_EOL;
+    $res = sendEmail($title, $content, $email); // 发送邮件
+    if ($res == true) {
+        echo date('Y-m-d H:i:s', time())." 发送邮件成功 ".PHP_EOL;
+    } else {
+        echo '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.PHP_EOL;
+        echo date('Y-m-d H:i:s', time())." 发送邮件失败 ".PHP_EOL;
+        echo '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.PHP_EOL;
+    }
+
+    mysqli_close($conn);
+    exit;
+
+    /**
+     * 发送短信 (调用建周平台接口)
+     * @param string $mobile 手机号
+     * @param string $content 短信内容
+     * @return string 
+    */
+    function exec_sendsms($mobile, $content, $account, $password) {
+        // 建周短信平台
+        $client = new nusoap_client('http://www.jianzhou.sh.cn/JianzhouSMSWSServer/services/BusinessService?wsdl', true);
+        $client->soap_defencoding = 'utf-8';
+        $client->decode_utf8      = false;
+        $client->xml_encoding     = 'utf-8';
+        $err = $client->getError();
+        if ($err) {
+            echo date('Y-m-d H:i:s', time()).'构造错误 '.$err;
+        }
+        $params = array(
+            'account' => $account,
+            'password' => $password,
+            'destmobile' => $mobile,
+            'msgText' => $content."退订回T【新趋势】",
+        );
+
+        $result = $client->call('sendBatchMessage', $params, 'http://www.jianzhou.sh.cn/JianzhouSMSWSServer/services/BusinessService');
+        if(isset($result['sendBatchMessageReturn'])) {
+            return $result['sendBatchMessageReturn'];
+        } else {
+            return '';
+        }
+        // if ($client->fault) {
+        //     return $result['sendBatchMessageReturn'];
+        // } else {
+        //     $err = $client->getError();
+        //     if ($err) {
+        //         return $err['sendBatchMessageReturn'];
+        //     } else {
+        //         return $result['sendBatchMessageReturn'];
+        //     }
+        // }
+    }
+
+    /**
+     * 发送短信 (调用自己平台接口)
+     * @param string $mobile 手机号
+     * @param string $content 短信内容
+     * @return string 
+    */
+    function exec_sendsms_self($mobile, $content) {
+    	$uri = "http://api.gdzt039.com/sendmessageapi";
+        /**
+         * 需要发送的参数数组
+         **/
+        $data = array (
+            'telphone' => $mobile,
+            'content'=> $content
+        );
+        $ch = curl_init ();
+        curl_setopt ( $ch, CURLOPT_URL, $uri );
+        curl_setopt ( $ch, CURLOPT_POST, 1 );
+        curl_setopt ( $ch, CURLOPT_HEADER, 0 );
+        curl_setopt ( $ch, CURLOPT_RETURNTRANSFER, 1 );
+        curl_setopt ( $ch, CURLOPT_POSTFIELDS, $data );
+        $res = curl_exec ( $ch );
+        curl_close ( $ch );
+        return $res;
+    }
+
+    /**
+     * 发送短信 (调用石墨短信)
+    */
+    function exec_shimo($url) {
+        $ch = curl_init ();
+        curl_setopt ( $ch, CURLOPT_URL, $url );
+        curl_setopt ( $ch, CURLOPT_HEADER, 0 );
+        $res = curl_exec ( $ch );
+        curl_close ( $ch );
+        return $res;
+    }
+
+    /**
+     * 2016-11-30 发送短信 (调用希奥)
+    */
+    function exec_xiao($url) {
+        if(function_exists('file_get_contents'))
+        {
+            $file_contents = file_get_contents($url);
+        }
+        else
+        {
+            $ch = curl_init();
+            $timeout = 5;
+            curl_setopt ($ch, CURLOPT_URL, $url);
+            curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt ($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+            $file_contents = curl_exec($ch);
+            curl_close($ch);
+        }
+        return $file_contents;
+    }
+
+    /**
+     * 解密字符串
+     * @param string $str 字符串
+     * @param string $key 解密key
+     * @return string
+     */
+    function decrypt($data,$key) {
+        $key    = md5($key);
+        $data   = str_replace(array('-','_'),array('+','/'),$data);
+        $mod4   = strlen($data) % 4;
+        if ($mod4) {
+           $data .= substr('====', $mod4);
+        }
+        $data   = base64_decode($data);
+
+        $x      = 0;
+        $len    = strlen($data);
+        $l      = strlen($key);
+        $char   = $str = '';
+
+        for ($i = 0; $i < $len; $i++) {
+            if ($x == $l) $x = 0;
+            $char .= substr($key, $x, 1);
+            $x++;
+        }
+
+        for ($i = 0; $i < $len; $i++) {
+            if (ord(substr($data, $i, 1))<ord(substr($char, $i, 1))) {
+                $str .= chr((ord(substr($data, $i, 1)) + 256) - ord(substr($char, $i, 1)));
+            }else{
+                $str .= chr(ord(substr($data, $i, 1)) - ord(substr($char, $i, 1)));
+            }
+        }
+        $data   = base64_decode($str);
+        $expire = substr($data,0,10);
+        if($expire > 0 && $expire < time()) {
+            return '';
+        }
+        $data   = substr($data,10);
+        return $data;
+    }
+
+    /**
+     * 发送邮件
+	 * @param $title 邮件主题
+	 * @param $body 邮件内容
+	 */
+	function sendEmail($title, $body, $addr){
+
+	    $title = "=?UTF-8?B?".base64_encode($title)."?=";   //防中文乱码
+	    /******************** 邮箱配置信息 ********************************/
+	    $smtpserver     = "smtp.new18.cn";      //SMTP服务器
+	    $smtpserverport = 25;                   //SMTP服务器端口
+	    $smtpusermail   = "crmst@new18.cn";     //SMTP服务器的用户邮箱
+	    $smtpemailto    = $addr;  //发送给谁
+	    $smtpuser       = "crmst@new18.cn";     //SMTP服务器的用户帐号
+	    $smtppass       = "Xqs1230.";           //SMTP服务器的用户密码
+	    $mailtitle      = $title;             //邮件主题
+	    $mailcontent    = $body;                //邮件内容
+	    $mailtype       = "HTML";               //邮件格式（HTML/TXT）,TXT为文本邮件
+	    /************************ 邮箱配置信息 ****************************/
+
+	    $smtp = new smtp($smtpserver,$smtpserverport,true,$smtpuser,$smtppass); //这里面的一个true是表示使用身份验证,否则不使用身份验证.
+	    $smtp->debug = false;                                                   //是否显示发送的调试信息
+	    $state = $smtp->sendmail($smtpemailto, $smtpusermail, $mailtitle, $mailcontent, $mailtype); // true 或 false
+	    return $state;
+	}

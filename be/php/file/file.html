@@ -1,0 +1,8 @@
+<?php
+
+$uri = "1220.log"; // 文件路由
+$file = file($uri); // file() 直接把文本按行转换成数组
+foreach ($file as &$line) {
+	// $line 每一行的数据
+	// 对每一行数据进行处理
+}

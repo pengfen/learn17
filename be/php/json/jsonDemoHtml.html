@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>JSON 和 Javascript ajax 通信交互</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <div>下面 我将讲解 jquery 的ajax使用和 php json_encode() 之后的 json 数据类型通信</div>
+        <script type="text/javascript">
+            function getJsonData() {
+                var url = "jsonDemo.php";
+                var data = {};
+                jQuery.post(url, data, function(response) {
+                    var jsobObj = eval("(" + response + ")");
+                    var username = jsobObj.username;
+                    var two = jsobObj.hobby.two;
+                    // document.write("Username:"+username);
+                    // document.write("my hobby two is :"+two);
+                    jQuery("#jsonObjShow").text("response username:" + username+"my hobby is :"+two);
+                });
+            }
+        </script>
+        <a onclick="return getJsonData();" href="###">获取 json 对象数据</a>
+        <div id="jsonObjShow" style="border:1px solid #ccc;width: 1450px;border-radius: 5px;height: 150px;padding:5px;">
+        </div>
+    </body>
+</html>

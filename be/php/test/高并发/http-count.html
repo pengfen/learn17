@@ -1,0 +1,64 @@
+为什么要减少HTTP请求
+性能黄金法则
+只有10%-20%的最终用户响应时间花在接收请求的HTML文档上 剩下的80%-90%时间花在HTML文档所引用的所有组件(图片 script css flash 等等)进行的HTTP请求上
+
+如何改善
+改善响应时间的最简单途径就是减少组件的数量　并由此减少HTTP请求的数量
+
+HTTP连接产生的开销
+域名解析 --- TCP连接　--- 发送请求 --- 等待 --- 下载资源 --- 解析时间
+
+为什么要减少HTTP请求
+性能黄金法则
+只有10%-20%的最终用户响应时间花在接收请求的HTML文档上 剩下的80%-90%时间花在HTML文档所引用的所有组件(图片 script css flash 等等)进行的HTTP请求上
+
+如何改善
+改善响应时间的最简单途径就是减少组件的数量　并由此减少HTTP请求的数量
+
+HTTP连接产生的开销
+域名解析 --- TCP连接　--- 发送请求 --- 等待 --- 下载资源 --- 解析时间
+
+查找DNS缓存也需要时间 多个缓存就要查找多次有可能缓存会被清除
+HTTP1.1协议规定请求只能串行发送 也就是说一百个请求必须依次逐个发送 前面的一个请求完成才能开始下个请求
+
+图片地图
+图片地图允许你在一个图片上关联多个URL 目标URL的选择取决于用户单击了图片上的哪个位置
+我们可以通过使用五个分开的图片 然后每个图片对应一个超链接
+产生了5个HTTP请求 我们的目标是要减少HTTP请求
+将五个图片合并为一张图片 然后以位置信息定位超链接
+把HTTP请求减少为一个 可以保证设计的完整性和功能的齐全性
+使用 <map><area></area></map> 标签
+
+CSS Sprites
+CSS Sprites中文翻译为CSS精灵 通过使用合并图片 通过指定
+css的backgroud-image和backgroud-position来显示元素
+backgroud-position属性
+backgroud-position:x y; x和y可以写负值也可以写正值 我们可以想象图片的左上方为(0,0)
+以(0,0)坐标向右是为负数的x轴 以(0,0)坐标向下是为负数的y轴
+
+性能影响
+图片地图与CSS精灵的响应时间基本上相同 但比使用各自独立图片的方式要快50%以上
+合并脚本和样式表适
+使用外部的js和css文件引用的方式　因为这要比直接写在页面中性能要更好一点
+独立的一个js比用多个js文件组成的页面载入要快38%
+把多个脚本合并为一个脚本 把多个样式表合并为一个样式表
+使用外部的js和css文件引用的方式 因为这要比直接写在页面中性能要更好一点
+独立的一个js比用多个js文件组成的页面城入要快38%
+
+图片使用Base64编码减少页面请求数
+采用Base64的编码方式将图片直接嵌入到网页中 而不是从外部载入
+
+
+php对图片进行base64
+$img = 'test.jpg';
+$base64_img = base64EncodeImage($img);
+  
+echo '<img src="' . $base64_img . '" />';
+  
+function base64EncodeImage ($image_file) {
+  $base64_image = '';
+  $image_info = getimagesize($image_file);
+  $image_data = fread(fopen($image_file, 'r'), filesize($image_file));
+  $base64_image = 'data:' . $image_info['mime'] . ';base64,' . chunk_split(base64_encode($image_data));
+  return $base64_image;
+}

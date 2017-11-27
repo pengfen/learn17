@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        <script type="text/javascript" src="jquery-1.9.1.min.js"></script>
+    </head>
+    <body>
+        <script type="text/javascript">
+            $("document").ready(function() {
+                
+                var url ="client_2.php";
+                var data={};
+                
+                $.getJSON(url,data,function(res){
+//                    $("#username").val(res.username);
+//                    $("#address").val(res.address);
+//        $("#username").val(res[1].username);
+//        $("#address").val(res.member2.username);
+$("#username").val(res.username);
+$("#address").val(res.age);
+                });
+                
+
+            });
+        </script>
+       Username:<input type="text" name="username" id="username" />
+       Address:<input type="text" name="address" id="address" />
+    </body>
+</html>

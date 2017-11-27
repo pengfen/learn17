@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>初始化网站基本信息</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        <script type="text/javascript" src="jquery-1.9.1.min.js"></script>
+    </head>
+    <body>
+        <script type="text/javascript">
+            $("document").ready(function() {
+                var url = "server.php?inAjax=1&do=checkMember&username=ericwolf";
+                var data = {};
+                
+                $.get(url, data, function(res) {
+                    
+                    
+                    
+                    var jsonObj = eval("(" + res + ")");
+                    $("#username").val(jsonObj.username);
+                    $("#groupname").val(jsonObj.groupname);
+                    $("#uid").val(jsonObj.uid);
+                });
+                
+               
+                
+                
+            });
+        </script>
+
+
+        <div>
+            用户名：<input type="text" name="username" id="username" />
+            <br/>
+            会员组:<input type="text" name="groupname" id="groupname" />
+            <br/>
+            UID:<input type="text" name="uid" id="uid" />
+        </div>
+    </body>
+</html>

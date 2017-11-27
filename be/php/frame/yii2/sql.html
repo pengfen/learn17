@@ -1,0 +1,23 @@
+// 使用yii获取最近的sql执行语句
+public static function getInfo($where, $point, $shift) {
+	if ($where == 0) {
+		$where = 'i.mode in (0, 2) and (i.add_num != 0 or i.repeat_num != 0)';
+	}
+	if ($where == 1) {
+		$where = 'i.mode in (1, 3) and (i.add_num != 0 or i.repeat_num != 0)';
+	}
+	$query = new Query();
+	$infoTB = InputDataHistoryInfo::tableName();
+	$baseTB = self::UIBTB;
+	$model = $query->select('i.mode, i.create_time, i.add_num, i.repeat_num, i.download_adr, b.login_id')->from($infoTB.' AS i')->leftJoin($baseTB.' AS b', 'i.create_uid = b.uid')->where($where)->orderBy(['i.create_time' => SORT_DESC]);
+	$data = $model->offset($point)->limit($shift)->all();
+
+	// 打印最近的sql
+	echo $model->createCommand()->getRawSql();
+	// SELECT `i`.`mode`, `i`.`create_time`, `i`.`add_num`, `i`.`repeat_num`, `i`.`download_adr`, `b`.`login_id` FROM `tb_InputDataHistoryInfo` `i` LEFT JOIN `tb_UserInfo4Base` `b` ON i.create_uid = b.uid WHERE i.mode in (0, 2) and (i.add_num != 0 or i.repeat_num != 0) ORDER BY `i`.`create_time` DESC LIMIT 15
+	
+	$total = $model->count('i.create_time');
+	$res['info'] = $data;
+	$res['total'] = $total;
+	return $res;
+}

@@ -1,0 +1,25 @@
+    public function actionDownloaddata()
+    {
+        $name = Customer::find()->asArray()->all();
+        header("Content-type:application/vnd.ms-excel");
+        header("Content-Disposition:attachment;filename=demo.xls");
+        $tab="\t"; $br="\n";
+        $head="用户手机".$tab."门店".$tab."地址".$tab."是否中奖".$tab."电话".$br;
+        echo iconv('UTF-8', 'GB2312', $head);
+
+        foreach ($name as $val) {
+            $mobile = $val['mobile'].$tab;
+            echo iconv('UTF-8', 'GB2312', $mobile);
+            $shopping = $val['shopping'].$tab;
+            echo iconv('UTF-8', 'GB2312', $shopping);
+            $address = $val['address'].$tab;
+            echo iconv('UTF-8', 'GB2312', $address);
+            if ($val['status'] == '1') {
+                echo iconv('UTF-8', 'GB2312', "中奖".$tab);
+            } else {
+                echo iconv('UTF-8', 'GB2312', "未中奖".$tab);
+            }
+            // echo $val['phone'].$tab.$br;
+            echo str_replace(' ','',$val['phone']).$tab.$br; // 数字不需要转码
+        }
+    }

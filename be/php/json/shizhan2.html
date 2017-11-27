@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>第二个实战</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        <script type="text/javascript" src="jquery-1.9.1.min.js"></script>
+        <script type="text/javascript">
+            $("document").ready(function() {
+                var url = "shizhan2.php";
+                var data = {"do": "first"};
+
+                $.getJSON(url, data, function(res) {
+                    $("#username").val(res.username);
+                    $("#password").val(res.password);
+                });
+                
+                var data = {"do": "second"};
+                $.getJSON(url, data, function(res) {
+                    $("#members").val(res.third.members.username);
+                });
+                
+                var data={"do":"third"};
+                $.getJSON(url,data,function(res){
+                    $("#address").val(res.address[1].username);
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <h2>一维数组巩固练习</h2>
+        <input type="text" name="username" id="username"/><br/>
+        <input type="password" name="password" id="password" />
+
+        <h2>多维数组实战(展示一组会员信息)</h2>
+        <textarea id="members"></textarea>
+
+        <h2>对象实战(放一组地址信息)</h2>
+        <textarea id="address"></textarea>
+    </body>
+</html>
