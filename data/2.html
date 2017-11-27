@@ -1,0 +1,165 @@
+SQL开发技巧二
+
+内容介绍
+如何进行行列转换
+如何生成唯一序列号
+如何删除重复数据
+
+需要进行行转列的场景
+报表统计
+日期 销售金额 (表)
+
+月份    1月   2月   3月  (需要的报表)
+销售额  7043  8057  3176
+
+汇总显示
+姓名  学科  成绩  (表)
+张三  数学  78
+张三  英语  85
+张三  语文  90
+李四  数学  90
+李四  英语  75
+李四  语文  80
+
+姓名  数学  英语  语文
+张三  78    85    90
+李四  90    75    80
+王五  75    69    95
+赵六  89    70    79
+
+姓名 打怪数
+
+孙悟空  猪八戒  沙僧
+47      24      9
+
+select a.user_name,kills from user1 a join user_kills b on a.id=b.user_id
+select a.user_name,sum(kills) from user1 a join user_kills b on a.id=b.user_id group by a.user_name
+行转列
+select * from(select sum(kills) as '孙悟空' from user1 a join user_kills b on a.id=b.user_id and a.user_name='孙悟空')
+a cross join(select sum(kills) as '猪八戒' from user1 a join user_kills b on a.id=b.user_id a.user_name='猪八戒')
+b cross join(select sum(kills) as  '沙僧' from user1 a join user_kills b on a.id=b.user_id a.user_name='沙僧') c
+
+需要进行列转行的场景
+属性拆分
+operator_id  op_userid  permission
+1            10001      1007,1008,1009
+
+operator_id  op_userid  permission
+1            10001      1007
+1            10001      1008
+1            10001      1009
+
+ETL数据处理
+user_name  mobile
+唐僧       13585591111,13585592222
+
+alter table user1 add column mobile varchar(100);
+update user1 set mobile='13585591111,13585592222' where id=1;
+update user1 set mobile='13585593333,13585594444' where id=2;
+update user1 set mobile='13585595555,13585596666' where id=3;
+update user1 set mobile='13585597777,13585598888' where id=4;
+
+create table tb_sequence(id int auto_increment not null, primary key(id));
+insert into tb_sequence(id) values(),(),(),(),(),();
+
+利用序列表处理列转行的数据
+select user_name,replace(substring(substring_index(mobile,',',a.id),
+char_length(substring_index(mobile,',',a.id-1))+1,',','') as mobile from tb_sequence a
+cross join(select user_name,concat(mobile,',') as mobile,length(mobile)-length(replace(mobile,',',''))+1 siae
+from user1 b) b on a.id <= b.size;
+
+create table user1_equipment(
+    id int not null auto_increment primary key,
+	user_id int not null comment '用户id(user1)',
+	arms varchar(10) not null default '' comment '武器装备',
+	clothing varchar(10) not null default '' comment '衣服装备',
+	shoe varchar(10) not null default '' comment '鞋装备'
+) engine=innodb default charset=utf8 comment = '装备表';
+insert into user1_equipment(user_id,arms,clothing,shoe) values(3, '金箍棒','锁子黄金甲','藕丝步云履'),
+(2,'九齿钉耙','僧衣','僧鞋'),(4,'降妖宝杖','僧衣','僧鞋'),(1,'九环锡杖','锦谰袈裟','僧鞋');
+
+select user_name,'arms' as equipment,arms from user1 a join user1_equipment b on a.id=b.user_id;
+select user_name,'clothing' as equipment,clothing from user1 a join user1_equipment b on a.id=b.user_id;
+select user_name,'shoe' as equipment,shoe from user1 a join user1_equipment b on a.id=b.user_id;
+
+使用union方式处理
+select b.user_name,arms as equipment,arms from user1_equipment a join user1 b on a.user_id=b.id union
+select b.user_name,clothing,clothing from user1_equipment a join user1 b on a.user_id=b.id union
+select b.user_name,shoe,shoe from user1_equipment a join user1 b on a.user_id=b.id order by 1,2
+
+select user_name,arms,clothing,shoe from user1 a join user1_equipment b on a.id=b.user_id;
+select user_name,arms,clothing,shoe from user1 a join user1_equipment b on a.id=b.user_id
+cross join tb_sequence c where c.id <= 3;
+select user_name,arms,clothing,shoe from user1 a join user1_equipment b on a.id=b.user_id
+cross join tb_sequence c where c.id <= 3 order by user_name;
+select user_name,case when c.id = 1 then arms end, case when c.id = 2 then clothing end,
+case when c.id = 3 then shoe end from user1 a join user1_equipment b on a.id=b.user_id
+cross join tb_sequence c where c.id <= 3 order by user_name;
+select user_name,case when c.id=1 then 'arms' when c.id=2 then 'clothing' when c.id=3 then 'shoe' end as equipment,
+coalesce(case when c.id=1 then arms end,case when c.id=2 then clothing end,case when c.id=3 then shoe end) as eq_name from user1 a join
+user1_equipment b on a.id=b.user_id cross join tb_sequence c where c.id <= 3 order by user_name
+
+如何生成唯一序列号
+需要使用唯一序列号的场景
+数据库主键
+业务序列号如发票号 车票号 订单号等 ...
+生成序列号的方法
+序列号 mysql:auto_increment sqlserver:identity/sequence oracle:sequence pgsql:sequence
+
+如何选择生成序列号的方式
+优先选择系统提供的序列号生成方式
+create table t (id int auto_increment not null, primary key(id));
+select * from t;
+begin;
+insert into t values();
+select * from t;
+rollback;
+insert into t values();
+select * from t;
+
+用SQL来生成特殊的序列号
+需求 生成订单序列号 并且订单号的格式如下
+
+存储过程
+declare v_cnt int;
+declare v_timestr int;
+declare rowcount bigint;
+set v_timestr=date_format(now(),'%Y%m%d');
+select round(rand()*1000)+1 into v_cnt;
+start transaction;
+update order_seq order_sn=order_sn+v_cnt where timestr=v_timestr;
+if row_count()=0 then
+insert into order_seq(timestr,order_sn) values(v_timestr,v_cnt);
+end if;
+select concat(v_timestr,lpad(order_sn,7,0)) as order_sn
+from order_seq where timestr=v_timestr;
+commit;
+
+如何处理重复的数据
+产生数据重复的原因
+人为原因 如重复录入数据 重复提交
+系统原因 由于系统升级或设计的原因使原来可以重复的数据变为不能重复了
+
+create table user1_test(
+    id int auto_increment not null primary key,
+	user_name varchar(3) not null default '' comment = '用户名',
+	over varchar(100) not null default '' comment = '备注',
+	mobile varchar(100) not null decimal '' comment = '手机',
+) engine=innodb default charset=utf8 comment = '';
+desc user1_test;
+insert into user1_test(user_name,over,mobile) select user_name,over,mobile from user1;
+insert into user1_test(user_name,over,mobile) select user_name,over,mobile from user1 limit 2;
+select * from user1_test;
+select user_name,count(*) from user1_test group by user_name having count(*) > 1;
+select user_name,over,count(*) from user1_test group by user_name,over having count(*) > 1;
+
+如何查询数据是否重复
+利用group by 和having从句处理
+select user_name,count(*) from user1_test group by user_name having count(*) > 10
+
+删除重复数据 对于相同数据保留ID最大的
+delete a from user1_test a join(select user_name,count(*),max(id) as id from user1_test group by user_name
+having count(*) > 1) b
+on a.user_name = b.user_name where a.id < b.id
+
+更复杂的情况

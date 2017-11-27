@@ -1,0 +1,400 @@
+MySQL数据库优化
+
+数据库优化的目的
+避免出现页面访问错误
+由于数据库连接timeout产生页面5xx错误
+由于慢查询造成页面无法加载
+由于阻塞造成数据无法提交
+
+增加数据库的稳定性
+很多数据库问题都是由于低效的查询引起的
+
+优化用户体验
+流畅页面的访问速度
+良好的网站功能体验
+
+可以从几个方面进行数据库优化
+硬件 --- 系统配置 --- 数据库表结构 --- SQL及索引
+
+SQL及索引优化
+如何分析SQL查询
+演示数据库说明
+使用MySQL提供的sakila数据库 可以通过以下URL获取这个演示数据库
+http://dev.mysql.com/doc/index-other.html
+sakila数据库的表结构住信息可以通过以下网站查看
+http://dev.mysql.com/doc/sakila/en/sakila-installation.html
+数据库基于MySQL5.5版本
+why 不同MySQL版本的优化器有一定的差别
+
+如何发现有问题的SQL
+使用MySQL慢查询日志对有效率问题的SQL进行监控
+show variables like 'slow_query_log'
++----------------+-------+
+| Variable_name  | Value |
++----------------+-------+
+| slow_query_log | OFF   |
++----------------+-------+
+set global slow_query_log_file='/home/mysql/sql_log/mysql-slow.log'
+set global log_queries_not_using_indexes=on;
+set global long_query_time=1
+
+show variables like 'slow_query_log';
+show variables like '%log%';
+mysql> show variables like 'slow_query_log%';
++---------------------+---------------------------------------+
+| Variable_name       | Value                                 |
++---------------------+---------------------------------------+
+| slow_query_log      | OFF                                   |
+| slow_query_log_file | /var/lib/mysql/ak-Vostro-230-slow.log |#慢查询日志文件目录
++---------------------+---------------------------------------+
+set global log_queries_not_using_indexes=on;
+show variables like 'long_query_time';
+set global slow_query_log=on;
+use sakila
+show tables;
+select * from store limit 10;
+show variables like 'slow%'; #可查询慢查询日志
+
+慢查询日志所包含的内容
+执行SQL的主机信息
+#User@Host:root[root]@localhost[]
+SQL的执行信息
+#Query_time:0.000024 Lock_time:0.000000 Rows_sent:0 Rows_examined:0
+SQL执行时间
+SET timestamp=1402389328;
+SQL的内容
+select CONCAT('storage engine:',@@storage_engine) as INFO:
+
+慢查询日志的分析工具
+Usage:mysqldumpslow[OPTS...][LOGS...]
+Parse and summarize the MySQL slow query log. Options area
+--verbose verbose
+--debug debug
+--help write this text to standard output
+
+mysqldumpslow -t 3 /home/mysql/data/mysql-slow.log | more
+
+输出到文件
+pt-query-digest slow-log > slow_log.report
+输出到数据库表
+pt-query-digest slow.log -review \
+h=127.0.0.1,D=test,p=root,P=3306,u=root,t=query_review \
+--create-reviewtable \
+--review-history t=hostname_slow
+pt-query-digest /home/mysql/data/mysql-slow.log | more
+
+如何通过慢查询日志发现有问题的SQL
+1.查询次数多且每次查询占用时间长的SQL
+通常为pt-query-digest分析的前几个查询
+2.IO大的SQL
+注意pt-query-digest分析中的Rows examine项
+3.末命名索引的SQL
+注意pt-query-digest分析中Rows examine 和 Rows Send 的对比
+
+如何分析SQL查询
+使用explain查询SQL的执行计划
+explain select customer id,first_name,last_name from customer;
+
+explain 返回各列的含义
+table 显示这一行的数据是关于哪张表的
+type 这是重要的列 显示连接使用了何种类型 从最好到最差的连接类型为const eq_req ref range index 和 ALL
+possible_keys 显示可能应用在这张表中的索引 如果为空 没有可能的索引
+key 实际使用的索引 在不损失精确性的情况下 长度越短越好
+key_len 使用的索引的长度 在不损失精确性的情况下 长度越短越好
+ref 显示索引的哪些一列被使用了 如果可能的话 是一个常数
+rows MYSQL认为必须检查的用来返回请求数据的行数
+
+extra列需要注意的返回值
+Using filesort 看到这个的时候 查询就需要优化了 MYSQL需要进行额外的步骤来发现如何
+对返回的行排序 它根据连接类型以及存储排序键值和匹配条件的全部行的行指针来排序全部行
+Using temporary 看到这个的时候 查询需要优化了 这里 MYSQL需要创建一个临时表来存储结果
+这通常发生在对不同的列集进行 ORDER BY 上 而不是GROUP BY上
+
+count() 和 max() 的优化方法
+查询最后支付时间 --- 优化max() 函数
+select max(payment_date) from payment;
+explain select max(payment_date) from payment;
+create index idx_paydate on payment(payment_date);
+explain select max(payment_date) from payment \G
+
+在一条SQL中同时查出2006年和2007年电影的数量 --- 优化count()函数
+错误的方式
+select count(release_year='2006' or release_year='2007') from film;
+无法分开计算2006和2007年的电影数量
+select count(*) from film where release_year='2006' and release_year='2007'
+release_year不可能同时为2006和2007 因此上有逻辑错误
+正确的方式
+select count(release_year='2006' or null) as '2006年电影数量',
+count(release_year='2007' or null) as '2007年电影数量' from film;
+
+select count(*),count(id) from t;
+
+子查询的优化
+通常情况下 需要把子查询优化为join查询 但在优化时要注意关联键是否有一对多的关系 需注意重复数据
+查询sandra出演的所有影片
+explain select title,release_year,length from film
+where film_id in (
+select film_id from film_actor where actor_id in (
+select actor_id from actor where first_name='sandra'));
+
+show create table t;
+create table t1(tid int);
+insert into t1 values(1);
+select * from t where t.id in (select t1.tid from t1);
+select t.id from t join t1 on t.id=t1.tid;
+insert into t1 values(1);
+select * from t1;
+select distinct from t join t1 on t.id=t1.tid;
+
+优化group by 查询
+explain select actor,first_name,actor.last_name,count(*)
+from sakila.film_actor
+inner join sakila.actor using(actor_id)
+group by film_actor.actor_id;
+优化后
+explain select actor.first_name,actor.last_name,c.cnt
+from sakila.actor inner join(
+select actor_id,count(*) as cnt from sakila.film_actor group by actor_id
+) as c using(actor_id);
+
+优化limit查询
+limit 常用于分页处理 时常会伴隋order by从句使用 因此大多时候会使用filesorts这样会造成大量的io问题
+select film_id,description from sakila.film order by title limit 50,5;
+优化步骤1 使用有索引的列或主键进行order by操作
+select film_id,description from sakila.film order by film_id limit 50,5;
+记录上次返回的主键 在下次查询时使用主键过滤
+select film_id,description from sakila.film where film_id>55 and film_id<=60 order by film_id limit 1,5;
+避免了数据量大时扫描过多的记录
+
+如何选择合适的列建立索引
+1.在where从句 group by从句 order by 从句 on从句中出现的列
+2.索引字段越小越好
+3.离散度大的列放到联合索引的前面
+select * from payment where staff_id=2 and customer_id=584;
+是index(sftaff_id,customer_id)好 还是index(customer_id,staff_id)好
+由于customer_id的离散度更大 所以应该使用index(customer_id,staff_id);
+select count(distinct coustomer_id),count(distinct staff_id) from payment;
+
+SQL及索引优化
+索引的维护及优化 --- 重复及冗余索引
+重复索引是指相同的列以相同的顺序建立的同类型的索引 如下表中primary key 和ID列上的索引就是重复索引
+create table test(
+    id int not null primary key,
+	name varchar(10) not null,
+	title varchar(50) not null,
+	unique(id)
+)engine=innodb default charset=utf8 comment '' ;
+冗余索引是指多个索引的前缀列相同 或是在联合索引中包含了主键的索引 下面这个例子中key(name,id)就是一个冗余索引
+create table test(
+    id int not null primary key,
+	name varchar(10) not null,
+	title varchar(50) not null,
+	key(name,id)
+)engine=innodb default charset=utf8 comment '';
+索引的维护及优化 --- 查找重复及冗余索引
+select a.table_schema as '数据名'
+,a.table_name as '表名'
+,a.index_name as '索引1'
+,b.INDEX_NAME as '索引2'
+,a.COLUMN_NAME as '重复列名'
+from statistics b on
+a.table_schema=b.table_schema and a.table_name=b.table_name
+and a.seq_in_index=b.seq_in_index and a.column_name =
+b.column_name where a.seq_in_index = 1 and a.index_name<>b.index_name
+
+show create table employees.dept_emp;
+使用pt-duplicate-key-checker工具检查重复及冗余索引
+pt-duplicate-key-checker \
+-uroot \
+-p " \
+-h 127.0.0.1
+
+目前MySQL中还没有记录索引的使用情况 但是在PerconMySQL和MariaDB中可以通过
+INDEX_STATISTICS表来查看那些索引未使用 但在MySQL中目前只能通过慢查日志配合
+pt-index-usage工具来进行索引使用情况的分析
+pt-index-usage \
+-uroot -p '' \
+mysql-slow.log
+
+数据库结构优化
+选择合适的数据类型
+数据类型的选择 重点在于合适二字 如何确定选择的数据类型是否合适
+1.使用可以存下你的数据最小的数据类型
+2.使用简单的数据类型 Int要比varchar类型在mysql处理上简单
+3.尽可能的使用not null定义字段
+4.尽量少用text类型 非用不可时最好考虑分表
+
+使用int来存储日期时间 利用from_unixtime(),unix_timestamp()两个函数来进行转换
+create table test(id int auto_increment not null,
+timestr int,
+primary key(id)
+)engine=innodb default charset=utf8 comment '':
+insert into test(timestr) values(unix_timestamp('2014-06-01 13:12:00'));
+select from_unixtime(timestr) from test;
+
+使用bigint来IP地址 利用inet_aton(),inet_ntoa()两个函数来进行转换
+create table sessions(id int auto_increment not null,
+ipaddress bigint,
+primary key(id)
+)engine=innodb default charset=utf8 comment '';
+insert into sessions(ipaddress) values(inet_aton("192.168.0.1"));
+select inet_ntoa(ipaddress) from sessions;
+
+表的范式化和反范式化
+范式化是指数据库设计的规范 目前说到范式化一般是指第三设计范式 也就是要求数据表中不存在非关键字段
+对任意候选关键字段的传递函数依赖则符合第三范式
+商品名称  价格  重量  有效期  分类  分类描述
+可乐      3     250ml 2014.6  饮料  碳酸饮料
+北冰洋    3     250ml 2014.7  饮料  碳酸饮料
+存在以下传递函数依赖关系
+(商品名称) --> (分类) --- (分类描述)
+也就是说存在非关键字段 "分类描述" 对关键字段"商品名称"的传递函数依赖
+
+不符合第三范式要求的表存在下列问题
+1.数据冗余 (分类 分类描述) 对于每一个商品都会进行记录
+2.数据的插入异常
+3.数据的更新异常
+4.数据的删除异常
+
+优化 可将商品表拆成三张表
+1.商品名称 价格 重量 有效期
+2.分类 分类描述
+3.分类 商品名称
+
+反范式化是指为了查询效率的考虑把原本符合第三范式的表适当的增加冗余 以达到优化查询
+效率的目的 反范式化是一种以空间来换取时间的操作
+用户表 用户ID 姓名 电话 地址 邮编
+订单表 订单ID 用户ID 下单时间 支付类型 订单状态
+订单商品表 订单ID 商品ID 商品数量 商品价格
+商品表 商品ID 名称 描述 过期时间
+
+如何查询订单信息
+select b.用户名,b.电话,b.地址,a.订单ID,sum(c.商品价格*c.商品数量) as 订单体格 from '订单表' a
+join '用户表' b on a.用户ID=b.用户ID
+join '订单商品表' c on c.订单ID=b.订单ID
+group by b.用户名,b.电话,b.地址,a.订单ID
+
+反范式化操作
+将用户名 电话 地址放入订单表
+select a.用户名,a.电话,a.地址,a.订单ID,a.订单价格 from 订单表 a
+注意 可以使用反范式化来解决多表联查, 也可以使用redis缓存 缓存商品信息 程序中foreach循环中联出缓存数据 $this->cache_get_map_str('student', $id);
+
+表的垂直拆分
+所谓的垂直拆分 就是把原来一个有很多列的表拆分成多个表 这解决了表的宽度问题 通常垂直拆分可以按以下原则进行
+1.把不常用的字段单独存放到一个表中
+2.把大字段独立存放到一个表中
+3.把经常一起使用的字段放到一起
+
+create table film (
+film_id smallint(5) unsigned not null auto_increment,
+title varchar(255) not null,
+description text,
+release_year year(4) default null,
+language_id tinyint(3) unsigned not null,
+original_language_id tinyint(3) unsigned default null,
+rental_duration tinyint(3) unsigned not null default 3,
+length smallint(5) unsigned null,
+replacement_cost decimal(5,2) not null default 19.99,
+rating varchar(5) default 'g',
+special_features varchar(10) default null,
+last_update timestamp,
+primary key(`film_id`)
+) engine=innodb default charset=utf8 comment '';
+拆分后
+create table film(
+film_id smallint(5) unsigned not null auto_increment,
+release_year year(4) default null,
+language_id tinyint(3) unsigned not null,
+original_language_id tinyint(3) unsigned default null,
+rental_duration tinyint(3) unsigned not null default '3',
+rental_rate decimal(4,2) not null default '4.99',
+length smallint(5) unsigned default null,
+replacement_cost decimal(5,2) not null default '19.99',
+rating varchar(5) default 'G',
+special_features varchar(10) default null,
+last_update timestamp,
+primary key(film_id)
+)engine=innodb default charset=utf8 comment '';
+附加表
+create table file_text(
+film_id smallint(5) unsigned not null,
+title varchar(255) not null,
+description text,
+primary key(film_id)
+)engine=innodb default charset=utf8 comment '';
+
+表的水平拆分
+表的水平拆分是为了解决单表的数据量过大的问题 水平拆分的表每一个表的结构都是完成一致的
+以下面的payment表为例
+create table payment(
+payment_id smallint(5) unsigned not null auto_increment,
+customer_id smallint(5) unsigned not null,
+staff_id tinyint(3) unsigned not null,
+rental_id int(11) default null,
+amount decimal(5,2) not null,
+payment_date datetime not null,
+last_update timestamp,
+primary key(`payment_id`)
+)engine=innodb default charset=utf8 comment '';
+
+常用的水平拆分方法为
+1.对customer_id进行hash运算 如果要拆分成五个表则使用mod(customer_id,5)取出0-4个值
+2.针对不同的hashID把数据存到不同的表中
+挑战
+1.跨分区表进行数据查询
+2.统计及后台报表操作
+
+系统配置优化
+操作系统配置优化
+数据库是基于操作系统的 目前大多数MySQL都是安装在Linux系统之上 所以对于操作系统的
+一些参数配置也会影响到MySQL的性能 下面就列出一些常用的系统配置
+网络方面的配置 要修改/etc/sysctl.conf文件
+#增加tcp支持的队列数
+net.ipv4.tcp_max_syn_backlog = 65535
+#减少断开连接时 资源回收
+net.ipv4.tcp_max_tw_buckets = 8000
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.tcp_tv_recycle = 10
+net.ipv4.tcp_fin_timeout = 10
+打开文件数的限制 可以使用ulimit -a查看目录的限制 可以修改/etc/security/limits/conf文件
+增加以下内容以修改打开文件数量的限制
+soft nofile 65535
+hard nofile 65535
+除此之外最好在MySQL服务器上关闭iptables,selinux等防火墙软件
+
+MySQL配置文件
+MySQL可以通过启动时指定配置参数和使用配置文件两种方法进行配置 在大数情况下配置文件位于
+/etc/my.cnf或是/etc/mysql/my.cnf在windows系统配置文件可以是位于C:/windows/my.ini文件
+MySQL查找配置文件的顺序可以通过以下方法获得
+/usr/sbin/mysqld --verbose --help | grep -A 1 'Default options '
+注意 如果存在多个位置存在配置文件 则后观的会覆盖前面的
+
+MySQL配置文件 --- 常用参数说明
+innodb_buffer_pool_size
+非常重要的一个参数 用于配置Innodb的缓冲池如果数据库中只有Innodb表 则推荐配置量为总内存的75%
+select engine,
+round(sum(data_length + index_length)/1024/1024, 1) as "total MB",
+from information_schema.tables where table_schema not in 
+("information_schema", "performance_schema")
+group by engine;
+Innodb_buffer_pool_size >= Total MB
+
+常用配置参数说明
+innodb_buffer_pool_instances
+MySQL5.5中新增加参数 右以控制缓冲池的个数 默认情况下只有一个缓冲池
+innodb_log_buffer_size 缓冲的大小 由于日志最长每秒钟就会刷新所以一般不用太大
+innodb_flush_log_at_trx_commit 关键参数 对innodb的IO效率影响很大 默认值为1 可以取0,1,2三个值 一般建议设为2
+但如果数据安全性要求比较高则使用默认值1
+innodb_read_io_threads
+innodb_write_io_threads
+以上两个参数决定了Innodb读写的IO进行数 默认为4
+innodb_file_per_table
+关键参数 控制Innodb每一个表使用独立的表空间 默认为OFF 也就是所有表都会建立在共享表空间中
+常用配置参数说明innodb_stats_on_metadata
+决定了MySQL在什么情况下会刷新innodb表的统计信息
+
+第三方配置式具使用
+
+服务器硬件优化
+如何选择CPU
+是选择单核更快的CPU还是选择核数更多的CPU

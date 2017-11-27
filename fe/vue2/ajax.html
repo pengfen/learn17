@@ -1,0 +1,138 @@
+脚本加载 <script src="https://cdn.jsdelivr.net/vue.resource/1.3.1/vue-resource.min.js"></script>
+命令加载 npm install vue-resource --save
+cnpm install vue-resource
+--save 是指安装项目依赖(会在package.json 'dependencies':{"vue-resource":"版本号"})
+
+vue-resource的请求API是按照REST风格设计的 它提供了7种请求API
+get(url, [option])
+head(url, [option])
+delete(url, [option])
+jsonp(url, [option])
+post(url, [body], [option])
+put(url, [body], [option])
+patch(url, [body], [option])
+
+url string 请求的URL
+参数          类型                   描述
+method        string                 请求的HTTP方法 例如 'GET','POST'或其他HTTP方法
+body          Object,FormDatastring  request body
+params        Object                 请求的URL参数对象
+headers       Object                 request header
+timeout       number                 单位为毫秒的请求超时时间(0表示无超时时间)
+before        function(request)      请求发送前的处理函数 类似于jQuery的beforeSend函数
+progress      function(event)        ProgressEvent回调处理函数
+credientials  boolean                表示跨域请求时是否需要使用凭证
+emulateHTTP   boolean                发送PUT PATCH DELETE请求时以HTTP POST的方式发送 并设置请求头的x-HTTP-Method-Override
+emulateJSON   boolean                将request body以application/x-www-form-urlencoded content type发送
+
+全局拦截器interceptors
+Vue.http.interceptors.push((request, next) => {
+    // ...
+	// 请求发送前的处理逻辑
+	// ...
+	next((response) => {
+	    // ...
+		// 请求发送后的处理逻辑
+		// ...
+		// 根据请求的状态 response参数会返回给successCallback或errorCallback
+		return response
+	})
+})
+Get 请求   Post 请求   JSONP 请求    全局拦截器使用
+
+main.js 入口文件中添加
+import VueResource from 'vue-resource'
+
+Vue.use(VueResource)
+
+页面模板中添加调用函数
+    created: function() {
+	    this.$http.get('getList')
+		.then(function(res) {
+		    console.log(res.data)
+		}, function(err) {
+		    console.log(error)
+		})
+	},
+	
+安装json服务端模拟数据
+cnpm install json-server --save
+
+build/dev-serve.js中添加
+// json-server相关配置
+var jsonServer = require('json-server')
+var apiServer = jsonServer.create();
+var apiRouter = jsonServer.router('db.json')
+var middleware = jsonServer.defaults();
+
+apiServer.use(middleware);
+apiServer.use(apiRouter);
+apiServer.listen(port + 1, function() {
+	console.log('JSON Server is running')
+})
+
+// 修改代理api (config/index.js)
+proxyTable: {
+	'/api/': 'http://localhost:8081/'
+},
+build/dev-server.js
+apiServer.use('/api', apiRouter);
+
+db.json 添加json数据(注意使用双引号)
+{
+    "getNewsList": [
+		{
+		    "name": "数据统计",
+		    "url": "http://starcraft.com"
+		},
+		{
+		    "name": "数据统计",
+		    "url": "http://starcraft.com"
+		}
+	]
+}
+
+页面测试 http://localhost:8080/api/getNewsList
+
+修改页面
+export default {
+    created: function() {
+	    this.$http.get('api/getNewsList')
+		.then((res) => {
+		    this.newsList = res.data
+		}, (err) => {
+		    console.log(err)
+		})
+	},
+}
+注意this的使用
+如果不用 => 则是 let th = this; function(res) {th.newsList = res.data}
+
+json-server 仅支持get 不支持post 使用express
+// 使用express
+var apiServer = express()
+var bodyParser = require('body-parser')
+apiServer.use(bodyParser.urlencoded({extended: true}))
+apiServer.use(bodyParser.json())
+var apiRouter = express.Router()
+var fs = require('fs')
+apiRouter.get('/', function(req, res) {
+	res.json({ message: 'welcome to api' })
+})
+apiRouter.route('/:apiName')
+.all(function (req, res) {
+	fs.readFile('./db.json', 'utf8', function (err, data) {
+		if (err) throw err
+		var data = JSON.parse(data)
+		if (data[req.params.apiName]) {
+			res.json(data[req.params.apiName])
+		} else {
+			res.send('no such api name')
+		}
+	})
+})
+
+apiServer.use('/api', apiRouter);
+apiServer.listen(port + 1, function() {
+	console.log('JSON Server is running')
+})

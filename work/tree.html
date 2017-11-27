@@ -1,0 +1,72 @@
+// php 生成树结构
+1.直接使用下标替换(id系列号必须是顺序且不断的)
+$items = array(
+1 => array('id' => 1, 'pid' => 0, 'name' => '安徽省'),
+2 => array('id' => 2, 'pid' => 0, 'name' => '浙江省'),
+3 => array('id' => 3, 'pid' => 1, 'name' => '合肥市'),
+4 => array('id' => 4, 'pid' => 3, 'name' => '长丰县'),
+5 => array('id' => 5, 'pid' => 1, 'name' => '安庆市'),
+);
+print_r(generateTree($items));
+function generateTree($items){
+foreach($items as $item)
+$items[$item['pid']]['son'][$item['id']] = &$items[$item['id']];
+return isset($items[0]['son']) ? $items[0]['son'] : array();
+}
+
+2.递归
+$people = [];
+foreach($users as $item) {
+$people[$item['parentid']][] = $item;
+}
+$info = $this->getTree($info, 0, $people);
+
+function getTree($data, $pId, $users)
+{
+$tree = '';
+foreach($data as $k => $v)
+{
+if($v['parentid'] == $pId)
+{
+$v['children'] = $this->getTree($data, $v['id'], $users); // 找子节点
+if (isset($users[$v['id']])) { // 处理组织下员工
+$v['users'] = $users[$v['id']];
+}
+$tree[] = $v;
+}
+}
+return $tree;
+}
+
+js树
+<link href="/ztree/zTreeStyle.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="/ztree/jquery.ztree.all.min.js"></script>
+<script type="text/javascript">
+    var ext = <?php echo json_encode($ext);?>;
+    var setting = {
+    view: { // 处理是否显示图标
+    showIcon: false
+    },
+    check: { // 处理是否显示选框等
+    enable: true,  
+    chkStyle: "checkbox",  
+    chkboxType: { "Y": "ps", "N": "ps" }  
+    }, 
+    data: { // 加载数据
+    simpleData: {
+    enable: true
+    }
+    },
+    };
+
+		var zNodes = <?php echo json_encode($info)?>;
+
+		$(document).ready(function(){
+		$.fn.zTree.init($("#treeDemo"), setting, zNodes); // 初始化
+
+    $('#confirm').click(function(){
+    var treeObj = $.fn.zTree.getZTreeObj("treeDemo"); // 获取树对象
+    var nodes = treeObj.getCheckedNodes(true); // 获取选中节点
+    for (var i = 0; i < nodes.length; i ++) {
+    // 处理节点
+    }

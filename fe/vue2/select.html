@@ -1,0 +1,80 @@
+detail/analysis
+
+import VSelection from '../../components/selection'
+export default {
+    components: {
+	    VSelection
+	}
+}
+
+传递参数
+return {
+	buyTypes: [
+		{
+		  label: '入门版',
+		  value: 0
+		},
+		{
+		  label: '中级版',
+		  value: 1
+		},
+		{
+		  label: '高级版',
+		  value: 2
+		}
+	],
+}
+<v-selection :selections="buyTypes" @on-change="onParamChange('buyType', $event)"></v-selection>
+
+props: {
+	selections: {
+	  type: Array,
+	  default: [{
+		label: 'test',
+		value: 0
+	  }]
+	}
+},
+<li v-for="(item, index) in selections" @click="chooseSelection(index)">{{ item.label }}</li>
+
+<span>{{ selections[nowIndex].label }}</span>
+
+@click="toggleDrop"
+toggleDrop () {
+    this.isDrop = !this.isDrop
+},
+
+chooseSelection (index) {
+    this.nowIndex = index
+    this.isDrop = false
+    this.$emit('on-change', this.selections[this.nowIndex])
+}
+
+import VChooser from '../../components/base/chooser'
+export default {
+    components: {
+	    VSelection,
+		VChooser
+	}
+}
+
+props: {
+	selections: {
+	type: Array,
+		default: [{
+			label: 'test',
+			value: 0
+		}]
+	}
+},
+
+<li v-for="(item, index) in selections" @click="chosenSelection(index)" :title="item.label" :class="{active:index === nowIndex}">{{ item.label }}</li>
+
+methods: {
+	chosenSelection (index) {
+	    this.nowIndex = index
+	    this.$emit('on-change', this.selections[index])
+	}
+}
+  
+// 多选项组件

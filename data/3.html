@@ -1,0 +1,96 @@
+如何在子查询中匹配两个值
+解决同属性多值过滤的问题
+如何计算累进税类问题
+
+什么是子查询
+当一个查询是另一个查询的条件时 称之为子查询
+
+常见的子查询使用场景
+使用子查询可以避免由于子查询中的数据产生的重复
+select user_name from user1 where id in (select user_id from user_kills);
+select * from user_kills;
+select a.user_name from user1 a join user_kills b on a.id=b.user_id;
+select distinct a.user_name from user1 a join user_kills b on a.id=b.user_id;
+
+使用子查询更符合语意 更好理解
+
+查询出每一个取经人打怪最多的日期 并列出取经人的姓名 打怪最多的日期和打怪的数量
+select user_id,max(kills) as cnt from user_kills group by user_id;
+select a.user_name,b.timestr,kills from user1 a join user_kills b on a.id=b.user_id
+join (select user_id,max(kills) as cnt from user_kills group by user_id) c on b.user_id=c.user_id and b.kills = c.cnt;
+
+多例过滤的使用场景
+MySQL中独有的多例过滤方式
+select a.user_name,b.timestr,kills from user1 a join user_kills b on a.id=b.user_id where(b.user_id,b.kills)
+in(select user_id,max(kills) from user_kills group by user_id)
+
+什么是同一属性的多值过滤
+为了解释在我们的示例库中增加一个技能表
+user_name  skill   skill_level
+唐僧       紧箍咒  5
+唐僧       打坐    4
+唐僧       念经    5
+唐僧       变化    0
+猪八戒     变化    4
+猪八戒     腾云    3
+猪八戒     浮水    5
+猪八戒     念经    0
+猪八戒     紧箍咒  0
+孙悟空     变化    5
+孙悟空     腾云    5
+孙悟空     浮水    3
+孙悟空     请神    5
+孙悟空     紧箍咒  0
+沙僧       变化    2
+沙僧       腾云    2
+沙僧       浮水    4
+沙僧       念经    1
+沙僧       紧箍咒  0
+
+如何查询出同时具有变化和念经这两项技能的取经人
+select a.user_name,b.skill,b.skill_level from user1 a join user_kills b on a.id=b.user_id
+where skill in('变化','念经') and skill_level > 0;
+select a.user_name,b.skill,c.skill from user1 a join user1_skills b on a.id=b.user_id and b.skill='念经' join user1_skills c on
+c.user_id=b.user_id and c.skill='变化' where b.skill_level>0 and c.skill_level>0;
+
+select a.user_name,b.skill,c.skill,d.skill from user1 a join user1_skill b on a.id=b.user_id and b.skill='念经' 
+join user1_skill c on c.user_id=b.user_id and c.skill='变化' join user1_skill d on d.user_id=c.user_id and d.skill='腾云' 
+where b.skill_level>0 and c.skill_level>0 and d.skill_level>0;
+
+select a.user_name,b.skill,c.skill,d.skill,e.skill from user1 a left join user1_skills b on a.id=b.user_id and b.skill='念经' and b.skill_level>0
+left join user1_skills c on a.id=c.user_id and c.skill='变化' and c.skill_level>0 
+left join user1_skills d on a.id=d.user_id and d.skill='腾云' and d.skill_level>0
+left join user1_skills e on a.id=e.user_id and e.skill='浮水' and e.skill_level>0
+
+select a.user_name,b.skill,c.skill,d.skill,e.skill from user1 a left join user1_skills b on a.id=b.user_id and b.skill='念经' and b.skill_level>0
+left join user1_skills c on a.id=c.user_id and c.skill='变化' and c.skill_level>0 
+left join user1_skills d on a.id=d.user_id and d.skill='腾云' and d.skill_level>0
+left join user1_skills e on a.id=e.user_id and e.skill='浮水' and e.skill_level>0 where (case where b.skill is not null then 1 else 0 end)
++(case where c.skill is not null then 1 else 0 end)+(case where d.skill is not null then 1 else 0 end)+(case where e.skill is not null then 1 else 0 end) >= 2
+
+使用group方法解决问题
+select a.user_name from user1 a join user1_skills b on a.id=b.user_id where b.skill in('念经','变化','腾云','浮水') and b.skill_level>0 group by a.user_name having count(*)>=2
+
+如何计算累进税类问题
+什么是累进税
+最常见的累进税 --- 个人所得税
+取经四人组的工资收入
+user_name  money
+唐僧       35000
+猪八戒     15000
+孙悟空     28000
+沙僧       8000
+
+low    high   rate
+0      1500   3%
+1500   4500   10%
+4500   9000   20%
+9000   35000  25%
+35000  55000  30%
+50000  80000  35%
+80000         45%
+使用join实现工资对不同纳税区间的匹配
+select a.user_name,money,low,high,rate from user1 a join taxRate b on a.money>b.low order by user_name;
+利用least()函数来确定每个区间纳税额
+select user_name,money,low,high least(money-low,hight-low) as curmoney,rate from user1 a join taxRate b on a.money > b.low 
+order by user_name,low;

@@ -1,0 +1,44 @@
+编写dialog (components/dialog.vue)
+
+layout.vue 加载对话框组件
+import Dialog from './dialog'
+export default {
+    components: {
+	    MyDialog: Dialog
+	}
+}
+
+<my-dialog : is-show="isShowDialog">
+    <p>welcome</p>
+</my-dialog>
+
+关于绑定弹框
+<li @click="aboutClick">关于</li>
+
+data() {
+    return {
+	    isShowDialog: false
+	}
+}
+
+methods: {
+    aboutClick() {
+	    this.isShowDialog = true
+	}
+}
+
+// 关闭弹框
+methods: {
+    closeMyself() {
+	    this.$emit('on-close')
+	}
+}
+
+@click="closeMyself"
+
+父组件中监听 @on-close
+<my-dialog :is-show="isShowDialog" @on-close="closeDialog">
+
+closeDialog() {
+    this.isShowDialog = false
+}

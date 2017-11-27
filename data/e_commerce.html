@@ -1,0 +1,102 @@
+数据库设计规范
+
+数据结构设计 逻辑设计 ---> 物理设计
+实际工作中   逻辑设计 + 物理设计
+物理设计 表名 字段名 字段类型
+
+数据库设计规范
+数据库命名规范
+数据库基本设计规范
+数据库索引设计规范
+
+数据库设计规范
+数据库字段设计规范
+数据库SQL开发规范
+数据库操作行为规范
+
+所有数据库对象名称必须使用小写字母并用下划线分割
+不同的数据库名 DbName dbname
+不同的表名     Table table tabLe
+所有数据库对象名称禁止使用MySQL保留关键字 
+http://dev.mysql.com/doc/refman/5.7/en/key/words.html
+
+数据库对象的命名要能做到见名识义 并且最好不要超过32个字符
+例如 用户数据库 mc_userdb 用户账号表 user_account
+临时库表必须以tmp为前缀并以日期为后缀
+备份库 备份表必须以bak为前缀并以日期为后缀
+
+所有存储相同数据的列名称列类型必须一致
+create table customer_inf(
+    customer_inf_id int unsigned AUTO_INCREMENT not null comment '自增ID'，
+	customer_id int unsigned not null comment 'customer_login表的自增ID'
+	customer_name varchar(20) not null comment '用户真实姓名',
+	identity_card_type tinyint not null default 1 comment '证件类型:"
+	identity_card_no varchar(20) comment '证件号码'
+)
+create table order_master(
+    order_id int unsigned not null AUTO_INCREMENT comment '订单ID‘，
+	order_sn bigint unsigned not null comment '订单编号',
+	shipping_user varchar(10) not null comment '收货人姓名'
+	province smallint not null comment '收货人所在省'
+)
+
+Mysql5.5使用之前myisam(默认存储引擎)情况
+所有表必须使用Innodb存储引擎
+5.6以后的默认引擎 支持事务 行级锁 更好的恢复性 高并发下性能更好
+
+数据库和表的字符统一使用UTF8 兼容性更好
+统一字符集可以避免由于字符集转换产成的乱码
+MySQL中UTF8字符集汉字占3个字节 ASCII码占用一个字节
+
+所有表和字段都需要添加注释
+使用comment从句添加表和列的备注
+从一开始就进行数据字典的维护
+尽量控制单表数据量的大小 建议控制在500万以内 500万并不是MySQL数据库的限制
+修改表结构 备份 恢复都会有很大问题
+
+Mysql最多可以存储多少万数据呢 这种限制取决于存储设置和文件系统
+可以用历史数据归档 分库分表等手段来控制数据量大小
+谨慎使用MySQL分区表 分区表在物理上表现为多个文件 在逻辑上表现为一个表
+谨慎选择分区键 跨分区查询效率可能更低
+建议采用物理分表的方式管理大数据
+
+尽量做到冷热数据分离 减少表的宽度 
+Mysql限制最多存储4096列 减少磁盘IO 保证热数据的内存缓存命中率
+利用更有效的利用缓存 避免读入无用的冷数据
+经常一起使用的列放到一个表中
+
+禁止在表中建立预留字段 预留字段的命名很难做到见名识义 
+预留字段无法确认存储的数据类型 所以无法选择合适的类型
+
+对预留字段类型的修改 会对表进行锁定
+
+禁止在数据库中存储图片 文件等二进制数据
+禁止在线上做数据库压力测试
+禁止从开发环境 测试环境直接生产环境数据库
+
+索引设计规范
+索引对数据库的查询性能来说是非常重要的
+不要滥用索引
+
+限制每张表上的索引数量 建议单张表索引不超过5个
+索引并不是越多越好 索引可以提高效率同样可以降低效率
+禁止给表中的每一列都建立单独的索引
+Innodb是按照哪个索引的顺序来组织表的呢 --- 主键
+每个Innodb表必须有一个主键 不使用更新频繁的列作为主键 不使用多列主键
+不使用UUID MD5 HASH 字符串列作为主键
+
+常见索引列建议
+在哪些列上建立索引
+select update delete语句的where从句中的列 包含在order by  group by  distinct中字段
+多表join的关联列
+
+如何选择索引列的顺序
+区分度最高的列放在联合索引的最左侧
+尽量把字段长度小的列放在联合索引的最左侧
+使用最频繁的列放到联合索引的左侧
+
+避免建立冗余索引和重复索引 primary key(id)  index(id)   unique index(id)
+index(a,b,c) index(a,b) index(a)
+
+对于频繁的查询优先考虑使用覆盖索引
+避免Innodb表进行索引的二次查找

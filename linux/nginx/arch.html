@@ -1,0 +1,160 @@
+Nginx常见问题
+1.相同server_name多个虚拟主机优先级访问
+server {
+    listen 80;
+	server_name test.com;
+	location {
+	   ...
+	}
+	server {
+	   ...
+	}
+}
+2.location匹配优先级
+3.try_files使用
+4.Nginx的alias和root区别
+5.用什么方法传递用户的真实IP
+
+= 进行普通字符精确匹配 也就是完全匹配
+^~ 表示普通字符匹配 使用前缀匹配
+~ \~* 表示执行一个正则匹配()
+
+location = /code1/ {
+    rewrite ^(.*)$ /code1/index.html break;
+}
+
+location ~ /code.* {
+    rewrite ^(.*)$ /code3/index.html break;
+}
+
+location ^~ /code {
+    rewrite ^(.*)$ /code2/index.html break;
+}
+
+Nginx的try_files的使用
+按顺序检查文件是否存在
+location / {
+    try_files $uri $uri/ /index.php;
+}
+
+location / {
+    root /opt/app/code/cache;
+	try_files $uri @java_page;
+}
+
+location @java_page {
+    proxy_pass http://127.0.0.1:9090;
+}
+
+Nginx的alias和root区别
+location /request_path/image/ {
+    root /local_path/image/;
+}
+
+http://www.imooc.com/request_path/image/cat.png
+/local_path/image/request_path/image/cat.png
+
+5 用什么样的方法传递用户的真实IP地址
+第一层代理 set x_real_ip=$remote_addr 最后取出$r_real_ip
+
+5 其他
+Nginx 413 Request Entity Too Large 用户上传文件限制 client_max_body_size
+502 bad gateway 后端服务无响应
+504 Gateway Time-out 后端服务执行超时
+
+Nginx性能优化
+1.性能优化考虑点
+2.压测工具ab
+3.系统与Nginx性能优化
+
+1 性能优化考虑点
+当前系统结构瓶颈  观察指标 压力测试
+了解业务模式  接口业务类型 系统层次化结构
+性能与安全
+
+ab接口压力测试工具
+安装 yum install httpd-tools
+使用 ab -n 2000 -c 2 http://127.0.0.1/
+-n 总的请求数  -c 并发数  -k 是否开启长连接
+ab -n 2000 -c 2 http://127.0.0.1/a.html
+
+系统与Nginx性能优化
+网络  系统  服务  程序  数据库 底层服务
+
+系统与Nginx性能优化
+文件句柄 linux\unix一切皆文件 文件句柄就是一个索引
+设置方式 系统全局性修改 用户局部性修改 进程局部性修改
+
+CPU的亲和  把进程通常不会在处理器之间频繁迁移进程迁移的频率小 减少性能损耗
+
+基于Nginx架构的安全篇
+1.常见的恶意行为
+2.常见的应用层攻埚击手段
+3.Nginx防攻击策略
+4.场景 Nginx+LUA的安全waf防火墙
+
+1.常见的恶意行为 爬虫行为和恶意抓取 资源盗用
+基础防盗链功能 目的不让恶意用户能轻易的爬取网站对外数据
+secure_link_module 对数据安全性提高加密验证和失效性 适合如核心重要数据
+access_module 对后台 部分用户服务的数据提供IP防控
+
+2 常见的攻击手段
+后台密码撞库 通过猜测密码字典不断对后台系统登录性尝试 获取后台登录密码
+方法一 后台登录密码复杂度
+方法二 access_module 对后台提供IP防控
+方法三 预警机制
+文件上传漏洞 利用这些可以上传的接口将恶意代码植入到服务器中 再通过url去访问以招待代码
+http://www.imooc.com/upload/1.jpg/1.php
+Nginx将1.jpg作为php代码执行
+location ^~ /upload {
+    root /opt/app/images;
+	if ($request_filename ~* (.*)\.php) {
+	    set $php_url $1;
+	}
+}
+
+location ^~ /upload {
+    root /opt/app/images;
+	if ($request_filename ~* (.*)\.php) {
+	    return 403;
+	}
+}
+SQL注入 利用未过滤/未审核用户输入的攻击方法 让应用运行本不应该运行的SQL代码
+SQL注入场景
+
+1.安装环境
+yum install mariadb-server mariadb
+yum install php php-fpm php-mysql
+
+建立表格 插入测试数据
+create table users(id int(11),username varchar(64),password varchar(64),email varchar(64));
+insert into users(id,username,password,email) values(1,'jeson',md5('123'),'jeson@imooc,com');
+
+Nginx+LUA防火墙
+拦截Cookie类型攻击
+拦截异常post请求
+拦截cc攻击
+拦截URL
+拦截arg
+
+Nginx漏网和新版本特性
+1.查看版本更新描述
+2.CVE-2017-7529
+
+基于Nginx的中间价架构
+1.了解需求
+2.设计评估
+3.配置注意事项
+
+了解需求
+1. 定义Nginx在服务体系中的角色 静态资源服务 代理服务 动静分离
+2. 静态资源服务的功能设计 
+静态资源服务 (浏览器缓存 类型分类 防盗链 流量限制 压缩 防资源盗用)
+3. 代理服务 (正向代理 LNMP 代理缓存 反向代理 Proxypass 分片请求 负载均衡 头信息处理 协议类型)
+
+设计评估
+硬件 CPU 内存 硬盘
+系统 用户权限 日志目录存放
+关联服务 LVS keepalive syslog Fastcgi
+
+配置注意事项 合理配置 了解原理 关注日志

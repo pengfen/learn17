@@ -1,0 +1,274 @@
+进阶学习
+1.静态资源WEB服务
+2.代理服务
+3.负载均衡调度器SLB
+4.动态缓存
+
+静态资源类型
+非服务器动态运行生成的文件
+类型          种类
+浏览器端渲染  HTML CSS JS
+图片          JPEG GIF PNG
+视频          FLV MPEG
+文件          TXT 等任意下载文件
+
+静态资源服务场景 CDN
+Systax: sendfile on|off;
+Default:sendfile off;
+Context:http,server,location,if in location
+--with-file-aio 异步文件读取
+
+3 配置语法 tcp_nopush
+Syntax: tcp_nopush on|off;
+Default:tcp_nopush off;
+Context:http,server,location
+作用 sendfile开启的情况下 提高网络包的传输效率
+
+配置语法 tcp_nodelay
+Syntax:tcp_nodelay on|off;
+Default:tcp_nodelay on;
+Context:http,server,location
+
+作用 keepalive连接下 提高网络包的传输实时性
+
+配置语法 压缩
+Syntax: gzip on|off;
+Default:gzip off;
+Context:http,server,location,if in location
+
+作用:压缩传输
+Syntax: gzip_comp_level level;
+Default:gzip_comp_level 1;
+Context:http,server,location
+
+扩展Nginx压缩模块
+http_gzip_static_module 预读gzip功能
+http_gunzip_module 应用支持gunzip的压缩方式
+
+cd /etc/nginx/conf.d/
+cp /opt/backup/default.conf ./default.conf
+mv default.conf static_server.conf
+vim static_server.conf
+location ~ .*\.(jpg|gif|png)$ {
+    #gzip on;
+	#gzip_http_version 1.1;
+	#gzip_comp_level 2;
+	#gzip_types text/plain application/javascript application/x-javascript text/css 
+	application/xml text/javascript application/x-httpd-php image/jpeg image/gif image/png
+}
+
+location ~ .*\.(txt|xml)$ {
+#gzip on;
+#gzip_http_version 1.1;
+#gzip_comp_level 1;
+#gzip_types text/plain application/javascript application/x-javascript text/css 
+application/xml text/javascript application/x-httpd-php image/jpeg image/gif image/png;
+root /opt/app/code/doc;
+}
+
+location ~ ^/download {
+gzip_static on;
+tcp_nopush on;
+root /opt/app/code;
+}
+
+浏览器缓存
+HTTP协议定义的缓存机制 (Expires Cache-control)
+
+校验过期机制
+校验是否过期             Expires Cache-control(max-age)
+协议中Etag头信息校验     Etag
+Last-Modified头信息校验  Last-Modified
+
+配置语法 expires
+添加Cache-Control Expires头
+Syntax: expires [modified] time;
+expires epoch|max|off;
+Default: expires off;
+Context:http,server,location,if in location
+
+location ~ .*.\.(htm|html)$ {
+    expires 24h;
+	root /opt/app/code;
+}
+
+跨域访问
+为什么浏览器禁止跨域访问 不安全 容易出现CSRF攻击
+
+Nginx 怎么作
+Syntax: add_header name value [always];
+Default:
+Context:http,server,location,if in location
+
+vi /opt/app/code/test_origin.html
+<html lang="en">  
+<head>  
+<meta charset="UTF-8" />  
+<title>测试ajax和跨域访问</title>  
+<script src="http://libs.baidu.com/jquery/2.1.4/jquery.min.js"></script>  
+</head>  
+<script type="text/javascript">  
+$(document).ready(function(){  
+    $.ajax({  
+        type: "GET",  
+        url: "http://jeson.imoocc.com/1.html",  
+        success: function(data) {   
+            alert("sucess!!!");  
+        },  
+        error: function() {  
+            alert("fail!!!,请刷新再试!");  
+        }  
+    });  
+});  
+</script>  
+<body>  
+     <h1>测试跨域访问</h1>
+</body>  
+</html>
+
+location ~ .*\.(htm|html)$ {
+    add_header Access-Control-Allow-Origin http://www.jesonc.com;
+	add_header Access-Control-Allow-Methods GET,POST,PUT,DELETE,OPTIONS;
+	root /opt/app/code;
+}
+
+防盗链
+目的 防止资源被盗用
+防盗链设置思路
+首要方式 区别哪些请求是非正常的用户请求
+基于http_refer防盗链配置模块
+
+Syntax: valid_referers none|blocked|server_names|string ...;
+Default:
+Context:server,location
+
+location \ {
+    valid_referers none blocked 192.168.179.133;
+	if ($invalid_referer) {
+	    return 403;
+	}
+}
+
+代理服务
+代理 代为办理
+正向代理
+反向代理
+
+代理区别
+区别在于代理的对象不一样
+正向代理代理的对象是客户端
+反向代理代理的对象是服务端
+
+配置语法
+Syntax: proxy_pass URL;
+Default:
+Context:location,if in location,limit_except
+
+location ~ /test_proxy.html$ {
+    proxy_pass http://127.0.0.1:8080
+}
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>imooc1</title>
+</head>
+<body style="background-color:red;">
+    <h1>Welcome to jeson.t.imooc.io</h1>
+</body>
+</html>
+
+location / {
+    if ( $http_x_forwarded_for !~* "^192\.168\.179\.133") {
+	    return 403;
+	}
+}
+
+其他配置语法 缓冲区
+Syntax: proxy_buffering on|off;
+Default:proxy_buffering on;
+Context:http,server,location
+
+跳转重定向
+Syntax: proxy_redirect defaultj;
+proxy_redirect off;proxy_redirect redirect replacement;
+Default: proxy_redirect default;
+Context:http,server,location
+
+头信息
+Syntax: proxy_set_header field value;
+Default:proxy_set_header Host $proxy_host;
+proxy_set_header Connection close;
+Context:http,server,location
+
+超时
+Syntax: proxy_connect_timeout time;
+Default:proxy_connect_timeout 60s;
+Context:http,server,location
+
+Nginx负载均衡
+分为四层负载均衡和七层负载均衡
+处理应用层 如 http信息
+Syntax: upstream name {...}
+Default:
+Context:http
+
+upstream举例
+upstream backend {
+    server backend1.example.com weight=5;
+	server backend2.example.com:8080;
+	server unix:/tmp/backend3;
+	
+	server backend1.example.com:8080 backup;
+	server backend2.example.com:8080 backup;
+}
+
+后端服务器在负载均衡调度中的状态
+down          当前的server暂时不参与负载均衡
+backup        预留的备份服务器
+max_fails     允许请求失败的次数
+fail_timeout  经过max_fails失败后 服务暂停的时间
+max_conns     限制最大的接收的连接数
+
+调度算法
+轮询          按时间顺序逐一分配到不同的后端服务器
+加权轮询      weight值越大 分配到的访问几率越高
+ip_hash       每个请求按访问IP的hash结果分配 这样来处同一个IP的固定访问一个后端服务器
+url_hash      按照访问的URL的hash结果来分配请求 是每个URL定向到同一个后端服务器
+least_conn    最少链接数 那个机器连接数少就分发
+hash关键数值  hash自定义的Key
+
+url_hash
+Syntax: hash key [consistent];
+Default:
+Context:upstream
+This direction appeared in version 1.7.2
+
+缓存服务
+缓存类型
+proxy_cache配置语法
+
+配置语法 缓存过期周期
+Syntax: proxy_cache_valid [code ...] time;
+Default:
+Context:http,server,location;
+
+配置语法 缓存的维度
+Syntax: proxy_cache_key string;
+Default: proxy_cache_key $scheme $proxy_host$request_uri;
+Context:http,server,location
+
+补充 如何清理指定缓存
+方式一 rm -rf 缓存目录内容
+方式二 第三方扩展模块ngx_cache_purge
+Syntax: proxy_no_cache string ...;
+Default:
+Context:http,server,location
+
+大文件分片请求
+Syntax: slice size;
+Default: slice 0;
+Context:http,server,location
+
+大文件分片请求
+优势 每个子请求收到的数据都会形成一个独立文件 一个请求断了 其它请求不受影响
+缺点 当文件很大或者slice很小的时候 可能会导致文件描述符耗尽等情况

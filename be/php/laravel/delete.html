@@ -1,0 +1,12 @@
+路由
+Route::get('/articles/{article}/delete', '\App\Http\Controllers\ArticleController@delete');
+
+控制器
+public function delete(Article $article)
+{
+    // 用户权限验证
+
+    $article->delete();
+
+    return redirect('/articles');
+}

@@ -1,0 +1,128 @@
+laravel介绍
+====================================================
+数据库迁移 --- 数据填充 --- 模型关联建立
+Elasticsearch --- 全文检索引擎 --- 服务搭建使用
+基于数据库的异步队列操作
+如何设计表格更符合laravel的默认约定
+如何理解laravel的依赖注入容器等思想
+如何使用laravel控制用户权限
+
+严格遵循PHP代码规范
+代码高度复用
+提高开发效率 降低维护成本
+
+前台 文章模块 用户模块 评论模块 赞模块 搜索模块 个人中心模块
+后台 后台架构 管理人员模块 审核模块 权限模块 专题模块 系统通知模块
+laravel安装及相关的知识
+讲解文章模块
+讨论laravel的核心思想
+周边模块
+管理后台开发
+性能优化
+
+安装环境要求
+php版本 5.6
+php扩展 openssl pdo mbstring tokenizer xml
+
+laravel功能
+路由 控制器 模型 表单验证 blade模板 文件存储 分页 数据库迁移 数据填充 容器 服务提供者 门脸类 用户论证 用户模块
+scout全文搜索 elasticsearch搜索引擎 模型关联 artisan命令 adminate的后台模板 jquery bootstrap 队列
+
+laravel特性 优雅 简洁 工程化
+
+官网 laravel.com
+中文社区 laravel-china.org
+5.4 d.laravel-china.org/docs/5.4
+源码 github.com/laravel
+
+https://pkg.phpcomposer.com/ 中国全量镜像
+
+laravel优势
+laravel包含的功能更为丰富 队列 搜索 数据库迁移 定时脚本
+laravel使用了丰富的第三方包 composer管理 数据包
+laravel的思想更为先进 服务容器 服务提供者(缓存服务)
+laravel的社区更为丰富 国际化 基于laravel的开源项目多
+
+laravel安装
+====================================================
+安装环境要求 (安装lnmp1,4 php5.6)
+composer安装
+php版本 5.6 (php -v 查看版本号)
+php扩展 openssl pdo mbstring tokenizer xml (php -m 查看扩展)
+
+windows安装laravel
+下载xampp安装
+下载composer安装
+cmd 赶往项目目录
+composer create-project laravel/laravel --prefer-dist
+
+.env文件中修改数据库相关信息(用户名 密码等)
+php artisan migrate:install 使用命令在数据库中创建迁移表
+
+linux安装 (17.9 测试在peng3 http://192.168.179.129)
+1 composer 安装
+php -r "copy('https://install.phpcomposer.com/installer', 'composer-setup.php');"
+php composer-setup.php
+php -r "unlink('composer-setup.php');"
+mv composer.phar /usr/local/bin/composer
+composer -v # 查看是否安装成功
+which composer # 查看安装目录
+
+2 修改 php.ini
+find / -name php.ini
+vi .../php.ini
+查找 /disable_function
+删除二函数 proc_open proc_get_status
+
+2 使用新用户
+useradd laravel
+passwd laravel
+chown -R laravel:laravel /opt/laravel
+cd /opt/laravel
+su laravel
+
+3 配置中国镜像(全局配置文件)
+composer config -g repo.packagist composer https://packagist.phpcomposer.com
+
+4 安装 laravel (默认安装5.0 加5.4会安装laravel5.4)
+composer create-project --prefer-dist laravel/laravel laravel54 "5.4.*"
+
+nginx 修改nginx.conf配置文件
+vi /usr/local/nginx/conf/nginx.conf
+root /opt/laravel/laravel54/public;
+
+#include enable-php.conf;
+
+#新增 支持laravel 优雅链接，在laravel 文档里有说明
+location / {
+    try_files $uri $uri/ /index.php?$query_string;
+}
+
+#新增 支持php 的配置
+location ~ \.php$ {
+    #不能有下面这句 try_files ,不然报错500
+    # try_files $uri /index.php =404;
+    fastcgi_split_path_info ^(.+\.php)(/.+)$;
+    #这句注意 后面是.sock 不是127.0.0..1
+    fastcgi_pass  unix:/tmp/php-cgi.sock;
+    fastcgi_index index.php;
+    include fastcgi_params;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+}
+
+[root@peng3 laravel54]# chmod -R 777 storage/
+[root@peng3 laravel54]# chmod -R 777 vendor/
+
+http://192.168.179.129/ # 页面访问
+
+修改配置 .env
+APP_DEBUG=true
+DB_DATABASE=laravel
+DB_USERNAME=root
+DB_PASSWORD=123456
+
+进入数据库 create database laravel5
+php artisan migrate:install
+mysql -uroot -p
+use laravel5;
+show tables;# 查看是否存在migrations表

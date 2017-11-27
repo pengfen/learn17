@@ -1,0 +1,270 @@
+#!/usr/bin/env php
+<?php
+
+// gen controller template
+// file name ---> $argv[1]
+if (!isset($argv[1])) {
+    echo 'exec ./test filename';
+    exit;
+}
+$filename = $argv[1].'.php';
+
+exec('touch '.$filename);
+
+$str=<<<END
+<?php
+
+namespace App\Http\Controllers;
+use \App\Http\Controllers\Controller;
+use \App\Enums as E;
+use \App\Helper\Config;
+
+END;
+$data = $str.PHP_EOL."class $argv[1] extends Controller".PHP_EOL.'{'.PHP_EOL.'}';
+file_put_contents($filename, $data);
+
+$dist = '/home/ak/admin_yb1v1/app/Http/Controllers/';
+exec('mv '.$filename.' '.$dist)
+
+#chmod 755 gen_c
+#./gen_c a
+
+#!/usr/bin/env php
+<?php
+
+// gen view template
+// $argv[1] ---> controller  $argv[2] ---> action
+// file name ---> $argv[2]
+if (!isset($argv[2])) {
+    echo 'exec ./test controller action';
+    exit;
+}
+$filename = $argv[2].'.blade.php';
+
+exec('touch '.$filename);
+
+$data = "
+@entends('layouts.app')
+@section('content')
+<section class='content'>
+    <div> <!-- search ... -->
+    </div>
+    <hr/>
+    <table class=\"common-table\">
+    </table>
+@include('layouts.page')
+</section>
+@endsection";
+
+file_put_contents($filename, $data);
+
+$dist = '/home/ak/admin_yb1v1/resources/views/'.$argv[1];
+exec('mkdir '.$dist);
+$dist .= '/';
+exec('mv '.$filename.' '.$dist);
+
+# chmod 755 gen_v
+# ./gen_v c v
+
+// 数据库-表管理
+alter table table_name nodify column column_name comment comment_name
+alter table table_name comment comment_name
+show full columns frome table_name
+show create table table_name
+
+// 获取所有的父id  数据字段 id parentid  获取数据 id, parentid,parentid...
+// php artisan make:console get_agent_parent_id
+    protected $signature = 'command:get_agent_parent_id';
+
+    protected $description = '获取agent表中的父ID';
+
+    public function handle()
+    {
+        //
+        //dd('调用成功');
+        $task = new \App\Console\Tasks\TaskController();
+
+        $paret_map=$task->t_agent->get_parent_map();
+        foreach($paret_map as $id => $v ) {
+            list( $error_flag, $id_map )=$this->get_id($id, $paret_map);
+            if ($error_flag) {
+                echo "id $id: error_flag:$error_flag, list:  ". join(",", array_keys($id_map) ). "\n";
+            }
+        }
+        // $this->get_id($res);
+    }
+
+    function get_id($id , $parent_map )
+    {
+        $id_map=[ ];
+        $id_map[$id]=true;
+        $error_flag=false;
+        $tmpid=$id;
+        do{
+            $tmpid=@$parent_map[$tmpid]["parentid"];
+            if (isset ($id_map[ $tmpid]) ) {
+                $error_flag=true;
+                break;
+            }
+            $id_map[$tmpid] =true;
+
+        }while (!$tmpid==0 );
+        return array( $error_flag,  $id_map   );
+    }
+
+$sql = $this->gen_sql_new("select id,parentid from %s",self::DB_TABLE_NAME);
+return $this->main_get_list($sql,function( $item){
+    return $item["id"];
+} );
+
+sql
+    select teacherid, phone, train_through_new_time
+    from db_weiyi.t_teacher_info t where is_test_user=0 and
+    not exists (select 1 from db_weiyi.t_teacher_flow where t.teacherid=teacherid)
+
+    select sum(train_through_new_time>0) from t_teacher_flow => 32
+    select count(*) from t_teacher_flow => 81
+
+    枚举
+    编写枚举类
+    return array(
+        "name" => "月份定义" ,
+        array(1,"seller_order","销售合同月份定义"),
+        array(2,"",""),
+    );
+    生成枚举类
+    class Emonth_def_type extends \App\Core\Enum_base
+    {
+        static public $field_name = "month_def_type"  ;
+        static public $name = "月份定义"  ;
+        static $desc_map= array(
+            1 => "销售合同月份定义",
+            2 => "",
+        );
+        static $simple_desc_map= array(
+            1 => "",
+            2 => "",
+        );
+        static $s2v_map= array(
+            "seller_order" => 1,
+            "" => 2,
+        );
+        static $v2s_map= array(
+            1=>  "seller_order",
+            2=>  "",
+        );
+
+        //销售合同月份定义
+        const V_1=1;
+        //销售合同月份定义
+        const V_SELLER_ORDER=1;
+        //
+        const V_2=2;
+
+        //销售合同月份定义
+        const S_1="seller_order";
+        //销售合同月份定义
+        const S_SELLER_ORDER="seller_order";
+        //
+        const S_2="";
+
+        static public function check_seller_order ($val){
+            return $val == 1;
+        }
+    };
+
+// 调用父类方法
+static function get_desc( $val){
+    if (isset(static::$desc_map[$val])) {
+        return   static::$desc_map[$val];
+    }else{
+        return $val;
+    }
+}
+
+E\Emonth_def_type::set_item_value_str($item);
+
+$task = new \App\Console\Tasks\TaskController();
+// 随机添加测试时间
+$begin = strtotime('2017-07-01');
+$end = time();
+$info = $task->t_teacher_flow->get_all_list();
+foreach($info as $teacherid => $item) {
+    $timestamp = rand($begin, $end);
+    $task->t_teacher_flow->field_update_list($teacherid,[
+        "trial_lecture_pass_time" => $timestamp,
+        "simul_test_lesson_pass_time" => $timestamp,
+        "train_through_new_time" => $timestamp
+    ]);
+}
+
+// 比较排名 1 2 3 3 5 并列第三, 无第四
+foreach($person as $item) {
+    $comput = array_slice($person,0,$key+1); // 获取当前数据以前的数据
+    $money = $this->award[$i];
+    foreach($comput as $key=>$val) {
+        if ($item['convers'] == $val['convers']) { // 进行比较
+            $money = $this->award[$key];
+            break;
+        }
+    }
+    $i ++;
+}
+
+内存情况 get_memory_usage();
+round(memory_get_usage()/1024/1024, 2).'MB'; 
+
+https://tcc.taobao.com/cc/json/mobile_tel_segment.htm?tel= #根据手机号获取手机号归属地
+
+array_rand($arr); // 随机取数组的值
+
+js树
+    <link href="/ztree/zTreeStyle.css" rel="stylesheet" type="text/css"/>
+    <script type="text/javascript" src="/ztree/jquery.ztree.all.min.js"></script>
+    <script type="text/javascript">
+    var setting = {
+        data: {
+            simpleData: {
+                enable: true
+            }
+        }
+    };
+
+var zNodes = <?php echo json_encode($info)?>;
+
+$(document).ready(function(){
+			   $.fn.zTree.init($("#treeDemo"), setting, zNodes);
+		 });
+
+// 添加多选
+check: {  
+    enable: true,  
+           chkStyle: "checkbox",  
+           chkboxType: { "Y": "s", "N": "ps" }  
+},
+
+    // 去除图标
+    view {
+        showIcon:false
+    }
+
+// 选中
+$('#confirm').click(function(){
+    var treeObj = $.fn.zTree.getZTreeObj("treeDemo");
+    var nodes = treeObj.getCheckedNodes(true);
+    for (var i = 0; i < nodes.length; i ++) {
+        alert('id ' + nodes[i].id + ' name ' + nodes[i].name + ' userid ' + nodes[i].userid);
+    }
+});
+
+
+select unix_timestamp('2017-10-1');
+
+concat_ws('/',teacherid,phone) pt ("pt" => "62707/13888889996")
+
+substring(user_agent,1,1) 获取user_agent字段的第一个字符
+if(substring(user_agent,1,1)='{',1,0) 如果第一个字符是{返回1否则返回0
+if(substing(user_agent,1,1)='{',1,0) > 0 返回值大于0 则加一
+总数480累加450
+
+select sum(if(substring(user_agent,1,1)='{',1,0) > 0) sum from t_teacher_info where user_agent != '' and is_test_user=0

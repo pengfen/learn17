@@ -1,0 +1,1064 @@
+电商项目(数据设计及架构优化)
+
+电商数据库设计及架构优化实战
+
+电商项目 --- 内容,技巧 --- 数据库研发
+
+涉及电商常用功能模块的数据库设计
+注册会员 --- 展示商品 --- 加入购物车 --- 生成订单
+涉及常见问题的数据库解决方案
+只包含数据库开发部分 不涉及前后端程序开发
+
+学习准备
+MySQL实例 推荐使用MySQL5.7版本
+MySQL图型客户端程序 推荐使用SQLyog
+Linux命令和Shell脚本的基础知识
+
+用户登录 --- 选购商品 --- 加购物车 --- 检查库存 --- 提交订单 --- 是否货到付款 --- 订单付款 --- 发货
+用户模块 --- 完成用户注册和登录验证
+商品模块 --- 前后台商品管理和浏览
+订单模块 --- 订单及购物车的生成和管理
+仓配模块 --- 仓库库存和物流的管理
+
+数据库设计规范
+
+数据结构设计 逻辑设计 ---> 物理设计
+实际工作中   逻辑设计 + 物理设计
+物理设计 表名 字段名 字段类型
+
+数据库设计规范(六大规范)
+数据库命名规范
+数据库基本设计规范
+数据库索引设计规范
+数据库字段设计规范
+数据库SQL开发规范
+数据库操作行为规范
+
+所有数据库对象名称必须使用小写字母并用下划线分割
+不同的数据库名 DbName dbname
+不同的表名     Table table table
+所有数据库对象名称禁止使用MySQL保留关键字
+select id,username,from,age from tb_user (不能使用关键字)
+http://dev.mysql.com/doc/refman/5.7/en/key/words.html
+
+数据库对象的命名要能做到见名识义 并且最好不要超过32个字符
+例如 用户数据库 mc_userdb 用户账号表 user_account
+临时库表必须以tmp为前缀并以日期为后缀
+备份库 备份表必须以bak为前缀并以日期为后缀
+
+所有存储相同数据的列名称列类型必须一致 (如以下两表中customer_id)
+create table customer_inf(
+    customer_inf_id int unsigned AUTO_INCREMENT not null comment '自增ID'，
+	customer_id int unsigned not null comment 'customer_login表的自增ID'
+	customer_name varchar(20) not null comment '用户真实姓名',
+	identity_card_type tinyint not null default 1 comment '证件类型:"
+	identity_card_no varchar(20) comment '证件号码'
+) engine=innodb default charset=utf8 comment '用户信息表';
+create table order_master(
+    order_id int unsigned not null AUTO_INCREMENT comment '订单ID‘，
+	order_sn bigint unsigned not null comment '订单编号',
+	shipping_user varchar(10) not null comment '收货人姓名'
+	province smallint not null comment '收货人所在省'
+)engine=innodb default charset=utf8 comment '订单信息表';
+
+数据库命名规范总结
+所有数据库对象名称必须小写
+命名要做到见名识意 禁止使用MySQL保留关键字
+临时表以tmp_开头 备份表以bak_开头并以时间戳结尾
+所有存储相同数据的列名称列类型必须一致
+
+Mysql5.5使用之前myisam(默认存储引擎)情况
+所有表必须使用Innodb存储引擎
+5.6以后的默认引擎 支持事务 行级锁 更好的恢复性 高并发下性能更好
+
+数据库和表的字符统一使用UTF8 兼容性更好
+统一字符集可以避免由于字符集转换产成的乱码
+MySQL中UTF8字符集汉字占3个字节 ASCII码占用一个字节
+
+所有表和字段都需要添加注释
+使用comment从句添加表和列的备注
+从一开始就进行数据字典的维护
+尽量控制单表数据量的大小 建议控制在500万以内 500万并不是MySQL数据库的限制 (修改表结构 备份 恢复都会有很大问题)
+
+Mysql最多可以存储多少万数据呢 这种限制取决于存储设置和文件系统
+可以用历史数据归档 分库分表等手段来控制数据量大小
+谨慎使用MySQL分区表 分区表在物理上表现为多个文件 在逻辑上表现为一个表
+谨慎选择分区键 跨分区查询效率可能更低
+建议采用物理分表的方式管理大数据
+
+尽量做到冷热数据分离 减少表的宽度 
+Mysql限制最多存储4096列 减少磁盘IO 保证热数据的内存缓存命中率
+利用更有效的利用缓存 避免读入无用的冷数据
+经常一起使用的列放到一个表中
+
+禁止在表中建立预留字段 预留字段的命名很难做到见名识义 
+预留字段无法确认存储的数据类型 所以无法选择合适的类型
+
+对预留字段类型的修改 会对表进行锁定
+
+禁止在数据库中存储图片 文件等二进制数据
+禁止在线上做数据库压力测试
+禁止从开发环境 测试环境直接生产环境数据库
+
+数据库基本设计规范总结
+所有表必须使用Innodb存储引擎
+所有表及字段都要有备注信息 并使用UTF8字符集
+要做到尽量控制单表大小 并且把冷热数据分离
+禁止使用预留字段及在表中存储大的二进制数据
+
+索引设计规范
+索引对数据库的查询性能来说是非常重要的
+不要滥用索引
+
+限制每张表上的索引数量 建议单张表索引不超过5个
+索引并不是越多越好 索引可以提高效率同样可以降低效率
+禁止给表中的每一列都建立单独的索引
+Innodb是按照哪个索引的顺序来组织表的呢 --- 主键
+每个Innodb表必须有一个主键 不使用更新频繁的列作为主键 不使用多列主键
+不使用UUID MD5 HASH 字符串列作为主键 主键建议选择使用自增ID值
+
+常见索引列建议
+在哪些列上建立索引
+select update delete语句的where从句中的列 包含在order by  group by  distinct中字段
+多表join的关联列
+
+如何选择索引列的顺序
+区分度最高的列放在联合索引的最左侧
+尽量把字段长度小的列放在联合索引的最左侧
+使用最频繁的列放到联合索引的左侧
+
+避免建立冗余索引和重复索引 primary key(id)  index(id)   unique index(id)
+index(a,b,c) index(a,b) index(a)
+
+对于频繁的查询优先考虑使用覆盖索引 (覆盖索引 就是包含了所有查询字段的索引)
+避免Innodb表进行索引的二次查找
+可以把随机IO变为顺序IO加快查询效率
+
+尽量避免使用外键
+不建议使用外键盘约束 但一定在表与表之间的关联键上建立索引
+外键可用于保证数据的参照完整性 但建议在业务端实现
+外键会影响父表和子表的写操作从而降低性能
+
+索引设计规范总结
+每个Innodb表必须有一个主键
+限制表上索引的数量 避免建立重复和冗余索引
+注意合理选择复合索引键值的顺序
+
+数据库字段设计规范
+字段类型的选择 会直接影响数据库的性能
+优先选择符合存储需要的最小的数据类型
+将字符串转化为数字类型存储
+INET_ATON('255.255.255.255')=4294967295
+INET_NTOA(4294967295)='255.255.255.255'
+对于非负型的数据来说,要优先使用无符号整型来存储
+无符号相对于有符号可以多出一倍的存储空间
+对于非负数据采用无符号整型进行存储
+singed int -2147483648~2147483647  unsigned int 0 ~ 4294967295
+varchar(n) 中的n代表的是字符数 而不是字节数
+使用UTF8存储汉字varchar(255)=765个字节
+过大的长度会消耗更多的内存
+
+避免使用text blob数据类型
+tinytext text midumtext longtext
+建议把blob或是text列分离到单独的扩展表中
+text或blob类型只能使用前缀索引
+
+避免使用ENUM数据类型
+修改ENUM值需要使用alter语句
+ENUM类型的order by操作效率低 需要额外操作
+禁止使用数值作为ENUm的枚举值
+
+尽可能把所有列定义为 not null
+索引null列需要额外的空间来保存 所以要占用更多的空间
+进行比较和计算时要对null值做特别的处理
+字符串存储日期型的数据(不正确的做法)
+缺点1 无法用日期函数进行计算和比较
+缺点2 用字符串存储日期要占用更多的空间
+
+使用timestamp或datetime类型存储时间
+timestamp 1970-01-01 00:00:01 ~ 2038-01-19 03:14:07
+timestamp占用4字节和int相同 但比int可读性高
+超出timestamp取值范围的使用datetime类型
+
+同财务相关的金额类数据 必须使用decimal类型
+1.非精准浮点 float,double
+2.精准浮点 decimal
+decimal类型为精准浮点数 在计算时不会丢失精度
+占用空间由定义的宽度决定
+可用于存储比bigint更大的整数数据
+
+数据库字段设计规范总结
+选择符合存储要求的最小的数据类型
+避免使用blob或是text类型及enum类型
+每个字段尽可能具有not null属性
+使用datetime或timestamp类型存储时间
+
+数据库SQL开发规范
+建议使用预编译语句进行数据库操作
+prepare stmt1 from 'select sqrt(pow(?,2) + pow(?,2)) as hypotenuse';
+set @a=3; #对参数进行赋值
+set @b=4;
+execute stmt1 using @a,@b;
+deallocate prepare stmt1;
+
+只传参数 比传递SQL语句更高效
+相同语句可以一次解析 多次使用 提高处理效率
+隐式转换会导致索引失效
+select name,phone from customer where id='111';
+合理利用存在索引 而不是盲目增加索引
+避免使用双%号的查询条件 如 a like '%123%'
+一个SQL只能利用到复合索引中的一列进行范围查询
+使用left join或not exists来优化not in操作
+
+程序连接不同的数据库使用不同的账号 禁止跨库查询
+为数据库迁移和分库分表留出余地
+降低业务耦合度
+避免权限过大而产生的安全风险
+
+禁止使用select * 必须使用 select <字段列表>查询
+消耗更多的cpu和io以及网络带宽资源
+无法使用覆盖索引
+可减少表结构变更带来的影响
+
+禁止使用不含字段列表的insert语句
+insert into t values('a','b','c');
+insert into t(c1,c2,c3) values('a','b','c');
+可减少表结构变更带来的影响
+
+避免使用子查询 可以把子查询优化为join操作
+子查询的结果集无法使用索引
+子查询会产生临时表操作 如果子查询数据量大则严重影响效率
+消耗过多的cpu及io资源
+
+避免使用join关联太多的表
+每join一个表会多占用一部分内存(join_buffer_size)
+会产生临时表操作 影响查询效率
+mysql最多允许关联61个表,建议不超过5个
+
+减少同数据库的交互次数
+数据库更适合处理指操作
+合并多个相同的操作到一起 可以提高处理效率
+alter table t1 add column c1 int, change column c2 c2 int ...
+使用in代替or
+in的值不要超过500个
+in操作可以有效的利用索引
+
+禁止使用 order by rand() 进行随机排序
+会把表中所有符合条件的数据装载到内存中进行排序
+会消耗大量的cpu和io及内存资源
+推荐在程序中获取一个随机值 然后从数据库中获取数据的方式
+
+where从句中禁止对列进行函数转换和计算
+对列进行函数转换或计算会导致无法使用索引
+where date(createtime)='20160901' ---> where createtime >='20160901' and createtime < '20160902'
+在明显不会有重复值时使用union all 而不是union
+union 会把所有数据放到临时表中后再进行去重操作
+union all 不会再对结果集进行去重操作
+
+拆分复制的大sql为多个小sql
+MySQL一个sql只能使用一个CPU进行计算
+SQL拆分后可以通过并行执行来提高处理效率
+
+SQL开发规范总结
+建议使用预编译语句进行数据库操作
+避免数据类型的隐匿转换
+禁止使用select * 进行查询及没有字段列表的insert操作
+优先利用表上已经在的索引
+
+数据库操作行为规范
+超100万行的批量写操作 要分批多次进行操作
+大批量操作可能会造成严重的主从延迟
+binlog日志为row格式时会产生大量的日志
+避免产生大事务操作
+
+对大表数据结构的修改一定要谨慎 会造成严重的锁表操作 尤其是生产环境 是不能忍受的
+对于大表使用pt-online-schema-change修改表结构
+避免大表修改产生的主从延迟
+避免在对表字段进行修改时进行锁表
+
+禁止为程序使用的账号赋于super权限
+当大致最大连接数限制时 还允许1个有super权限的用户连接
+super权限只能留给DBA处理问题的账号使用
+
+对于程序连接数据库账号 遵循权限最小原则
+程序使用数据库账号只能在一个DB下使用 不准跨库
+程序使用的账号原则上不准有drop权限
+
+用户模型设计
+管理和维护用户信息(使用最多的页面就是注册登录页)
+用户实体(姓名 登录名 密码 证件类型 手机号 证件号码 省 市 区 地址 用户余额 用户级别 用户状态 生日 注册时间 积分 邮编 性别 邮箱)
+
+如何把用户的属性存到表中
+使用一张表 用户表(customer)
+优点 易于数据存取
+
+数据插入异常
+PK 用户登录名
+用户表 {登录名 ... ... 会员级别 级别积分上限 级别积分下限}
+insert into 用户表(会员级别) values('青铜')
+
+数据更新异常
+要修改某一行的值时 不得不修改多行数据
+用户等级 青铜级 ---> 注册会员
+update 用户表 set 等级=‘注册会员’ where 等级=‘青铜级’
+
+数据删除异常
+删除某一数据时不得不同时删除另一数据
+如何删除用户等级名为青铜的等级
+delete from 用户表 where 用户等级=‘青铜’
+
+数据存在冗余
+数据表过宽 会影响个修改表结构的效率
+
+解决方式
+数据库的设计范式
+设计范式是数据库设计的规范
+有多种设计范式 如数据库设计第一范式 第二范式和第三范式等
+数据库设计最低要满足第三范式的要求
+
+第三范式
+3NF定义
+一个表中的列和其它列之间既不包含部分函数依赖关系 也不包含传递函数依赖关系 那么这个表的设计就符合第三范式
+
+级别积分上限 级别积分下限 ---依赖--- 用户级别 --- 登录名 (不符合第三范式)
+拆分原用户表以符合第三范式
+用户表customer
+用户级别信息customer_level_inf 会员级别 级别积分上限 级别积分下限
+尽量做到冷热数据分离 减少表的宽度
+用户表customer
+用户登录表{登录名 密码 用户状态}
+用户地址表{省 市 区 邮编 地址}
+
+用户登录表(customer_login)
+create table customer_login(
+customer_id int unsigned auto_increment not null comment '用户ID‘,
+login_name varchar(20) not null comment '用户登录名',
+password char(32) not null comment 'md5加密的密码',
+user_stats tinyint not null default 1 comment '用户状态',
+modified_time timestamp not null default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP comment '最后修改时间',
+primary key pk_customerid(customer_id)
+)engine=innodb default charset=utf8 comment='用户登录表';
+
+用户信息表(customer_inf)
+create table customer_inf(
+customer_inf_id int unsigned auto_increment not null comment '自增主键ID',
+customer_id int unsigned not null comment 'customer_login表的自增ID',
+customer_name varchar(20) not null comment '用户真实姓名',
+identity_card_type tinyint not null default 1 comment '证件类型 1 身份证 2 军官证 3 护照',
+identity_card_no varchar(20) comment '证件号码‘,
+mobile_phone int unsigned comment '手机号',
+customer_email varchar(50) comment '邮箱',
+gender char(1) comment '性别',
+user_point int not null default 0 comment '用户积分',
+register_time timestamp not null comment '注册时间',
+birthday datetime comment '会员生日',
+customer_level tinyint not null default 1 comment '会员级别 1 普通会员 2 青铜会员 3 白银会员 4 黄金会员 5 钻石会员',
+user_money decimal(8,2) not null default 0.00 comment '用户余额',
+modified_time timestamp not null default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP comment '最后修改时间',
+primary key pk_customerinfid(customer_inf_id)
+)engine=innodb default charset=utf8 comment '用户信息表';
+
+用户级别表 (customer_level_inf)
+create table customer_level_inf(
+customer_level tinyint not null auto_increment comment '会员级别ID',
+level_name varchar(10) not null comment '会员级别名称',
+min_point int unsigned not null default 0 comment '该级别最低积分',
+max_point int unsigned not null default 0 comment '该级别最高积分',
+modified_time timestamp not null default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP comment '最后修改时间',
+primary key pk_levelid (customer_level)
+)engine=innodb default charset=utf8 comment '用户级别信息表';
+
+用户地址表 (customer_addr)
+create table customer_addr(
+customer_addr_id int unsigned auto_increment not null comment '自增主键ID',
+customer_id int unsigned not null comment 'customer_login表的自增ID',
+zip smallint not null comment '邮编',
+province smallint not null comment '地区表中省份的id',
+city smallint not null comment '地区表中城市的id',
+district smallint not null comment '地区表中的区id',
+address varchar(200) not null comment '具体的地址门牌号',
+is_default tinyint not null comment '是否默认',
+modified_time timestamp not null default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP comment '最后修改时间',
+primary key pk_customeraddid(customer_addr_id)
+)engine=innodb default charset=utf8 comment '用户地址表';
+
+用户积分日志表 (customer_point_log)
+create table customer_point_log(
+point_id int unsigned not null auto_increment comment '积分日志ID',
+customer_id int unsigned not null comment '用户ID',
+source tinyint unsigned not null comment '积分来源 0 订单 1 登录 2 活动',
+refer_number int unsigned not null default 0 comment '积分来源相关编号',
+change_point smallint not null default 0 comment '变更积分数',
+create_time timestamp not null comment '积分日志生成时间',
+primary key pk_pointid(point_id)
+)engine=innodb default charset=utf8 comment '用户积分日志表';
+
+用户余额变动表 (customer_balance_log)
+create table customer_balance_log(
+balance_id int unsigned not null auto_increment comment '余额日志ID',
+customer_id int unsigned not null comment '用户ID',
+source tinyint unsigned not null default 1 comment '记录来源 1 订单 2 退货单',
+source_sn int unsigned not null comment '相关单据ID',
+create_time timestamp not null default current_timestamp not null default 0.00 comment '变动金额',
+primary key pk_balanceid (balance_id)
+)engine=innodb default charset=utf8 comment '用户余额变动表';
+
+用户登录日志表 (customer_login_log)
+create table customer_login_log(
+login_id int unsigned not null auto_increment comment '登录日志ID',
+customer_id int unsigned not null comment '登录用户ID',
+login_time timestamp not null comment '用户登录时间',
+login_ip int unsigned not null comment '登录IP',
+login_type tinyint not null comment '登录类型 0 未成功 1 成功',
+primary key pk_loginid(login_id)
+)engine=innodb default charset=utf8 comment '用户登录日志表';
+
+谨慎使用MySQL分区表
+分区表在物理上表现为多个文件 在逻辑上表现为一个表
+谨慎选择分区键 跨分区查询效率可能更低
+建议采用物理分表的方式管理大数据
+
+MySQL分区表
+确认MySQL服务器是否支持分区表
+show plugins;
+partition active storage engine
+
+在逻辑上为一个表 在物理上存储在多个文件中
+用户登录日志表 (customer_login_log)
+create table customer_login_log(
+login_id int unsigned not null auto_increment comment '登录日志ID',
+customer_id int unsigned not null comment '登录用户ID',
+login_time timestamp not null comment '用户登录时间',
+login_ip int unsigned not null comment '登录IP',
+login_type tinyint not null comment '登录类型 0 未成功 1 成功',
+primary key pk_loginid(login_id)
+)engine=innodb default charset=utf8 comment '用户登录日志表'
+;
+
+按hash分区(hash)
+hash分区的特点
+根据mod(分区键 分区数)的值把数据行存储到表的不同分区中
+数据可以平均的分布在各个分区中
+hash分区的键值必须是一个int类型的值 或是通过函数可以转为int类型
+如何建立hash分区表
+abs() hour() ...
+
+cd data
+cd crn
+ls -l customer*
+
+按范围分区(range)
+range分区特点
+根据分区键值的范围把数据行存储到表的不同分区中
+多个分区的范围要连续 但是不能重叠
+默认情况下使用values less than属性 即每个分区不包括指定的那个值
+如何建立range分区
+create table customer_login_log(
+login_id int unsigned not null auto_increment comment '登录日志ID',
+customer_id int unsigned not null comment '登录用户ID',
+login_time timestamp not null comment '用户登录时间',
+login_ip int unsigned not null comment '登录IP',
+login_type tinyint not null comment '登录类型 0 未成功 1 成功',
+primary key pk_loginid(login_id)
+)engine=innodb default charset=utf8 comment '用户登录日志表'
+pratition by range(customer_id) (
+    partition p0 values less than (10000),
+	partition p1 values less than (20000),
+	partition p2 values less than (30000),
+	partition p3 values less than maxvalue
+);
+range分区的适用场景
+分区键为日期或是时间类型
+所有查询中都包括分区键
+定期按分区范围清理历史数据
+
+list分区
+list分区的特点
+按分区键取值的列表进行分区
+同范围分区一样 各分区的列表值不能重复
+每一行数据必须能找到对应的分区列表 否则数据插入失败
+create table customer_login_log(
+login_id int unsigned not null auto_increment comment '登录日志ID',
+customer_id int unsigned not null comment '登录用户ID',
+login_time timestamp not null comment '用户登录时间',
+login_ip int unsigned not null comment '登录IP',
+login_type tinyint not null comment '登录类型 0 未成功 1 成功',
+primary key pk_loginid(login_id)
+)engine=innodb default charset=utf8 comment '用户登录日志表'
+pratition by list(login_type) (
+    partition p0 values in (1,3,5,7,9),
+	partition p1 values in (2,4,6.8)
+);
+
+如何为customer_login_log表分区
+业务场景
+用户每次登录都会记录customer_login_log日志
+用户登录日志保存一年 一年后可以删除
+
+登录日志表的分区类型及分区键
+使用range分区 以login_time做为分区键
+
+分区后的用户登录日志表
+create table customer_login_log(
+login_id int unsigned not null auto_increment comment '登录日志ID',
+customer_id int unsigned not null comment '登录用户ID',
+login_time timestamp not null comment '用户登录时间',
+login_ip int unsigned not null comment '登录IP',
+login_type tinyint not null comment '登录类型 0 未成功 1 成功',
+primary key pk_loginid(login_id)
+)engine=innodb default charset=utf8 comment '用户登录日志表'
+pratition by range (year(login_time)) (
+    partition p0 values less than (2015),
+	partition p1 values less than (2016),
+	partition p2 values less than (2017)
+);
+
+insert into customer_login_log(customer_id,login_time,login_ip,login_type)
+values (1001,'2015-01-25',0,1),(1001,'2015-07-1',0,1),(1001,'2015-10-1',0,1),
+(1001,'2016-3-1',0,1),(1001,'2016-9-1',0,1);
+select * from customer_login_log;
+select table_name,partition_name,partition_description,table_rows
+from information_schema.`partitions` where table_name='customer_login_log';
+
+insert into customer_login_log(customer_id,login_time,login_ip,login_type)
+values(1001,'2014-01-25',0,1),(1001,'2014-07-1',0,1);
+alter table customer_login_log add partition (partition p4 values less than(2018));
+alter table customer_login_log drop partition p0;
+
+分区数据归档迁移条件
+1.MySQL >= 5.7
+2.结构相同
+3.归档到的数据表一定要是非分区表
+4.非临时表不能有外键约束
+5.归档引擎要是archive
+create table arch_customer_login_log(
+login_id int unsigned not null auto_increment comment '登录日志ID',
+customer_id int unsigned not null comment '登录用户ID',
+login_time timestamp not null comment '用户登录时间',
+login_ip int unsigned not null comment '登录IP',
+login_type tinyint not null comment '登录类型 0 未成功 1 成功',
+primary key pk_loginid(login_id)
+)engine=innodb default charset=utf8 comment '用户登录日志表';
+alter table customer_login_log exchange partition p2 with table arch_customer_login_log;
+select * from arch_customer_login_log;
+alter table arch_customer_login_log engine=archive;
+
+使用分区表的注意事项
+结合业务场景选择分区键 避免跨分区查询
+对分区表进行查询最好在where从句中包含分区键
+具有主键或唯一索引的表 主键或唯一索引必须是分区键的一部分
+
+商品实体
+商品名称 国条码 分类 品牌名称 供应商 销售价格 重量 长度 宽度 高度 图片信息 描述 生产时间 有效期 颜色 上下架状态 成本
+品牌信息表(brand_info)
+create table brand_info(
+brind_id smallint unsigned auto_increment not null comment '品牌ID',
+brand_name varchar(50) not null comment '品牌名称',
+telephone varchar(50) not null comment '联系电话',
+brand_web varchar(100) comment '品牌网站',
+brand_logo varchar(100) comment '品牌logo url',
+brand_desc varchar(150) comment '品牌描述',
+brand_status tinyint not null default 0 comment '品牌状态 0 禁用 1 启用',
+brand_order tinyint not null default 0 comment '排字',
+modified_time timestamp not null default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP comment '最后修改时间',
+primary key pk_brandid(brand_id)
+)engine=innodb default charset=utf8 comment '品牌信息表';
+
+分类信息表(product_category)
+create table product_category(
+category_id smallint unsigned auto_increment not null comment '分类ID',
+category_name varchar(10) not null comment '分类名称',
+category_code varchar(10) not null comment '分类编码',
+parent_id smallint unsigned not null default 0 comment '父分类ID',
+category_level tinyint not null default 1 comment '分类层级',
+category_status tinyint not null default 1 comment '分类状态',
+modified_time timestamp not null default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP comment '最后修改时间',
+primary key pk_categoryid (category_id)
+) engine=innodb default charset=utf8 comment '商品分类表';
+
+供应商信息表(supplier_info)
+create table supplier_info(
+supplier_id int unsigned auto_increment not null comment '供应商ID',
+supplier_code char(8) not null comment '供应商编码',
+supplier_name char(50) not null comment '供应商名称',
+supplier_type tinyint not null comment '供应商类型 1 自营 2 平台',
+link_man varchar(10) not null comment '供应商联系人',
+phone_number varchar(50) not null comment '联系电话',
+bank_name varchar(50) not null comment '供应商开户银行名称',
+bank_account varchar(50) not null comment '银行账号',
+address varchar(200) not null default '0' comment '状态 0 禁用 1 启用',
+modified_time timestamp not null default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP comment '最后修改时间',
+primary key pk_supplierid (supplier_id)
+) engine=innodb default charset=utf8 comment '供应商信息表';
+
+商品信息表(product_info)
+create table product_info(
+product_id int unsigned auto_increment not null comment '商品ID',
+product_code char(16) not null comment '商品编码',
+product_name varchar(20) not null comment '商品名称',
+bar_code varchar(50) not null comment '国条码',
+one_category_id smallint unsigned not null comment '一级分类ID',
+two_category_id smallint unsigned not null comment '二级分类ID',
+three_category_id smallint unsigned not null comment '三级分类ID',
+supplier_id int unsigned not null comment '商品的供应商id',
+price decimal(8,2) not null comment '商品销售价格',
+average_cost decimal(18,2) not null comment '商品加权平均成本',
+publish_status tinyint not null default 0 comment '上下架状态 0 下架 1 上架',
+audit_status tinyint not null default 0 comment '审核状态 0 未审核 1 已审核',
+weight float comment '商品重量',
+length float comment '商品长度',
+height float comment '商品高度',
+width float comment '商品宽度',
+color_type enum('红','黄','蓝','黑'),
+production_date datetime not null comment '生产日期',
+shelf_life int not null comment '商品有效期',
+descript text not null comment '商品描述',
+indate timestamp not null default CURRENT_TIMESTAMP comment '商品录入时间',
+modified_time timestamp not null default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP comment '最后修改时间',
+primary key pk_productid (product_id)
+) engine=innodb default charset=utf8 comment '商品信息表';
+
+商品图片表(product_pic_info)
+create table product_pic_info(
+product_pic_id int unsigned auto_increment not null comment '商品图片ID',
+product_id int unsigned not null comment '商品ID',
+pic_desc varchar(50) comment '图片描述',
+pic_url varchar(200) not null comment '图片url',
+is_master tinyint not null default 0 comment '是否主图 0 非主图 1 主图',
+pic_order tinyint not null default 0 comment '图片排序',
+pic_status tinyint not null default 1 comment '图片是否有效 0 无效 1 有效',
+modified_time timestamp not null default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP comment '最后修改时间',
+primary key pk_picid (product_pic_id)
+) engine=innodb default charset=utf8 comment '商品图片信息表';
+
+商品评论表 (product_comment)
+create table product_comment(
+comment_id int unsigned auto_increment not null comment '评论ID',
+product_id int unsigned not null comment '商品ID',
+order_id bigint unsigned not null comment '订单ID',
+customer_id int unsigned not null comment '用户ID',
+title varchar(50) not null comment '评论标题',
+content varchar(300) not null comment '评论内容',
+audit_status tinyint not null comment '审核状态 0 未审核 1 已审核',
+audit_time timestamp not null comment '评论时间',
+modified_time timestamp not null default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP comment '最后修改时间',
+primary key pk_commentid (customer_id)
+) engine=innodb default charset=utf8 comment '商品评论表';
+
+订单实体
+下单用户 收货人 支付方式 支付金额 优惠金额 省 市 区 地址 邮编 订单商品 支付时间 收货时间 状态 下单时间 手机号 订单积分 物流信息 运费
+订单商品 商品数量 商品名称 商品价格 仓库信息
+仓库信息 名称 电话 联系人 地址
+
+订单主表(order_master)
+create table order_master(
+order_id int unsigned not null auto_increment comment '订单ID',
+order_sn bigint unsigned not null comment '订单编号 yyyymmddnnnnnnnn',
+customer_id int unsigned not null comment '下单人ID',
+shipping_user varchar(10) not null comment '收货人姓名',
+province smallint not null comment '省',
+city smallint not null comment '市',
+district smallint not null comment '区',
+address varchar(100) not null comment '地址',
+payment_method tinyint not null comment '支付方式 1 现金 2 余额 3 网银 4 支付宝 5 微信',
+order_money decimal(8,2) not null comment '订单金额',
+district_money decimal(8,2) not null default 0.00 comment '优惠金额',
+shipping_money decimal(8,2) not null default 0.00 comment '运费金额',
+payment_money decimal(8,2) not null default 0.00 comment '支付金额',
+shipping_comp_name varchar(10) comment '快递公司名称',
+shipping_sn varchar(50) comment '快递单号',
+create_time timestamp not null default CURRENT_TIMESTAMP comment '下单时间',
+shipping_time datetime comment '发货时间',
+pay_time datetime comment '支付时间',
+receive_time datetime comment '收货时间',
+order_status tinyint not null default 0 comment '订单状态',
+order_point int unsigned not null default 0 comment '订单积分',
+invoice_title varchar(100) comment '发票抬头',
+modified_time timestamp not null default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP comment '最后修改时间',
+primary key pk_orderid(order_id)
+) engine=innodb default charset=utf8 comment '订单主表';
+
+订单详情表 (order_detail)
+create table order_detail(
+order_detail_id int unsigned not null auto_increment comment '订单详情表ID',
+order_id int unsigned not null comment '订单表ID',
+product_id int unsigned not null comment '订单商品ID',
+product_name varchar(50) not null comment '商品名称',
+product_cnt int not null default 1 comment '购买商品数量',
+product_price decimal(8,2) not null comment '购买商品单价',
+average_cost decimal(8,2) not null default 0.00 comment '平均成本价格',
+weight float comment '商品重量',
+fee_money decimal(8,2) not null default 0.00 comment '优惠分摊金额',
+w_id int unsigned not null comment '仓库ID',
+modified_time timestamp not null default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP comment '最后修改时间',
+primary key pk_orderdetailid (order_detail_id)
+) engine=innodb default charset=utf8 comment '订单详情表';
+
+购物车表 (order_cart)
+create table order_cart(
+cart_id int unsigned not null auto_increment comment '购物车ID',
+customer_id int unsigned not null comment '用户ID',
+product_id int unsigned not null comment '商品ID',
+product_amount int not null comment '加入购物车商品数量',
+price decimal(8,2) not null comment '商品价格',
+add_time timestamp not null default CURRENT_TIMESTAMP comment '加入购物车时间',
+modified_time timestamp not null default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP comment '最后修改时间',
+primary key pk_cartid (cart_id)
+) engine=innodb default charset=utf8 comment '购物车表';
+
+仓库信息表 (warehouse_info)
+create table warehouse_info(
+w_id smallint unsigned not null auto_increment comment '仓库ID',
+warehouse_sn char(5) not null comment '仓库编码',
+warehouse_name varchar(10) not null comment '仓库名称',
+warehouse_phone varchar(20) not null comment '仓库电话',
+contact varchar(10) not null comment '仓库联系人',
+province smallint not null comment '省',
+city smallint not null comment '市',
+district smallint not null comment '区',
+address varchar(100) not null comment '仓库地址',
+warehouse_status tinyint not null default 1 comment '仓库状态 0 禁用 1 启用',
+modified_time timestamp not null default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP comment '最后修改时间',
+primary key pk_wid(w_id)
+) engine=innodb default charset=utf8 comment '仓库信息表';
+商品库存表 (warehouse_product)
+create table warehouse_product(
+wp_id int unsigned not null auto_increment comment '商品库存ID',
+product_id int unsigned not null comment '商品ID',
+w_id smallint unsigned not null comment '仓库ID',
+current_cnt int unsigned not null default 0 comment '当前商品数量',
+lock_cnt int unsigned not null default 0 comment '当前占用数据',
+in_transit_cnt int unsigned not null default 0 comment '在途数据',
+average_cost decimal(8,2) not null default 0.00 comment '移动加权成本',
+modified_time timestamp not null default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP comment '最后修改时间',
+primary key pk_wpid (wp_id)
+) engine=innodb default charset=utf8 comment '商品库存表';
+
+物流公司信息表 (shipping_info)
+create table shipping_info(
+ship_id tinyint unsigned not null auto_increment comment '主键ID',
+ship_name varchar(20) not null comment '物流公司名称',
+ship_contact varchar(20) not null comment '物流公司联系人',
+telphone varchar(20) not null comment '物流公司联系电话',
+price decimal(8,2) not null default 0.00 comment '配送价格',
+modified_time timestamp not null default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP comment '最后修改时间',
+primary key pk_shipid(ship_id)
+) engine=innodb default charset=utf8 comment '物流公司信息表';
+
+DB规划
+为以后数据库迁移提供方便
+避免跨库操作 把经常一起关联查询的表放在一个DB中
+为了方便识别表所在的DB 在表名前增加库名前缀
+
+用户数据库(mc_customerdb)
+customer_inf customer_login customer_login_log customer_level_inf customer_point_log customer_balance_log
+商品数据库(mc_productdb)
+product_info product_pic_info product_category product_supplier_info product_comment product_brand_info
+订单数据库 (mc_orderdb)
+order_master order_detail order_customer_addr shipping_info order_cart warehouse_info warehouse_product
+
+如何对评论进行分页展示
+explain select customer_id,title,content from product_comment where audit_status=1 and product_id=199726 limit 0,5;
+
+执行计划分析
+执行计划能告诉我们什么
+SQL如何使用索引
+联接查询的执行顺序
+查询扫描的数据行数
+
+执行计划中的内容
+ID列 ID列中的数据为一组数字 表示执行select语句的顺序
+ID值相同时 执行顺序由上至下
+ID值越大优先级越高 越先被执行
+
+explain select c.category_name,a.product_name,b.title from product_info a
+join product_comment b on a.product_id=b.product_id 
+join product_category c on c.category_id=a.one_category_id;
+
+explain select title from product_comment where product_id in (
+select max(product_id) from product_info where one_category_id in (
+select min(category_id) from product_category
+));
+id  select_type         table
+1   primary             product_comment
+2   subquery            product_info
+3   dependent subquery
+
+select_type列
+值 含义
+simple  不包含子查询或是union操作的查询
+primary  查询中如果包含任何子查询 那么最外层的查询则被标记为primary
+subquery  select列表中的子查询
+dependent subquery  依赖外部结果的子查询
+union  union操作的第二个或是之后的查询的值为union
+dependent union  不union做为子查询时 第二或是第二个后的查询的select_type值
+union result  union产生的结果集
+derived  出现在from子句中的子查询
+
+table列
+输出数据行所在的表的名称
+<unionM,N>由ID为M,N查询union产生的结果集
+<derivedN>/<subqueryN>由ID为N的查询产生的结果
+
+pratitions列
+对于分区表 显示查询的分区ID
+对于非分区表 显示为NULL
+explain select * from customer_login_log where login_time='2015';
+
+type列
+性能 从高到低
+system       这是const联接类型的一个特例 当查询的表只有一行时使用
+const        表中有且只有一个匹配的行时使用 如对主键或是唯一索引的查询 这是效率最高的联接方式
+eq_ref       唯一索或主键索引查找 对于每个索引键 表中只有一条记录与之匹配
+ref          非唯一索引查找 返回匹配某个单独值的所有行
+ref_or_null  类似于ref类型的查询 但是附加了对NULL值列的查询
+index_merge  该联接类型表示使用了索引合并优化方法
+range        索引范围扫描 常见于between > < 这样的查询条件
+index        full index scan 全文索引扫描 同all的区别是 遍历的是索引树
+all          full table scan 全文扫描 这是效率最差的联接方式
+
+extra列
+distinct        优化distinct操作 在找到第一匹配的元组后即停止找同样值的动作
+not exists      使用not exists 来优化查询
+using filesort  使用额外操作进行排序 通常会出现在order by或group by 查询中如果包含任何子查询
+using index     使用了覆盖索引进行查询
+using temporary mysql需要使用临时表来处理查询 常见于排序 子查询 和分组查询
+using where     需要在MySQL服务器层使用where条件来过滤数据
+select tables optimized away  直接通过索引来获得数据 不用访问表
+
+possible_keys列
+指出MySQL能使用那些索引来优化查询
+查询列所涉及到的列上的索引都会被列出 但不一定会被使用
+
+key列
+查询优化器优化查询实际所使用的索引
+如果没有可用的索引 则显示为NULL
+如查询使用了覆盖索引 则该索引仅出现在key列中
+
+key_len列
+表示索引字段的最大可能长度
+key_len的长度由字段定义计算而来 并非数据的实际长度
+
+ref列
+表示那些列或常量被用于查找索引列上的值
+
+rows列
+表示MySQL通过索引统计信息 估算的所需读取的行数
+rows值的大小是个统计抽样结果 并不十分准确
+
+filtered列
+表示返回结果的行数占需读取行数的百分比
+filtered列的值越大越好
+filtered列的值依赖统计信息
+
+执行计划的限制
+无法展示存储过程 触发器 UDF对查询的影响
+无法使用explain对存储过程进行分析
+早期版本的MySQL只支持对select语句进行分析
+优化评论分页查询
+explain select customer_id,title,content from product_comment where audit_status=1 and product_id=199726 limit 0,5;
+possible_keys:NULL key:NULL
+create index idx_productID_auditStatus on product_comment(product_id,audit_status);
+possible_keys:idx_productID_auditStatus key:idx_productID_auditStatus
+
+进一步优化评论分页查询
+select t.customer_id,t.title,t.content from (
+select comment_id from product_comment where product_id=199727 and audit_status=1 limit 0,15
+) a join product_comment t on a.comment_id=t.comment_id;
+
+如何删除重复数据
+删除评论表中对同一订单同一商品的重复评论 只保留最早的一条
+步骤一 查看是否存在对于同一订单同一商品的重复评论
+步骤二 备份product_comment表
+步骤三 删除同一订单的重复评论
+select order_id,product_id,count(*) from product_comment 
+group by order_id,product_id having count(*) > 1;
+
+select * from product_comment where order_id=4 and product_id=134509;
+create table bak_product_comment_161022
+like product_comment;
+insert into bak_product_comment_161022 select * from product_comment;
+
+delete a from product_comment a join(
+select order_id,product_id,min(comment_id) as comment_id from product_comment
+group by order_id,product_id having count(*) >= 2
+) b on a.order_id=b.order_id and a.product_id=b.product_id and a.comment_id > b.comment_id;
+
+select order_id,product_id, count(*) from product_comment 
+group by order_id,product_id having count(*) > 1;
+
+如何进行分区间统计
+统计消费总金额800大于1000元的 800到1000元的 500到800元的 以及500元以下的人数
+select count(case when ifnull(total_money,0) >= 1000 then a.customer_id end) as '大于1000'
+,count(case when ifnull(total_money,0) >= 800 and ifnull(total_money,0) < 1000 then a.customer_id end) as '800-1000'
+,count(case when ifnull(total_money,0) >= 500 and ifnull(total_money,0) < 800 then a.customer_id end) as '500-800'
+,count(case when ifnull(total_money,0) < 500 then a.customer_id end) '小于500'
+from mc_userdb.customer_login a 
+left join (select customer_id,sum(order_money) as total_money
+from mc_orderdb.order_master group by customer_id) b on a.customer_id=b.customer_id;
+
+捕获有问题的SQL
+如何找到需要优化的SQL呢 慢查询日志
+启用mysql慢查询日志
+set global slow_query_log_file=/sql_log/slow_log.log;
+set global log_queries_not_using_indexes=on;
+set global long_query_time=0.001; 抓取执行超过多少时间的SQL(秒)
+set global low_query_log=on;
+
+慢查询日志记录的内容
+time
+
+如何分析慢查询日志
+mysqldumpslow slow-mysql.log
+
+总结
+如何查看SQL的执行计划
+如何通过执行计划对SQL使用索引的情况分析
+如何通过慢查询日志获取有性能问题的SQL
+
+数据库备份
+对于任何数据库来说 备份都是非常重要的
+数据库复制不能取代备份的作用
+逻辑备份和物理备份
+逻辑备份的结果为SQL语句 适合于所有存储引擎
+物理备份是对数据库目录的拷贝 对于内存表只备份结构
+全量备份和增量备份
+全量备份是对整个数据库的一个完整备份
+增量备份是在上次全量或增量备份基础上 对于更改数据进行的备份
+mysqldump 不支持增量备份
+
+使用mysqldump进行备份
+常用语法
+mysqldump [OPTIONS] database [tables]
+mysqldump [OPTIONS] --database [OPTIONS] DB1 [DB2 ...]
+mysqldump [OPTIONS] --all-databases [OPTIONS]
+mysqldump的常用参数
+-u --user=name
+-p --password[=name]
+select  reload  lock tables  replication client  show view  process
+--single-transaction
+-l --lock-tables
+-x --lock-all-tables
+--master-data=[1/2]
+-R --routines
+--triggers
+-E, --events
+--hex-blob
+--tab=path
+-w,--where='过滤条件'
+where只支持单表数据条件导出
+
+mysql -uroot -p
+create user 'backup'@'localhost' identity by '123456';
+grant select,reload,lock tables,replication client,show view,event,process on *.* to 'backup'@'localhost';
+mysqldump -ubackup -p --master-data=2 --single-transaction --routines --triggers --events mc_orderdb > mc_orderdb.sql;
+grep "CREATE TABLE" mc_orderdb.sql
+mysqldump -ubackup -p --master-data=2 --single-transaction --routines --triggers --events
+mc_orderdb order_master > order_master.sql
+mysqldump -ubackup -p --master-data=1 --single-transaction --routines --triggers --events --all-databases > mc.sql
+
+chown mysql:mysql mc_orderdb
+mysqldump -ubackup -p --master-data=2 --single-transaction --where "order_id>1000 and order_id<1050" 
+mc_orderdb order_master > order_master_1000.sql
+数据库备份脚本backup.sh
+
+如何恢复mysqldump备份的数据库
+mysql -u -p dbname < backup.sql
+source /tmp/backup.sql
+mysql -uroot -p -e"create database bak_orderdb"
+mysql -uroot -p bak_orderdb < mc_orderdb.sql
+delete from order_master limit 10;
+insert into mc_orderdb.order_master(order_id,order_sn,customer_id,shipping_user,province,city,district,address,payment_method,order_money,distinct_money,shipping_money,payment_money,shipping_comp_name,shipping_time,shipping_sn,create_time,pay_time,order_status,order_point,invoice_title,modified_time) 
+select a.* from bak_orderdb.order_master a left join mc_orderdb.order_master b 
+on o.order_id=b.order_id where b.order is null
+mysql -uroot -p -e"create database bak_orderdb"
+mysql -uroot -p bak_orderdb < mc_orderdb.sql
+load data infile '/tmp/mc_orderdb/region_info.txt' into table region_info;
+select count(*) from crn.region_info;
+
+mysqldump全备总结
+mysqldump的常用参数
+如何通过mysqldump进行全库及部分库表的备份
+如何利用备份文件进行数据库恢复
+
+如何进行指定时间点的恢复
+进行某一时间点的数据恢复 恢复到误操作的时间
+先决条件 具有指定时间点前的一个全备
+具有自上次全备后到指定时间点的所有二进制日志
+恢复步骤
+mysqldump -ubackup -p --master-data=2 --single-transaction --routines --triggers --events mc_orderdb > mc_orderdb.sql
+mysql -uroot -p
+use mc_orderdb
+create table t(id int auto_increment not null,uid int,cnt decimal(8,2), primary key(id));
+select count(*) from t;
+delete from t limit 100;
+select count(*) from t;
+mysql -uroot -p mc_orderdb < mc_orderdb.sql
+more mc_orderdb.sql
+cd /home/mysql/sql_log
+mysqlbinlog --base64-output=decode-rows --vv --start-position=84882 --database=mc_orderdb mysql-bin.000011 | grep -B3 DELETE | more
+mysqlbinlog --start-position=84882 --stop-position=169384 --database=mc_orderdb mysql-bin.000011 > mc_order_diff.sql
+mysql -uroot -p mc_orderdb < mc_order_diff.sql
+
+基于时间点的恢复总结
+具有指定时间点前的mysqldump的全备
+具有全备到指定时间点的mysql二进制日志
+
+实时二进制日志备份
+Mysql5.6版本之后 可以实时备份Binlog
+grant replication slave on *.* to 'repl'@'ip' identified by 'xxxxxx';
+mkdir -p binlog_backup
+mysqlbinlog --raw --read-from-remote-server \
+--stop-never --host localhost --port 3306 \
+-u repl -p xxxxxx 二进制日志名
+mysql -uroot -p
+grant replication slave on *.* to 'repl'@'localhost' identified by '123456';
+mkdir binlog_bak
+cd binlog_bak
+mysqlbinlog --raw --read-from-remote-server --stop-never --host localhost --port 3306 -urepl -p123456 mysql-bin.000010
+
+mysqldump 单表复制
+mysqldump -u -p -h database_name table_name > /tmp/test.sql
+cd /tmp
+cp test.sql ~
+my database_name < test.sql
+
+mysqldump总结
+使用mysqldump进行备份和恢复
+使用mysqldump进行基于时间点的恢复
+对mysql二进制日志进行实时备份
+
+xtrabackup介绍
+xtrabackup用于在线备份innodb存储引擎的表 (开源的在线热备份工具)
+备份过程中 不会影响表的读写操作
+只会备份数据文件 而不会备份表的结构
+
+innobackupex是对xtrabackup的封装并提供 MyISAM表的备份功能
+innobackupex是对xtrabackup的插件 支持MyISAM备份 但也会锁表
+
+安装xtrabackup
+https://www.percona.com/downloads/XtraBackup/LATEST
+
+xtrabackup备份总结
+使用xtrabackup进行全备和恢复
+使用xtrabackup进行增量备份和恢复
+制定备份计划
+每天凌晨对数据进行一次全备
+实时对二进制日志进行远程备份
+
+如何解决读写压力大问题
+读负载和写负载是两个不同的问题
+1.写操作只能在master数据库上执行
+2.读操作既可以在master库上执行 也可以在slave库上执行相对于写负载 解决读负载要更容易
+进行读写分离 主服务器主要执行写操作
+读操作的压力平均分摊到不同的slave服务器上
+增加前端缓存服务器如Redis memcache等
+推荐大家使用Redis缓存服务器 代替Memcache服务器
+Redis优点 可持久化 可主从复制 可集群
+
+由开发人员根据所执行的SQL类型连接不同的服务器
+优点 完全由开发人员控制 实现更加的灵活
+对于实时性要求比较高的数据 就不适合在从库上查询 (如库存)
+由程序直接连接数据库 所以性能损耗比较小
+缺点 增加了开发的工作量 使程序代码更加复杂
+人为控制 容易出现错误

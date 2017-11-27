@@ -1,0 +1,28 @@
+个人中心模块 表设计 页面搭建 业务逻辑
+表设计 表设计 模型
+业务逻辑 路由 控制器 JS
+
+表设计
+需求分析
+表建立
+模型建立
+id int   fan_id int   star_id int    created_at timestamp    updated_at timestamp
+
+php artisan make:migration create_fans_table
+
+php artisan migrate
+php artisan make:model Fan
+
+模型逻辑
+获取某个用户关注数
+获取某个用户的关注用户stars
+获取某个用户粉丝数
+获取某个用户的粉丝用户列表fans
+获取某个用户文章数
+获取某个用户的文章列表posts
+我是否已经关注某个用户hasStar
+我是否已经被某个用户关注hasFan
+增加我对某个用户的关注doFan
+取消我对某个用户的关注doUnfan
+通过Fan获取关注用户信息fuser
+通过Fan获取粉毕用户信息suser

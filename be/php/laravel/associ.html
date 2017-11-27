@@ -1,0 +1,30 @@
+模型关联
+一对一 hasOne (用户 --- 手机号)
+一对多 hasMany (文章 --- 评论)
+一对多反向 belongsTo (评论 --- 文章)
+多对多belongsToMany (用户 --- 角色)
+远层一对多 hasManyThrough  (国定 --- 作者 --- 文章)
+多态关联 morphMany (文章 --- 评论)
+多态多对多 morphToMany (文章 --- 标签)
+
+$article->load('comments'); // 预加载
+
+关联
+// 用户
+public function user()
+{
+    return $this->belongsTo('App\User');
+}
+
+@foreach($article->comments as $comment)
+<li class="list-group-item">
+    <h5>{{$comment->created_at}} by {{$comment->user->name}}</h5>
+    <div>
+        {{$comment->content}}
+    </div>
+</li>
+@endforeach
+
+关联计数 查询时使用withCount来查
+$articles = Article::orderBy('created_at', 'desc')->withCount('comments')->paginate(6);
+评论 {{$article->comments_count}}

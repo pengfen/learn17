@@ -1,0 +1,49 @@
+进入数据库 create database laravel
+修改配置 .env
+APP_DEBUG=true
+DB_DATABASE=laravel
+DB_USERNAME=root
+DB_PASSWORD=123456
+
+表名 article
+user_id
+时间 created_at/updated_at
+id int
+title varchar 100
+content text
+user_id int
+created_at timestamp
+updated_at timestamp
+
+php artisan make:migration create_articles_table
+
+Schema::create('articles', function (Blueprint $table) {
+$table->increments('id')->comment("ID");
+$table->string('title', 100)->default()->comment("文章标题");
+$table->text('content')->comment("文章内容");
+$table->integer('user_id')->default(0)->comment("用户ID");
+$table->timestamps();
+});
+
+modify
+php artisan make:migration mod_articles_comment
+Schema::table("articles",  function(blockquote $table) {
+    $table->string('comment')->default('')->comment('评论');
+});
+$table->index()
+$table->unique()
+$table->primary()
+
+$table->dropUnique(); //删除唯一键
+
+$table->dropColumn('comment'); // 删除某字段
+
+$table->comment = ''; // try once test
+
+    Schema::dropIfExists('article');
+
+service
+//mb4string
+Schema::defaultStringLength(191);
+
+php artisan migrate

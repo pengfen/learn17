@@ -1,0 +1,67 @@
+Vue基础语法介绍
+
+模板语法
+Mustache语法: {{ msg }}
+Html赋值: v-html=""
+绑定属性: v-bind:id=""
+使用表达式: {{ok?'YES':'NO'}}
+文本赋值: v-text=""
+指令: v-if=""
+过滤器: {{message|capitalize}}和v-bind:id="rawId|formatId"
+
+Class和Style绑定
+对象语法: v-bind:class="{active:isActive, 'text-danger':hasError}"
+数组语法: <div v-bind:class="{activeClass, errorClass}">
+data: {
+    activeClass: 'active',
+	errorClass: 'text-danger'
+}
+style绑定-对象语法: v-bind:style="{color:activeColor, fontSize:fontSize + 'px'}"
+
+条件渲染
+v-if
+v-else
+v-else-if
+v-show
+v-cloak
+
+vue事件处理
+v-on:click="greet"或者@click="greet"
+v-on:click.stop v-on:click.stop.prevent v-on:click.self v-on:click.once
+v-on:keyup.enter (.enter .tab .delete .esc .space .up .down .left .right)
+
+vue组件
+全局组件和局部组件
+父子组件通讯-数据传递
+Slot
+parent --- pass props --- child  child --- emit events --- child
+
+加载组件
+1.编写组件 Counter.vue(components/Counter.vue)
+2.加载组件 Hello.vue
+<Counter></Counter>
+import Counter from './Counter'
+components: {
+    Counter
+}
+3.编写路由 
+{
+	path: '/wel',
+	component: Hello
+},
+4.查看页面
+cnpm run dev
+http://localhost:8080/wel
+
+父 --- 子
+v-bind:num="num" 也可以写成 :num="num"
+num:10 // 初始值
+
+props: ["num"] 也可以写成 props: { num: { type:Number,} }
+
+子 --- 父
+this.$emit("incre")
+this.$emit("decre")
+
+v-on:incre="increment" 也可以写成 @incre="increment"
+v-on:decre="decrement" 也可以写成 @decre="decrement"

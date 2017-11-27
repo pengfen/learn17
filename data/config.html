@@ -1,0 +1,65 @@
+
+MySQL服务器参数
+
+MySQL获取配置信息路径
+命令行参数
+mysqld_safe --datadir=/data/sql_data
+配置文件
+mysqld --help --verbose | grep -A 1 'Default options'
+/etc/my.cnf /etc/mysql/my.cnf /home/mysql/my.cnf ~/.my.cnf
+
+MySQL配置参数的作用域
+全局参数 set global 参数名=参数值;  set @@global.参数名:=参数值;
+会话参数 set [session] 参数名=参数值;  set @@session.参数名:=参数值;
+
+内存配置相关参数
+确定可以使用的内存的上限
+确定MySQL的每个连接使用的内存 sort_buffer_size  join_buffer_size
+read_buffer_size read_rnd_buffer_size
+确定需要为操作系统保留多少内存
+如何为缓存池分配内存 Innodb_buffer_pool_size
+总内存 - 每个线程所需要的内存 * 连接数) - 系统保留内存
+key_buffer_size
+select sum(index_length) from information_schema.tables where
+
+I/O相关配置参数
+Innodb I/O相关配置
+Innodb_log_file_size  Innodb_log_files_in_group
+事务日志总大小 = Innodb_log_files_in_group * Innodb_log_file_size
+Innodb_log_buffer_size
+Innodb_flush_log_at_trx_commit
+0 每秒进行一次log写入cache 并flush log到磁盘
+1[默认] 在每次事务提交执行log写入cache 并flush log到磁盘
+2[建议] 每次事务提交 执行log数据写入到cache 每秒执行一次flush log到磁盘
+Innodb_flush_method=O_DIRECT
+Innodb_file_per_table = 1
+Innodb_doublewrite = 1
+
+delay_key_write
+OFF 每次写操作后刷新键缓冲中的脏块到磁盘
+ON 只对在键表时指定了delay_key_write选项的表使用延迟刷新
+ALL 对所有MYISAM表都使用延迟键写入
+
+安全相关配置参数
+expire_logs_days 指定自动清理binlog的天数
+max_allowed_packet 控制MySQL可以接收的包的大小
+skip_name_resolve 禁用DNS查找
+
+sysdate_is_now 确保sysdate()返回确定性日期
+read_only 禁止非super权限的用户写权限
+skip_slave_start 禁用Slave自动恢复
+
+sql_mode 设置MySQL所使用的SQL模式 
+strict_trans_tables no_engine_subtitution no_zero_date no_zero_in_date only_full_group_by
+
+其它常用配置参数
+sync_binlog 控制MySQL如何向磁盘刷新binlog
+tmp_table_size和max_heap_table_size控制内存临时表大小
+max_connections控制允许的最大连接数
+
+什么影响了性能
+数据库设计对性能的影响
+过分的反范式化为表建立太多的列
+过分的范式化造成太多的表关联
+在OLTP环境中使用不恰当的分区表
+使用外键保证数据的完整性

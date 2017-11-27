@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+	<title>ES6演示</title>
+	<style>
+	    .log {
+		    background-color: black;
+			color: white;
+			padding: 10px 20px;
+		}
+	</style>
+</head>
+<body>
+    <h2>ES6演示</h2>
+	<div id="log" class="log"></div>
+	<script>
+	    //console.log("a" + a); // underfined var定义的变量会提升变量
+		//var a = 1;
+		//console.log("b" + b); // 会输出 not defined
+		//let b = 2;
+		
+		// `` 定义模板语言
+		var str = `
+		console.log("a" + a);
+		var a = 1;
+		`;
+		printLog(str);
+		
+		function user() {
+		    var a = 1; // var 函数级作用域  let 是块级作用墐
+		}
+		
+		//console.log("a" + a)
+		
+		// 块组作用域
+		/*{
+		    let a = 1;
+			var b = 2;
+		}
+		console.log("b: " + b); // 2
+		console.log("a: " + a); // not defined
+		*/
+		
+		/*let a = 1;
+		
+		a = 2;
+		
+		const b = {a:1};
+		
+		b.a = 2;
+		
+		b = {c:1}*/
+		
+		//let userName = 'Jack';
+		//printLog(`I'm ${userName}`) // 使用${}来解析变量
+		
+		function add(flag) {
+		    if (flag) {
+			    return "true";
+			} else {
+			    return "error";
+			}
+		}
+		console.log(add());
+		
+		function sum(num1, num2 = 1) { // 默认值
+		    return num1 + num2;
+		}
+		console.log(sum(7)); // 
+		
+		var arr = [3,6,9];
+		
+		var newArr = arr.map(function (item) {
+		    return item + 2;
+		})
+		// 函数中只有一条语句 使用箭头函数替换
+		var newArr = arr.map((item) => item + 2);
+		// 多条语句
+		var newArr1 = arr.map((item) => {item ++; return item + 2;})
+		console.log(newArr);
+		
+		// 数组的解构
+		var [a,b] = [3,8,10]; // 数组的分解
+		console.log(`a:${a},b:${b}`)
+		var [x,y,z] = "Vue"; // 字符串的分解
+		console.log(`x:${x},y:${y},z:${z}`)
+		
+		var {m,n} = {m:10,n:20} // 对象的解构 对key进行拆分
+		console.log(`m:${m},n:${n}`)
+		
+		function printLog(str) {
+		    document.getElementById("log").innerText = str;
+		}
+	</script>
+</body>
+</html>

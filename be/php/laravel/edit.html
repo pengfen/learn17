@@ -1,0 +1,26 @@
+路由
+Route::get('/articles/{article}/edit', '\App\Http\Controllers\ArticleController@edit');
+
+控制器之渲染页面
+public function edit(Article $article)
+{
+    return view('article/edit', compact('article'));
+}
+
+修改数据
+public function update(Article $article)
+{
+    // 验证数据
+    $this->validate(request(), [
+    'title' => 'required|string|max:100|min:5',
+    'content' => 'required|string|min:10',
+    ]);
+
+    // 修改
+    $article->title = request('title');
+    $article->content = request('content');
+    $article->save();
+
+    // 渲染
+    return redirect("/articles/{$article->id}");
+}

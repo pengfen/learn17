@@ -1,0 +1,106 @@
+编写组件 components/slideShow
+
+引入组件
+import slideShow from '../components/slideShow'
+
+export default {
+    components: {
+	    slideShow
+	}
+}
+
+模板中添加
+<slide-show></slide-show>
+
+数据传递 (页面中indev.vue的数据传递到组件中slideShow.vue)
+定义传递的数据 (注意script中使用require加载图片)
+slides: [
+	{
+	  src: require('../assets/slideShow/pic1.jpg'),
+	  title: 'xxx1',
+	  href: 'detail/analysis'
+	},
+	{
+	  src: require('../assets/slideShow/pic2.jpg'),
+	  title: 'xxx2',
+	  href: 'detail/count'
+	},
+	{
+	  src: require('../assets/slideShow/pic3.jpg'),
+	  title: 'xxx3',
+	  href: 'http://xxx.xxx.com'
+	},
+	{
+	  src: require('../assets/slideShow/pic4.jpg'),
+	  title: 'xxx4',
+	  href: 'detail/forecast'
+	}
+],
+
+<slide-show :slides="slides"></slide-show>
+
+components/slideShow 接收数据
+props: {
+    slides: {
+	    type: Array,
+		default: []
+	}
+}
+mounted() {
+    console.log(this.slides)
+}
+
+至点击页
+<li v-for="(item, index) in slides" @click="goto(index)">
+<a>{{ index + 1 }}</a>
+</li>
+
+goto(index) {
+	this.nowIndex = index
+}
+
+至上一页 下一页
+<li @click="goto(prevIndex)">&lt;</li>
+<li @click="goto(nextIndex)">&gt;</li>
+
+computed: { // 计算属性
+	prevIndex() { // 至前一页 @click="goto(prevIndex)"
+		if (this.nowIndex === 0) {
+			return this.slides.length - 1
+		} else {
+			return this.nowIndex - 1
+		}
+	},
+	nextIndex() { // 至后一页 @click="goto(nextIndex)"
+		if (this.nowIndex === this.slides.length - 1) {
+			return 0
+		} else {
+			return this.nowIndex + 1
+		}	
+	}
+}
+
+动画
+<transition name="slide-trans">
+	<img v-if="isShow" :src="slides[nowIndex].src">
+</transition>
+<transition name="slide-trans-old">
+	<img v-if="!isShow" :src="slides[nowIndex].src">
+</transition>
+goto(index) {
+	this.isShow = false
+	setTimeout(() => {
+		this.isShow = true
+		this.nowIndex = index
+		this.$emit('onchange', index)
+	}, 100)
+},	
+
+子组件传递至父组件
+this.$emit('onchange', index)
+<slide-show :slides="slides" :inv="invTime" @onchange="doSomethingOnSlideChange"></slide-show>
+methods: {
+	doSomethingOnSlideChange() {
+		console.log('do something')
+	}
+},

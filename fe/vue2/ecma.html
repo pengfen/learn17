@@ -1,0 +1,67 @@
+ECMAScript 6 简介
+
+1995 JavaScript诞生
+1997 ECMAScript标准确立
+1999 ES3出现 与此同时IE5风靡一时
+2009 ES5出现 例如foreach Object.keys Object.create和JSON标准
+2015 ES6/ECMAScript 2015出现
+目标 JavaScript语言可以用来编写复杂的大型应用程序 成为企业级开发语言
+
+ES6常用命令介绍
+let和const命令
+模板语言
+字符串 对象 数组和函数的解构
+Rest参数和函数的扩展
+箭头函数
+es6.html
+
+函数的Rest参数和扩展
+Promise使用
+module.exports和ES6 import/export 的使用
+es6-2.html
+
+AMD CMD CommonJs和ES6对比
+AMD是RequireJS在推广过程中对模块定义的规范化产出
+define(['package/lib'], function(lib){
+    function foo(){
+	    lib.log("welcome to here");
+	}
+	return {
+	    foo:foo
+	}
+});
+
+CMD是SeaJS在推广过程中对模块定义的规范化产出
+// 所有模块都通过 define 来定义
+define(function(require, exports, module) {
+    // 通过 require 引入依赖
+	var $ = require('jquery');
+	var Spinning = require('./spinning');
+}
+
+CommonJS规范 module.exports
+exports.area = function(r) {
+    return Math.PI * r * r;
+};
+
+exports.circumference = function(r) {
+    return 2 * Math.PI * r;
+}
+
+ES6特性 export/import
+export default{
+    props:["num"],
+	data() {
+	    retun{}
+	},
+	methods:{
+	    increment(){
+		    this.$emit("incre");
+			
+			import('./../util')
+		},
+		decrement(){
+		    this.$emit("decre");
+		}
+	}
+}

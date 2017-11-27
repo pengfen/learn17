@@ -1,0 +1,14 @@
+模板语法 {{}} @if @foreach
+参数传递
+继承模型 extends section yield content
+引入视图 include
+继承模型 extends section yield content
+
+提取头部等 layout/main
+@yield("content");
+@include("layout.footer");
+
+继承
+@extend("layout.main");
+@section("content");
+@endsection

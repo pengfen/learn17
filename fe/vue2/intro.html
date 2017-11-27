@@ -1,0 +1,60 @@
+特点 轻量级 高效率 上手快 简单易学 文档全面而简洁
+vue.js 模板渲染 模块化 扩展功能(路由 Ajax)
+
+vue实例 vue组件 vue指令 内置组件 实例方法 实例选项 实例属性
+模板渲染 条件渲染 组件交互 标签属性 事件绑定 计算属性 属性监听 表单 动画
+
+项目
+页面 首页 售卖页(子路由页面 选项 产品说明 各种弹窗) 列表页
+
+轻量级的前端界面框架
+2016.10发布最新2.0版本 更强大 更快速
+数据渲染(数据同步) 组件化(模块化) 其他功能(路由 ajax 数据流)
+
+vue.js学习资源
+vuejs中文官网 http://cn.vuejs.org
+vuejs源友 https://github.com/vuejs/vue
+vuejs官方工具 https://github.com/vuejs
+vuejs官方论坛 http://forum.vuejs.org
+
+vue基本概念
+全局api 实例选项 实例属性/方法 指令 内置组件
+
+nodejs和npm的安装和环境搭建
+Webpack代码模块化构建打包工具
+Gulp基于流的自动化构建工具
+Grunt JavaScript世界的构建工具
+Babel使用最新的规范来编写js
+Vue 构建数据驱动的web界面的渐进式框架
+Express基于Node.js平台 快速 开放 极简的web开发框架
+
+nodejs下载
+https://nodejs.org/en/download
+
+Vue多页面应用文件引用
+官网拷贝 <script src="https://unpkg.com/vue/dist/vue.js"></script>
+npm安装
+vue-cli构建SPA(单页Web应用 single page web application)应用
+npm install -g vue-cli
+vue init webpack-simple demo
+vue init webpack demo2
+
+// 直接使用url引入vue.js 也可以使用 cnpm i vue --save 安装node相关模块 node_modules/vue/dist/vue.min.js
+// cnmp i (i是install的缩小)
+<script src="https://unpkg.com/vue@2.3.3/dist/vue.min.js"></script>
+<div id="app">
+    <span>{{ message }}</span>
+</div>
+<script>
+    new Vue({
+	    el: "#app",
+		data: {
+		    message: "welcome to vue"
+		}
+	})
+</script>
+
+el 挂载点 element元素
+cnpm install 安装依赖包
+cnpm install dev 部署开发环境
+cnpm install build 部署生产环境

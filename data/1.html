@@ -1,0 +1,247 @@
+SQL开发技巧之一
+
+SQL语言介绍  SQL语言的发展
+1986 start --- 1989 sql89 --- 1992 sql92 ...
+
+SQL --- 关系型数据库 非关系型数据库
+
+常见的SQL语句类型
+DDL 数据定义语言 TPL 事务处理语言 DCL 数据控制语言 DML 数据操作语言
+SQL 开发技巧着重于DML语句 select insert update delete
+
+正确使用SQL很重要吗
+增加数据库处理效率 减少应用相应时间
+减少数据库服务器负载 增加服务器稳定性
+减少服务器间通讯的网络流量
+
+如何正确的使用Join从句
+举例中使用表如下 西天取经四人组 VS 悟空的朋友们
+create database my_test default character set utf8 collate utf8_general_ci;
+use my_test;
+create table user1(
+id int unsigned not null auto_increment primary key,
+user_name varchar(3) not null default '' comment '用户名',
+over varchar(5) not null default '' comment '称号'
+) engine=innodb default charset=utf8 comment = '测试连接表一';
+desc user1;
+insert into user1(user_name,over) values('唐僧','功德佛'),('猪八戒','净坛使者'),('孙悟空','斗战胜佛'),('沙僧','金身罗汉');
+select id,user_name,over from user1;
+id  user_name  over
+1   唐僧       功德佛
+2   猪八戒     净坛使者
+3   孙悟空     斗战胜佛
+4   沙僧       金身罗汉
+
+create table user2(
+id int unsigned not null auto_increment primary key,
+user_name varchar(3) not null default '' comment '用户名',
+over varchar(5) not null default '' comment '称号'
+) engine=innodb default charset=utf8 comment = '测试连接表二';
+desc user2;
+insert into user2(user_name,over) values('孙悟空','成佛'),('牛魔王','被降服'),('蛟魔王','被降服'),('鹏魔王','被降服'),('狮驼王','被降服');
+select id,user_name,over from user2;
+id  user_name  over
+1   孙悟空     成佛
+2   牛魔王     被降服
+3   蛟魔王     被降服
+4   鹏魔王     被降服
+5   狮驼王     被降服
+
+SQL标准中Join的类型
+内连接inner  全外连接full outer  左外连接left outer  右外连接right outer  交叉连接cross
+
+Join操作的类型 --- Inner Join
+内连接Inner join 基于连接谓词将两张表(如A和B)的列组合在一起 产生新的结果表
+select a.user_name,a.over,b.over from user1 a inner join user2 b on a.user_name = b.user_name
+| user_name | over         | over   |
++-----------+--------------+--------+
+| 孙悟空    | 斗战胜佛     | 成佛   |
+
+Join操作的类型 --- left outer join
+select a.user_name,a.over,b.over from user1 a inner join user2 b on a.user_name = b.user_name
++-----------+--------------+--------+
+| user_name | over         | over   |
++-----------+--------------+--------+
+| 孙悟空    | 斗战胜佛     | 成佛   |
+| 唐僧      | 功德佛       | NULL   |
+| 猪八戒    | 净坛使者     | NULL   |
+| 沙僧      | 金身罗汉     | NULL   |
++-----------+--------------+--------+
+查询取经四人组中那些人不是悟空的结义兄弟
+select a.user_name,a.over,b.over from user1 a left join user2 b on a.user_name=b.user_name where b.user_name IS NULL
++-----------+--------------+------+
+| user_name | over         | over |
++-----------+--------------+------+
+| 唐僧      | 功德佛       | NULL |
+| 猪八戒    | 净坛使者     | NULL |
+| 沙僧      | 金身罗汉     | NULL |
++-----------+--------------+------+
+
+Join操作的类型 --- right outer join
+select select_list from tablea a right join tableb b on a.key = b.key
+select select_list from tablea a right join tableb b on a.key = b.key where a.key is null
+select a.user_name,a.over,b.over from user1 a right join user2 b on a.user_name = b.user_name
++-----------+--------------+-----------+
+| user_name | over         | over      |
++-----------+--------------+-----------+
+| 孙悟空    | 斗战胜佛     | 成佛      |
+| NULL      | NULL         | 被降服    |
+| NULL      | NULL         | 被降服    |
+| NULL      | NULL         | 被降服    |
+| NULL      | NULL         | 被降服    |
++-----------+--------------+-----------+
+查询悟空的结义兄弟中那些人没有去取经 (is null --- is not null)
+select b.user_name,b.over,a.over from user1 a right join user2 b on a.user_name=b.user_name where a.user_name is null
++-----------+-----------+------+
+| user_name | over      | over |
++-----------+-----------+------+
+| 牛魔王    | 被降服    | NULL |
+| 蛟魔王    | 被降服    | NULL |
+| 鹏魔王    | 被降服    | NULL |
+| 狮驼王    | 被降服    | NULL |
++-----------+-----------+------+
+
+join操作的类型 full join
+select select_list from tableA a full outer join tableB b on a.key = b.key
+select select_list from tableA a full outer join tableB b on a.key = b.key where a.key is null or b.key is null
+mysql不支持full join  如何解决
+select a.user_name,a.over,b.over from user1 a left join user2 b on a.user_name=b.user_name union all
+select b.user_name,b.over,a.over from user1 a right join user2 b on a.user_name=b.user_name
++-----------+--------------+--------------+
+| user_name | over         | over         |
++-----------+--------------+--------------+
+| 孙悟空    | 斗战胜佛     | 成佛         |
+| 唐僧      | 功德佛       | NULL         |
+| 猪八戒    | 净坛使者     | NULL         |
+| 沙僧      | 金身罗汉     | NULL         |
+| 孙悟空    | 成佛         | 斗战胜佛     |
+| 牛魔王    | 被降服       | NULL         |
+| 蛟魔王    | 被降服       | NULL         |
+| 鹏魔王    | 被降服       | NULL         |
+| 狮驼王    | 被降服       | NULL         |
++-----------+--------------+--------------+
+
+join操作的类型 --- Cross Join
+交叉连接cross join 又称笛卡尔连接(cartesian join)或叉乘(product) 如果A和B是两个集合 它们的交叉连接就记为 A * B
+select a.user_name,a.over,b.user_name,b.over from user1 a cross join user2 b
++-----------+--------------+-----------+-----------+
+| user_name | over         | user_name | over      |
++-----------+--------------+-----------+-----------+
+| 唐僧      | 功德佛       | 孙悟空    | 成佛      |
+| 猪八戒    | 净坛使者     | 孙悟空    | 成佛      |
+| 孙悟空    | 斗战胜佛     | 孙悟空    | 成佛      |
+| 沙僧      | 金身罗汉     | 孙悟空    | 成佛      |
+| 唐僧      | 功德佛       | 牛魔王    | 被降服    |
+| 猪八戒    | 净坛使者     | 牛魔王    | 被降服    |
+| 孙悟空    | 斗战胜佛     | 牛魔王    | 被降服    |
+| 沙僧      | 金身罗汉     | 牛魔王    | 被降服    |
+| 唐僧      | 功德佛       | 蛟魔王    | 被降服    |
+| 猪八戒    | 净坛使者     | 蛟魔王    | 被降服    |
+| 孙悟空    | 斗战胜佛     | 蛟魔王    | 被降服    |
+| 沙僧      | 金身罗汉     | 蛟魔王    | 被降服    |
+| 唐僧      | 功德佛       | 鹏魔王    | 被降服    |
+| 猪八戒    | 净坛使者     | 鹏魔王    | 被降服    |
+| 孙悟空    | 斗战胜佛     | 鹏魔王    | 被降服    |
+| 沙僧      | 金身罗汉     | 鹏魔王    | 被降服    |
+| 唐僧      | 功德佛       | 狮驼王    | 被降服    |
+| 猪八戒    | 净坛使者     | 狮驼王    | 被降服    |
+| 孙悟空    | 斗战胜佛     | 狮驼王    | 被降服    |
+| 沙僧      | 金身罗汉     | 狮驼王    | 被降服    |
++-----------+--------------+-----------+-----------+
+
+与Join相关的SQL技巧
+如何更新使用过滤条件中包括自身的表
+情景 把同时存在于取经四人组和悟空兄弟表中的记录的人在取经四人组表中的over字段更新为 "齐天大圣"
+select b.user_name from user1 a join user2 b on a.user=b.user_name;user
++--------------+
+| over         |
++--------------+
+| 斗战胜佛     |
++--------------+
+update user1 set over='齐天大圣' where user1.user_name in
+(select b.user_name from user1 a join user2 b on a.user_name=b.user_name);
+ERROR 1093(HY000): You can't specify target table 'user1' for update in FROM clause(mysql不支持对查询的表进行更新操作)
+使用Join来解决问题
+update user1 a join(select b.user_name from user1 a inner join user2 b on a.user_name=b.user_name) b
+on a.user_name=b.user_name set a.over="齐天大圣";
+mysql> select over from user1 where user_name='孙悟空';
++--------------+
+| over         |
++--------------+
+| 齐天大圣     |
++--------------+
+
+使用Join优化子查询
+select a.user_name,a.over,(select over from user2 b where a.user_name=b.user_name) as over2 from user1 a;
++-----------+--------------+--------+
+| user_name | over         | over2  |
++-----------+--------------+--------+
+| 唐僧      | 功德佛       | NULL   |
+| 猪八戒    | 净坛使者     | NULL   |
+| 孙悟空    | 齐天大圣     | 成佛   |
+| 沙僧      | 金身罗汉     | NULL   |
++-----------+--------------+--------+
+优化后
+select a.user_name,a.over,b.over as over2 from user1 a left join b on a.user_name=b.user_name
++-----------+--------------+--------+
+| user_name | over         | over2  |
++-----------+--------------+--------+
+| 孙悟空    | 齐天大圣     | 成佛   |
+| 唐僧      | 功德佛       | NULL   |
+| 猪八戒    | 净坛使者     | NULL   |
+| 沙僧      | 金身罗汉     | NULL   |
++-----------+--------------+--------+
+
+使用join优化聚合子查询
+引入一张新表 按日期记录四人组中每个人打怪的数量
+id  user_id  timestr              kills
+1   2        2013-01-10 00:00:00  10
+2   2        2013-02-01 00:00:00  2
+3   2        2013-02-05 00:00:00  12
+4   4        2013-01-10 00:00:00  3
+5   2        2013-02-11 00:00:00  5
+6   2        2013-02-06 00:00:00  1
+7   5        2013-01-11 00:00:00  20
+8   2        2013-02-12 00:00:00  10
+9   2        2013-02-07 00:00:00  17
+create table user_kills(
+id int unsigned auto_increment primary key comment '自增ID',
+user_id int not null default 0 comment '用户id(user1)',
+timestr date comment '打怪日期',
+kills int unsigned not null default 0 comment '打怪数量'
+) engine=innodb default charset=utf8 comment = '打怪数量表';
+insert into user_kills(user_id,timestr,kills) values(2, '2013-01-10 00:00:00', 10),(2, '2013-02-01 00:00:00', 2),
+(2, '2013-02-05 00:00:00', 12),(4, '2013-01-10 00:00:00', 3),(2, '2013-02-11 00:00:00', 5),
+(2, '2013-02-06 00:00:00', 1),(5, '2013-01-11 00:00:00', 20),(2, '2013-02-12 00:00:00', 10),
+(2, '2013-02-07 00:00:00', 17);
+
+如何查询出四人组中打怪最多的日期
+select a.user_name,b.timestr,b.kills from user1 a join user_kills b on a.id = b.user_id where b.kills =
+(select max(c.kills) from user_kills c where c.user_id=b.user_id)
++-----------+------------+-------+
+| user_name | timestr    | kills |
++-----------+------------+-------+
+| 沙僧      | 2013-01-10 |     3 |
+| 猪八戒    | 2013-02-07 |    17 |
++-----------+------------+-------+
+优化后
+select a.user_name,b.timestr,b.kills from user1 a join user_kills b on a.id = b.user_id
+group by a.user_name,b.timestr,b.kills having b.kills = max(c.kills)
+
+如何实现分组选择
+select a.user_name,b.timestr,b.kills from user1 a join user_kills b on a.id = b.user_id
+where user_name='孙悟空' order by b.kills desc limit 2
+我们可以对每个人分别执行上面的查询
+问题
+1.如果分类或是用户很多的情况下则需要多次执行同一查询
+2.增加应用程序同数据库的交互次数
+3.增加了数据库执行查询的次数 不符合批处理的原则
+4.增加了网络流量
+
+with tmp as(select a.user_name,b.timestr,b.kills,row_number() over(partition by a.user_name order by b.kills) cnt
+from user1 a join user_kills b on a.id = b.user_id)
+select * from tmp where cnt <= 2
+mysql 不支持
+select d.user_name,c.timestr,kills from(select user_id,timestr,kills),(select count(*) from user_kills b
+where b.user_id=a.user_id and a.kills <= b.kills) as cnt from user_kills a group by user_id,timestr,kills) c
+join user1 d on c.user_id=d.id where cnt <= 2

@@ -1,0 +1,152 @@
+搜索模块 (搜索设计 ES搭建 页面搭建 业务逻辑)
+搜索设计(ES介绍 中文支持 基本概念)
+ES搭建(ES搭建 laravel相关 模型关联)
+业务逻辑(搜索逻辑 分页)
+
+搜索设计 搜索功能 Elasticsearch选取 Elasticsearch介绍 Elasticsearch中文支持 elastic.co/cn
+
+索引index 类型type 文档document 字段field 模版template
+
+搜索模块实现基本步骤
+安装elasticsearch和ik插件
+Elasticsearch的laravel scout包安装
+创建ylaravel的索引和模板
+倒入数据库已有的数据
+搜索页面和逻辑展示
+
+1.安装jdk
+java -version # 查看jdk当前版本
+rpm -qa | grep jdk # 查看系统上自带的jdk
+yum -y remove java...
+uname -a # 查看当前虚拟机的版本 (然后下载与之相对应的jdk版本)
+mv jdk-8u144-linux-i586.tar.gz /usr/local/java/
+cd /usr/local/java/
+tar -zxvf jdk-8u144-linux-i586.tar.gz
+[root@peng1 jdk1.8.0_73]# vi /etc/profile
+
+export JAVA_HOME=/usr/local/java/jdk1.8.0_73
+export JRE_HOME=/usr/local/java/jdk1.8.0_73/jre
+export PATH=$JAVA_HOME/bin:$PATH
+export CLASSPATH=./:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
+
+[root@peng1 java]# source /etc/profile # 使当前环境环境立即生效
+[root@peng1 java]# java -version
+
+// 使用新用户创建es
+useradd es # 添加新用户
+passwd es # 设置密码
+chown -R es:es /opt/es
+https://github.com/medcl/elasticsearch-rtf 下载zip包
+cd /opt/es
+su es
+unzip elasticsearch-rtf-master.zip
+cd elasticsearch-rtf-master
+bin/elasticsearch-plugin list #可删除不需要的插件
+vim config/el.yml
+path.data: /opt/es/data
+path.logs: /opt/es/logs
+network.host: 192.168.179.131
+http.port: 9200
+
+vi /etc/security/limits.conf #添加以下内容 (* 指所有用户)
+* soft nofile 65536
+* hard nofile 131072
+* soft nproc 2048
+* hard nproc 4096
+
+max number of threads [1024] for user [es] likely too low, increase to at least[2048]
+无法创建本要线程问题
+vi /etc/security/limits.d/90-nproc.conf
+* soft nproc 1024 ---> * soft nproc 2048
+
+max virtual memory areas vm.max_map_count [65530] likely too low, increase to at least [262144]
+最大虚拟内存大小
+vi /etc/sysctl.conf #添加以下内容
+vm.max_map_count=655360
+修改后并执行命令
+sysctl -p
+
+bin/elasticserch
+
+http://192.168.179.131:9200/ # 访问之前使用 service iptables stop 关闭防火墙
+
+=========================================
+每次启动
+进入192.168.179.131主机
+cd /opt/es/elast...
+su es
+bin/elasticsearch
+http://192.168.179.131:9200/
+
+安装laravel使用elastic包
+安装laravel/scout (http://d.laravel-china.org/docs/5.4/scout
+安装scout的es驱动 (https://github.com/ErickTamayo/laravel-scout-elastic)
+修改scout.php
+composer require laravel/scout # 查看 vender/laravel/scout 是否存在
+配置 config/app.php 文件中 providers 添加
+Laravel\Scout\ScoutServiceProvider::class
+php artisan vendor:publish --provider="Laravel\Scout\ScoutServiceProvider"
+
+composer require tamayo/laravel-scout-elastic # 安装scout 的 es驱动
+
+配置 config/app.php 文件中 providers 添加
+ScoutEngines\Elasticsearch\ElasticsearchProvider::class,
+
+配置 config/scout.php
+'driver' => env('SCOUT_DRIVER', 'elasticsearch'),
+
+'elasticsearch' => [
+    'index' => env('ELASTICSEARCH_INDEX', 'laravel54'),
+    'hosts' => [
+    env('ELASTICSEARCH_HOST', 'http://192.168.179.131:9200'),
+    ],
+],
+
+自定义命令行
+创建 command    编辑handle    挂载
+自定义脚本创建es的index和template
+laravel自定义脚本介绍
+创建index
+创建template
+1 创建command
+php artisan make:command ESInit
+修改文件 Console/Commands/ESInit.php
+protected $signature = 'es:init';
+protected $description = '测试ES';
+
+2 编辑handle ---> Console/Commands/ESInit.php
+
+3 挂载 Console/Kernel.php
+protected $commands = [
+    \App\Console\Commands\ESInit::class,
+];
+
+use GuzzleHttp\Client;
+composer require guzzlehttp/guzzle 创建相关依赖
+
+php artisan es:init
+http://192.168.179.131:9200/laravel 测试
+
+模型 Article
+use Laravel\Scout\Searchable;
+use Searchable;
+
+// 定义索引里面的type
+public function searchableAs()
+{
+    return "article";
+}
+
+// 定义有那些字段需要搜索
+public function toSearchableArray()
+{
+    return [
+        'title' => $this->title,
+        'content' => $this->content,
+    ];
+}
+php artisan scout:import "\App\Article"
+
+页面
+=======================================
+Route::get('/articles/search', '\App\Http\Controllers\ArticleController@search');

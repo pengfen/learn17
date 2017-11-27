@@ -1,0 +1,11 @@
+1 路由
+Route::get('/articles/{article}', '\App\Http\Controllers\ArticleController@detail');
+
+2 控制器
+public function detail(Article $article)
+{
+    return view('article/detail', compact('article'));
+}
+
+3 模板
+{{$article->title}}

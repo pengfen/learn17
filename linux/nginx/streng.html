@@ -1,0 +1,422 @@
+动静分离
+通过中间件将动态请求和静态请求分离
+
+upstream php_api {
+    server 192.168.179.134:80;
+}
+
+location ~ \.php$ {
+    proxy_pass http://php_api;
+	index index.html index.htm;
+}
+
+location ~ \.(jpg|png|gif)$ {
+    expires 1h;
+	gzip on;
+}
+
+2.为什么 分离资源 减少不必要的请求消耗 减少请求延时
+请求 --- 中间件 --- 程序框架 --- 程序逻辑 --- 数据资源 
+静态请求 --- 中间件
+
+3.场景
+请求 --- nginx --- jsp --- tomcat
+静态请求 --- nginx --- jpg,png --- 静态资源
+
+Nginx的rewrite规则
+实现url重写以及重定向
+
+2.场景
+URL访问跳转 支持开发设计  页面跳转 兼容性支持 展示效果等
+SEO优化
+维护 后台维护 流量转发等
+安全
+
+配置语法
+Syntax: rewrite regex replacement [flag];
+Default:
+Context:server,location,if
+
+rewrite ^(.*)$ /pages/maintain.html|break;
+
+4.正则表达式
+.      匹配除换行符以外的任意字符
+?      重复0次或1次
++      重复1次或更多次
+*      最少链接数 那个机器连接数少就分发
+\d     匹配数字
+^      匹配字符串的开始
+$      匹配字符串的介绍
+{n}    重复n次
+{n,}   重复n次或更多次
+[c]    匹配单个字符c
+[a-z]  匹配a-z小写字母的任意一个
+\      转义字符
+rewrite index\.php$ /pages/maintain.html break;
+()     用于匹配括号之间的内容 通过$1 $2调用
+if ($http_user_agent ~ MSIE) {
+    rewrite ^(.*)$ /msie/$1 break;
+}
+
+pcre
+pcre-config pcregrep pcretest
+pcretest
+re> /(\d+)\.(\d+)\.(\d+)\.(\d+)/
+data>192.168.179.133
+
+
+1.正则表达式了解透彻
+
+5.flag
+last       停止rewrite检测
+break      停止rewrite检测
+redirect   返回302临时重定向 地址栏会显示跳转后的地址
+permanent  返回301永久重定向 地址栏会显示跳转后的地址
+
+location ~ ^/break {
+    rewrite ^/break /test/ break;
+}
+
+location ~ ^/last {
+    rewrite ^/last /test/ last;
+}
+
+location /test/ {
+    default_type application/json;
+	return 200 '{"status":"success"}';
+}
+
+location ~ ^/imooc {
+    rewrite ^/imooc http://www.baidu.com/ redirect;
+}
+nginx -s stop -c /etc/nginx/nginx.conf #停止服务后页面不缓存
+
+location ~ ^/imooc {
+    rewrite ^/imooc http://www.baidu.com/ permanent;
+}
+nginx -s stop -c /etc/nginx/nginx.conf #停止服务后页面一直在
+
+location / {
+    rewrite ^/course-(\d+)-(\d+)-(\d+)\.html$ /course/$1/$2/counser_$3.html break;
+	
+	if ($http_user_agent ~* Chrome) {
+	    rewrite ^/nginx http://coding.imooc.com/class/121.html redirect;
+	}
+	
+	if (!-f $request_filename) {
+	    rewrite ^/(.*)$ http://www.baidu.com/$1 redirect;
+	}
+}
+
+5.Rewrite规则优先级
+执行server块的rewrite指令
+执行location匹配
+执行选定的location中的rewrite
+
+5.优雅的Rewrite规则书写
+RewriteCond %{HTTP_HOST} nginx.org
+RewriteRule (.*)
+
+server {
+listen 80;
+server_name www.nginx.org nginx.org;
+if ($http_host=nginx.org) {
+rewrite (.*) http://www.nginx.org$1;
+}
+...
+}
+
+server {
+    listen 80;
+	server_name nginx.org;
+	rewrite ^ http://www.nginx.org$request_uri?;
+}
+
+Nginx高级模块
+介绍一些最新或者理解难度稍高的Nginx模块
+
+2.secure_link_module模块
+制定并允许检查请求的链接的真实性以保护资源免遭未经授权的访问
+限制链接生效周期
+secure_link_module配置语法
+Syntax: secure_link expression;
+Default:
+Context:http,server,location
+
+Syntax: secure_link_md5 expression;
+Default:
+Context:http,server,location
+
+location / {
+    secure_link $arg_md5,$arg_expires;
+	secure_link_md5 "$secure_link_expires$uri imooc";
+	
+	if ($secure_link = "") {
+	    return 403;
+	}
+	
+	if ($secure_link = "0") {
+	    return 410;
+	}
+}
+
+vi /opt/work/md5url.sh
+#!/bin/sh
+
+servername="imooc.io"
+download_file="/download/file.img"
+time_num=$(date -d "2010-10-18 00:00:00" +%s)
+secret_num="imooc"
+
+res=$(echo -n "${time_num}${download_file} ${secret_num}"|openssl md5 -binary | openssl base64 | tr +/ -_ | tr -d =)
+
+echo "http://${servername}${download_file}?md5=${res}&expires=${time_num}"
+
+1.geoip_module模块
+基于IP地址匹配MaxMind GeoIP二进制文件 读取IP所在地域信息
+yum install nginx-module-geoip
+
+2.http_geoip_module使用场景
+区别国内外作HTTP访问规则
+区别国内城市地域作HTTP访问规则
+
+cd /etc/nginx
+load_module "modules/ngx_http_geoip_module.so";
+load_module "modules/ngx_stream_geoip_module.so";
+
+vi /opt/work/download_geoip.sh
+#!/bin/sh
+wget http://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gzip
+wget http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz
+
+cd /etc/nginx/conf.d/
+vi default.conf
+geoip_country /etc/nginx/geoip/GeoIP.dat;
+geoip_city /etc/nginx/geoip/GeoLiteCity.dat;
+
+location / {
+    if ($geoip_country_code != CN) {
+	    return 403;
+	}
+}
+
+location /myip {
+    default_type text/plain;
+	return 200 "$remote_addr $geoip_country_name $geoip_country_code $geoip_city";
+}
+
+HTTPS服务
+HTTPS协议原理 优势劣势
+实战构建一个满足苹果要求的HTTPS后台服务
+
+1.为什么需要HTTPS  原因 HTTP不安全
+传输数据被中间人盗用 信息泄露
+数据内容劫持 篡改
+2.HTTPS协议的实现
+对传输内容进行加密以及身份验证
+对称加密和非对称加密
+
+HTTPS加密协议原理
+生成密钥和CA证书
+openssl version
+nginx -v
+
+步骤一 生成key密钥
+步骤二 生成证书签名请求文件(csr文件)
+步骤三 生成证书签名文件(CA文件)
+
+Nginx的HTTPS语法配置
+Syntax: ssl on|off;
+Default:ssl off;
+Context:http,server
+
+Syntax: ssl_certificate file;
+Default:
+Context:http,server
+
+Syntax: ssl_certificate_key file;
+Default:
+Context:http,server
+
+server {
+    listen 443;
+	server_name localhost;
+	ssl on;
+	ssl_certificate /etc/nginx/ssl_key/jesonc.crt;
+	ssl_certificate_key /etc/nginx/ssl_key/jesonc.key;
+}
+
+场景 配置苹果要求的证书
+a.服务器所有的连接使用TLS1.2以上版本(openssl 1.0.2)
+b.HTTPS证书必须使用SHA256以上哈希算法答名
+c.HTTPS证书必须使用RSA 2048位或ECC 256位以上公钥算法
+d.使用前向加密技术
+
+cd /opt/work/update_openssl.sh #更新openssl
+#!/bin/sh
+cd /opt/download
+wget https://www.openssl.org/source/openssl-1.0.2k.tar.gz
+tar -zxvf openssl-1.0.2k.tar.gz
+cd openssl-1.0.2k
+./config --prefix=/usr/local/openssl
+make && make install
+mv /usr/bin/openssl /usr/bin/openssl.OFF
+mv /usr/include/openssl /usr/include/openssl.OFF
+ln -s /usr/local/openssl/bin/openssl /usr/bin/openssl
+ln -s /usr/local/openssl/include/openssl /usr/include/openssl
+echo "/usr/local/openssl/lib" >>/etc/ld.so.conf
+ldconfig -value
+openssl version -a
+
+HTTPS服务优化
+方法一 激活keepalive长连接
+方法二 设置ssl session缓存
+
+keepalive_timeout 100;
+ssl on;
+ssl_session_cache shared:SSL:10m;
+ssl_session_timeout 10m;
+
+ssl_certificate /etc/nginx/ssl_key/jesonc_apple.crt;
+ssl_certificate_key /etc/nginx/ssl_key/jesonc.key;
+
+Nginx与Lua开发
+Lua及基础语法
+Nginx与Lua环境
+场景 用Nginx结合Lua实现代码的灰度发布
+1.Lua 是一个简洁 轻量 可扩展的脚本语言
+Nginx+Lua优势
+充分的结合Nginx的并发处理epoll优势和Lua的轻量 实现简单的功能且高并发的场景
+
+2.Lua的基础语法
+1.安装 yun install lua
+
+lua
+>print("welcome to lua world");
+
+vi test.lua
+#!/usr/bin/lua
+print("welcome to lua world");
+chmod a+rx ./test.lua
+./test.lua
+
+2.注释
+-行注释
+--[[块注释]]
+
+3.变量
+a = 'alo\n123'
+布尔类型只有nil和false  false 数字0 ‘’空字符串
+lua中的变量如果没有特殊说明 全是全局变量
+
+4.while循环语句
+sum = 0
+num = 1
+while num <= 100 do
+    sum = sum + num
+	num = num + 1
+end
+print("sum=",sum)
+Lua没有++或是+=这样的操作
+
+5.for循环语句
+sum = 0
+for i = 1,100 do
+    sum = sum + i
+end
+
+6.if-else判断语句
+if age == 40 and sex == "Male" then
+    print("大于40男人")
+elseif age > 60 and sex ~= "Female" then
+    print("非女人而且大于60")
+else
+    local age = io.read()
+	print("Your age is"..age)
+end
+
+2.Nginx+Lua环境
+1.luaJIT
+2.ngx_devel_kit和lua-nginx-module
+3.重新编译Nginx
+
+www.imooc.com/article/19597
+
+Nginx调用lua模块指令
+Nginx的可插拔模块化加载执行 共11个处理阶段
+set_by_lua set_by_lua_file 设置nginx变量 可以实现复杂的赋值逻辑
+access_by_lua access_by_lua_file 请求访问阶段处理 用于访问控制
+content_by_lua content_by_lua_file 内容处理器 接收请求处理并输出响应
+
+Nginx Lua API
+ngx.var nginx变量
+ngx.req.get_headers 获取请求头
+ngx.req.get_uri_args 获取url请求参数
+ngx.redirect 重定向
+ngx.print 输出响应内容体
+ngx.say 通ngx.print 但是会最后输出一个换行符
+ngx.header 输出响应头
+
+实战场景 灰度发布
+按照一定的关系区别 分部分的代码进行上线 使代码的发布能平滑过渡上线
+1.用户的信息cookie等信息区别
+2.根据用户的ip地址
+
+access_log /var/log/nginx/log/host.access.log main;
+
+location /hello {
+    default_type 'text/plain';
+	content_by_lua 'ngx.say("welcome");
+}
+
+location /myip {
+    default_type 'text/plain';
+	content_by_lua '
+	clientIP = ngx.req.get_headers(){"x_forwarded_for"}
+	ngx.say("IP:",clientIP)
+	'
+}
+
+location / {
+    default_type "text/html";
+	content_by_lua_file /opt/app/lua/dep.lua;
+	#add_after_body "$http_x_forwarded_for";
+}
+
+location @server{
+    proxy_pass http://127.0.0.1:9090
+}
+
+clientIP = ngx.req.get_headers()["X-Real-IP"]
+if clientIP == nil then
+    clientIP = ngx.req.get_headers()["x_forwarded_for"]
+end
+if clientIP == nil then
+    clientIP = ngx.var.remote_addr
+end
+    local memceched = require "resty.memceched"
+	local memc, err = memceched:new()
+	if not memc then
+	    ngx.say("failed to instantiate memc: ", err)
+		return
+	end
+	local ok, err = memc:connect("127.0.0.1", 11211)
+	if not ok then
+	    ngx.say("failed to connect: ", err)
+		return
+	end
+	local res, flags, err = memc:get(clientIP)
+	ngx.say("value key: ",res,clientIP)
+	if err then
+	    ngx.say("failed to get clientIP ", err)
+		return
+	end
+	if res == "1" then
+	    ngx.exec("@server_test")
+		return
+	end
+	ngx.exec("@server")
+	
+vi install_memcache_lua.sh
+tar -zxvf v0.11.tar.gz
+cp -r lua-resty-memcached-0.11/lib/resty /usr/local/share/lua/5.1/

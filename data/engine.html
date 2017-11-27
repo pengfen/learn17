@@ -1,0 +1,142 @@
+MySQL常用存储引擎之MyISAM
+MyISAM存储引擎表由MYD和MYI组成
+
+特性
+并发性与锁级别
+表损坏修复 check table tablename      repair table tablename
+create table s(id int,c1 varchar(10))engine=myisam;
+cd /usr/local/mysql/var/my_test
+ls
+s.frm s.MYD s.MYI
+MyISAM表支持的索引类型
+MyISAM表支持数据压缩 命令行 myisampack
+
+限制
+版本 < MySQL5.0时默认表大不为4G
+如存储大表则要修改MAX_Rows和AVG_ROW_LENGTH
+版本 > MySQL5.0时默认支持为256TB
+
+适用场景
+非事务型应用
+只读类应用
+空间类应用
+
+MySQL常用存储引擎之Innodb
+MySQL5.5及之后版本默认存储引擎
+Innodb使用表空间进行 数据存储
+innodb_file_per_table
+ON:独立表空间 tablename.ibd
+OFF:系统表空间 ibdataX
+show variables like 'innodb_file_per_table';
+create table i(id int, c1 varchar(10)) engine=innodb;
+set global innodb_file_per_table=off;
+create table i_g(id int, c1 varchar(10)) engine=innodb;
+cd /usr/local/mysql/var/my_test
+ls i*
+i.frm i_g.frm i.ibd
+
+系统表空间和独立表空间要如何选择
+比较 系统表空间无法简单的收缩文件大小
+独立表空间可以通过optimize table命令收缩系统文件
+系统表空间会产生IO瓶颈
+独立表空间可以同时向多个文件刷新数据
+
+系统表空间和独立表空间要如何选择
+Innodb数据字典信息
+Undo回滚段
+
+Innodb存储引擎的特性
+Innodb是一种事务性存储引擎
+完全支持事务的ACID特性
+Redo Log 和 Undo Log
+
+show variables like 'innodb_log_buffer_size';
+show variables like 'innodb_log_files_in_group';
+
+Innodb支持行级锁
+行级锁可以最大程序的支持并发
+行级锁是由存储引擎层实现的
+
+什么是锁
+锁对主要作用是管理共享资源的并发访问
+锁用于实现事务的隔离性
+
+锁的类型
+共享锁(也称读锁)
+独占锁(也称写锁)
+
+A客户端
+insert into i values(2, 'bb'),(3, 'cc');
+select id,c1 from i;
+begin;
+update i set c1='bbbb' where id = 2;
+
+阻塞和死锁
+什么是阻塞
+什么是死锁
+Innodb状态检查
+show engine innodb status
+
+适用场景
+Innodb适合于大多数OLTP应用
+全文索引 空间函数
+
+MySQL常用存储引擎之CSV
+文件系统存储特点
+数据以文件方式存储在文件中
+.CSV文件存储表内容
+.CSM文件存储表的元数据如表状态和数据量
+.frm文件存储表结构信息
+
+特点
+以CSV格式进行数据存储
+所有列必须都是不能为NULL的
+不支持索引
+可以对数据文件直接编辑 保存文件文件内容
+
+create table mycsv(id int not null, c1 varchar(10) not null, c2 char(10) not null) engine=csv;
+show create table mycsv;
+insert into mycsv values(1, 'aaa', 'bbb'),(2, 'cccc', 'dddd');
+select id,c1,c2 from mycsv;
+
+适用场景
+适合做为数据交换的中间表
+电子表格 --- CSV文件 --- MySQL数据目录
+数据 --- CSV文件 --- 其他web程序
+
+MySQL常用存储引擎之Archive
+文件系统存储特点
+以zlib对表数据进行压缩 磁盘I/O更少
+数据存储在ARZ为后缀的文件中
+
+Archive存储引擎的特点
+只支持insert和select操作
+只允许在自增ID列上加索引
+
+create table myarchive(id int auto_increment not null, cl varchar(10), c2 char(10), key(id)) engine = archive;
+insert into myarchive(c1, c2) values('aa', 'bb'), ('cc', 'dd');
+select id,c1,c2 from myarchive;
+
+使用场景
+日志和数据采集类应用
+
+MySQL常用存储引擎之Memory
+文件系统存储特点
+也称HEAP存储引擎 所以数据保存在内存中
+
+功能特点
+支持HASH索引和BTree索引
+等值查找
+范围查找
+所有字段都为固定长度 varchar(10)=char(10)
+不支持BLOG和TEXT等大字段
+Memory存储引擎使用表级锁
+最大大小由max_heap_table_size参数决定
+
+create table mymemory(id int, c1 varchar(10), c2 char(10)) engine=memory;
+
+使用场景
+用于查找或者是映射表 例如邮编和地区的对应表
+用于保存数据分析中产生的中间表
+用于缓存周期性聚合数据的结果表
+Memory数据易丢失 所以要求数据可再生

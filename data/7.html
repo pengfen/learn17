@@ -1,0 +1,1568 @@
+分析那些因素对数据库造成影响
+分析 --- 优化 --- 数据库性能
+
+什么决定了电商双11大促的成败
+老板 是我的英明决策和运筹帷幄
+策划 是由于我们的活动策划和产品设计
+码农 如果没有稳定的数据库及服务器环境一切的一切全是一场空
+
+数据库架构
+Master --- Slave * 15
+
+监控信息
+QPS TPS
+主服务器 64核CPU 512GB内存
+并发量 CPU使用率
+并发量 同一时间处理的请求的数量
+idle 空闲的百分比 值越高空闲率越高
+最好不要在主库上数据库备份大型活动前取消这类计划
+
+影响数据库的因素
+sql查询速度 服务器硬件 网卡流量 磁盘IO
+超高的QPS和TPS
+风险 效率低下的SQL
+是否支持多cpu并发运算
+QPS 每秒钟处理的查询量
+
+大量的并发和超高的CPU使用率
+风险
+大量的并发 数据库连接数被占满 (max_connection 默认100)
+超高的CPU使用率 因CPU资源耗尽而出现宕机
+
+磁盘IO
+风险 磁盘IO性能突然下降(使用更快的磁盘设备)
+其它大量消耗磁盘性能的计划任务(调整计划任务 做好磁盘维护)
+
+网卡流量
+风险 网卡IO被占满(1000Mb/8 = 100MB)
+如何避免无法连接数据库的情况
+1. 减少从服务器的数量
+2. 进行分级缓存
+3. 避免使用 "select * " 进行查询
+4. 分离业务网络和服务器网络
+
+还有什么会影响数据库性能
+大表给我们带来的问题
+大事务给我们带来的影响
+
+什么样的表可以称之为大表 (相对而言)
+记录行数巨大 单表超过千万行
+表数据文件巨大 表数据文件超过10G
+大表对查询的影响 慢查询 很难在一定的时间内过滤出所需要的数据
+
+大表对DDL操作的影响
+建立索引需要很长的时间
+风险 MySQL版本 < 5.5 建立索引会锁表
+MySQL版本 >= 5.5 虽然不会锁表但会引起主从延迟
+
+修改表结构需要长时间锁表
+风险 会造成长时间的主从延迟
+影响正常的数据操作
+
+如何处理数据库中的大表
+分库分表把一张大表分成多个小表
+难点 分表主键的选择 分表后跨分区数据的查询和统计
+
+大表的历史数据归档减少对前后端业务的影响
+
+什么是事务
+事务是数据库系统区别于其它一切文件系统的重要特性之一
+事务是一个组具有原子性的SQL语句 或是一个独立的工作单元
+事务 原子性 一致性 隔离性 持久性
+
+事务的原子性(ATOMICITY)
+定义 一个事务必须被视为一个不可分割的最小工作单元 整个事务中的所有操作要么全部提交成功 要么全部失败 对于一个事务来说 不可能只执行其中的一部分操作
+
+1. 检查理财账户中的余额是否高于2000元
+2. 从理财账户口的余额中减去2000元
+3. 在活动存款账户上增加2000元
+
+事务的一致性consistency
+一致性是指事务将数据库从一种一致性状态转换到另外一种一致性状态 在事务开始之前和事务结束后数据库中数据的完整性没有被破坏
+
+事务的隔离性 ISOLATION
+未提交读 (READ UNCOMMITED)
+已提交读 (READ COMMITED)
+可重复读 (REPEATABLE READ)
+可串行化 (SERIALIZABLE)
+隔离性由低到高
+并发性由高到低
+
+开二个客户端
+A客户端
+create database my_test;
+use my_test;
+create table t(id int unsigned auto_increment primany key);
+desc t;
+insert into t(id) values(1),(3),(5),(7),(9),(10);
+select id from t;
+show variables like '%iso%'; #查看数据隔离级别 tx_isolation REPEATABLE-READ
+begin; #开启事务
+select id from t where id < 7;
+
+B客户端
+use my_test;
+show tables;
+begin;
+insert into t values(2);
+commit;
+
+A客户端
+select id from t where id < 7;
+commit;
+set session tx_isolation='read-committed';
+show variables like '%iso%';
+begin;
+select id from t where id < 7;
+
+B客户端
+begin;
+insert into t values(4);
+commit;
+
+A客户端
+begin;
+select id from t where id < 7;
+
+事务的持久性(DURABILITY)
+定义 一旦事务提交 则其所做的修改就会永久保存到数据库中 此时即使系统崩溃 已经提交的修改数据也不会丢失
+
+什么是大事务
+定义 运行时间比较长 操作的数据比较多的事务
+风险 锁定太多的数据 造成大量的阻塞和锁超时
+回滚时所需时间比较长
+招待时间长 容易造成主从延迟
+
+如何处理大事务
+避免一次处理太多的数据
+移出不必要在事务中的SELECT操作
+
+直观的展示了数据库在繁忙时的系统状态
+简单了解了对性能有影响的一些因素
+
+影响性能的几个方面
+1 服务器硬件 CPU 内存 磁盘I/O
+2 服务器系统
+3 数据库存储引擎的选择 插件式存储引擎
+MyISAM 不支持事务 表级锁
+InnoDB 事务级存储引擎 完美支持行级锁 事务ACID特性
+4 数据库参数配置
+5 数据库结构设计和SQL语句
+
+CPU资源和可用内存大小
+热数据 (会出现I/O瓶颈)
+网络 (也是另一种I/O)
+出现I/O瓶颈时 升级I/O子系统
+
+服务器硬件对性能的影响
+如何选择CPU 主要指标 频率 数量
+intel Xeon E7-8890 v2 主频 2.5GHz 核心数量 18核36线程
+
+需要了解系统的并发量如何
+衡量数据库处理能力的指标
+QPS 同时处理SQL的数量
+Web类应用 核心数量比频率重要
+选择32位还是64位的CPU (现在大多是64位)
+
+常用MySQL存储引擎
+MyISAM --- 索引(内存) 数据(OS)
+InnoDB --- 索引(内存) 数据(内存)
+
+内存越多越好 对性能影响有限 并不能无限增加性能
+服务器内存 
+组成购买升级
+每个通道的内存 相同品牌 颗粒
+频率 电压 校验技术和型号
+单条容量要尽可能大
+
+服务器硬件对性能的影响
+CPU
+64位的CPU一定要工作在64位的系统下
+对于并发比较高的场景CPU的数量比频率重要
+对于CPU密集性场景和复杂SQL则频率越高越好
+
+内存
+选择主板所能使用的最高频率的内存
+内存的大小对性能很重要 所以尽可能的大
+
+I/O子系统
+PCIe ---> SSD ---> RAID10 ---> 磁盘 ---> SAN
+
+
+----------------------
+性能优化顺序
+数据库结构设计和SQL语句
+数据库存储引擎的选择和参数配置
+系统选择及优化
+硬件升级
+
+磁盘的配置和选择
+使用传统机器硬盘
+使用RAID增强传统机器硬盘的性能
+使用固态存储SSD和PCIe卡
+使用网络存储NAS和SAN
+
+传统机器硬盘
+存储空间大 价格低 读写较慢 使用最多 最常见
+
+传统机器硬盘读取数据的过程
+1. 移动磁头到磁盘表面上的正确位置
+2. 等待磁盘旋转 使的所需的数据在磁头之下
+3. 等待磁盘旋转过去 所有所需的数据都被磁头读出
+
+如何选择传统机器硬盘
+存储容量 传输速度 访问时间 主轴转速 物理尺寸
+
+使用RAID增强传统机器硬盘的性能
+什么是RAID
+RAID 是磁盘冗余队列的简称(Redundant Arrays of Independent Disks)
+简单来说RAID的作用就是可以把多个容量较小的磁盘组成一组容量题名大的磁盘 并提供数据冗余来保证数据完整性的技术
+
+RAID 0 是最早出现的RAID模式 也称之为数据条带 是组建磁盘阵列中最简单的一种形式
+只需要2块以上的硬盘即可 成本低 可以提高整个磁盘的性能和吞吐量
+RAID 0没有提供冗余或错误修复能力 但是实现成本是最低的
+
+RAID 1又称磁盘镜像 原理是把一个磁盘的数据镜像到另一个磁盘上
+也就是说数据在写入一块磁盘的同时 会在另一块闲置的磁盘上生成镜像文件
+在不影响性能情况下最大限度的保证系统的可靠性和可修复性
+
+RAID 5 又称之为分布式奇偶校验磁盘阵列
+通过分布式奇偶校验块把数据分散到多个磁盘上 这样如果任何一个盘数据失效
+都可以从奇偶校验块中重建 但是如果两块磁盘失效 则整个卷的数据都无法恢复
+
+RAID 10 又称分片的镜像
+它是对磁盘先做RAID 1之后对两组RAID 1的磁盘再做RAID 0 
+所以对读写都有良好的性能 相对于RAID 5 重建起来更简单 速度也更快
+
+RAID级别的选择
+等级    特点              是否冗余  盘数  读  写
+RAID0   便宜 快速 危险    否        N     快  快
+RAID1   高速读 简单 安全  有        2     快  慢
+RAID5   安全 成本折中     有        N+1   快  取决于最慢的盘
+RAID10  贵 高速 安全      有        2N    快  快
+
+固态存储
+闪存 Flash Memory
+相比机械磁盘固态磁盘有更好的随机读写性能
+相比机械磁盘固态磁盘有更好的支持并发
+相比机械磁盘固态磁盘更容易损坏
+
+固态硬盘的特点
+使用SATA接口 可以替换传统磁盘而不需任何改变
+SATA接口的SSD同样支持RAID技术
+
+固态存储PCIe卡的特点
+无法使用SATA接口 需要独特的驱动和配置
+价格相对于SSD要贵 但是性能比SSD更好
+
+固态存储的使用场景
+适用于存在大量随机I/O的场景
+使用于解决单线程负载的I/O瓶颈
+
+网络存储NAS和SAN
+SAN ---访问光钎--- 服务器 ---硬盘--- SAN
+SAN设备通过光纤连接到服务器 设备通过块接口访问 服务器可以将其当做硬盘使用
+
+SAN 大量顺序读写 不如本地RAID磁盘 读写I/O 缓存 I/O合并 随机读写慢
+NAS设备使用网络连接 通过基于文件的协议如NFS或SMB来访问
+
+网络存储的适用场景
+数据库备份
+
+网络对性能的影响
+网络带宽对性能的影响
+网络质量对性能的影响
+
+建议
+采用高性能和高带宽的网络接口设备和交换机
+对多个网卡进行绑定 增加可用性和带宽
+尽可能的进行网络隔离
+
+CentOS系统参数优化 
+
+书 linux性能优化大师
+
+内核相关参数 /etc/sysctl.conf
+net.core.somaxconn=65535
+net.core.netdev_max_backlog=65535
+net.ipv4.tcp_max_syn_backlog=65535
+net.ipv4.tcp_fin_timeout = 10
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.tcp_tw_recycle = 1
+net.core.wmem_default=87380
+net.core.wmem_max=16777216
+net.core.rmem_default=87380
+net.core.rmem_max=16777216
+net.ipv4.tcp_keepalive_time=120
+net.ipv4.tcp_keepalive_intvl=30
+net.ipv4.tcp_keepalive_probes=30
+kernel.shmmax=4294967295
+
+这个参数应该设置的足够大 以便能在一个共享内存段下容纳下整个的Innodb缓冲池的大小
+这个值的大小对于64位linux系统 可取的最大值为物理内存值-1byte 建议值为大于物理内存的一半
+一般取值大于Innodb缓着冲池的大小即可 可以取物理内存-1byte
+
+vm.swappiness=0
+这个参数当内存不足时会对性能产生比较明显的影响
+
+Linux系统内存交换区
+在Linux系统安装时都会有一个特殊的磁盘分区 称之为系统交换分区
+如果我们使用free -m 在系统中查看可以看到类似下面的内容其中swap就是交换分区
+
+当操作系统因为没有足够的内存时就会将一些虚拟内存写到磁盘的交换区中这样就会发生内存交换
+
+在MySQL服务器上是否要使用交换分区有一些争议 在MySQL服务所在的Linux系统上完全禁用交换分区
+
+带来的风险
+降低操作系统的性能
+容易造成内存溢出 崩溃 或都被操作系统kill掉
+
+在MySQL服务器上保留交换区还是很必要的 但是要控制何时使用交换分区
+
+就是告诉Linux内核除非虚拟内存完全满了 否则不要使用交换区
+
+增加资源限制(/etc/security/limit.conf)
+soft nofile 65535
+hard nofile 65535
+加到limit.conf文件的未尾就可以了
+* 表示对所有用户有效
+soft 指的是当前系统生效的设置
+hard 表明系统中所能设定的最大值
+nofile 表示所限制的资源是打开文件的最大数目
+65535 就是限制的数量
+
+把可打开的文件数量增加到了65535个以保证可以打开足够多的文件句柄
+
+注意 这个文件的修改需要重启系统才可以生效
+
+磁盘调度策略(/sys/block/devname/queue/scheduler)
+cat /sys/block/devname/queue/scheduler
+noop anticipatory deadline [cfq]
+
+noop(电梯式调度策略)
+NOOP实现了一个FIFO队列 它像电梯的工作方法一样对I/O请求进行组织
+当有一个新的请求到来时 它将请求合并到最近的请求之后 以此来保证请求同一个介质
+NOOP倾向饿死读而利于写 因此NOOP对于闪存设备 RAM及嵌入式系统是最好的选择
+
+anticipatory(预料I/O高度策略)
+本质上与Deadline一样 但在最后一次读操作后 要等待6ms 才能继续进行对其它I/O请求进行调度
+它会在每个6ms中插入新的I/O操作 而会将一些小写入流合并成一个大写入流
+用写入延时换取最大的写入吞吐量 AS适合于写入较多的环境 比如文件服务器 AS对数据库环境表现很差
+
+文件系统对性能的影响
+EXT3/4系统的挂载参数(/etc/fstab)
+data=writeback|ordered|journal
+noatime,nodiratime
+/dev/sda1/ext4 noatime,nodiratime,data=writeback11
+
+MySQL体系结构
+客户端 --- 连接管理器
+            |     |
+	  查询缓存 - 查询解析
+	              |
+				查询优化器
+select语句 如何从文件中获得我们所要查询的数据 这个具体的实现的方式则是由下一层存储引擎层来实现
+
+注意 存储引擎是针对于表的而不是针对于库的(一个库中的不同表可以使用不同的存储引擎)
+
+MySQL常用存储引擎之MyISAM
+MyISAM存储引擎表由MYD和MYI组成
+
+特性
+并发性与锁级别
+表损坏修复 check table tablename      repair table tablename
+create table s(id int,c1 varchar(10))engine=myisam;
+cd /usr/local/mysql/var/my_test
+ls
+s.frm s.MYD s.MYI
+MyISAM表支持的索引类型
+MyISAM表支持数据压缩 命令行 myisampack
+
+限制
+版本 < MySQL5.0时默认表大不为4G
+如存储大表则要修改MAX_Rows和AVG_ROW_LENGTH
+版本 > MySQL5.0时默认支持为256TB
+
+适用场景
+非事务型应用
+只读类应用
+空间类应用
+
+MySQL常用存储引擎之Innodb
+MySQL5.5及之后版本默认存储引擎
+Innodb使用表空间进行 数据存储
+innodb_file_per_table
+ON:独立表空间 tablename.ibd
+OFF:系统表空间 ibdataX
+show variables like 'innodb_file_per_table';
+create table i(id int, c1 varchar(10)) engine=innodb;
+set global innodb_file_per_table=off;
+create table i_g(id int, c1 varchar(10)) engine=innodb;
+cd /usr/local/mysql/var/my_test
+ls i*
+i.frm i_g.frm i.ibd
+
+系统表空间和独立表空间要如何选择
+比较 系统表空间无法简单的收缩文件大小
+独立表空间可以通过optimize table命令收缩系统文件
+系统表空间会产生IO瓶颈
+独立表空间可以同时向多个文件刷新数据
+
+系统表空间和独立表空间要如何选择
+Innodb数据字典信息
+Undo回滚段
+
+Innodb存储引擎的特性
+Innodb是一种事务性存储引擎
+完全支持事务的ACID特性
+Redo Log 和 Undo Log
+
+show variables like 'innodb_log_buffer_size';
+show variables like 'innodb_log_files_in_group';
+
+Innodb支持行级锁
+行级锁可以最大程序的支持并发
+行级锁是由存储引擎层实现的
+
+什么是锁
+锁对主要作用是管理共享资源的并发访问
+锁用于实现事务的隔离性
+
+锁的类型
+共享锁(也称读锁)
+独占锁(也称写锁)
+
+A客户端
+insert into i values(2, 'bb'),(3, 'cc');
+select id,c1 from i;
+begin;
+update i set c1='bbbb' where id = 2;
+
+阻塞和死锁
+什么是阻塞
+什么是死锁
+Innodb状态检查
+show engine innodb status
+
+适用场景
+Innodb适合于大多数OLTP应用
+全文索引 空间函数
+
+MySQL常用存储引擎之CSV
+文件系统存储特点
+数据以文件方式存储在文件中
+.CSV文件存储表内容
+.CSM文件存储表的元数据如表状态和数据量
+.frm文件存储表结构信息
+
+特点
+以CSV格式进行数据存储
+所有列必须都是不能为NULL的
+不支持索引
+可以对数据文件直接编辑 保存文件文件内容
+
+create table mycsv(id int not null, c1 varchar(10) not null, c2 char(10) not null) engine=csv;
+show create table mycsv;
+insert into mycsv values(1, 'aaa', 'bbb'),(2, 'cccc', 'dddd');
+select id,c1,c2 from mycsv;
+
+适用场景
+适合做为数据交换的中间表
+电子表格 --- CSV文件 --- MySQL数据目录
+数据 --- CSV文件 --- 其他web程序
+
+MySQL常用存储引擎之Archive
+文件系统存储特点
+以zlib对表数据进行压缩 磁盘I/O更少
+数据存储在ARZ为后缀的文件中
+
+Archive存储引擎的特点
+只支持insert和select操作
+只允许在自增ID列上加索引
+
+create table myarchive(id int auto_increment not null, cl varchar(10), c2 char(10), key(id)) engine = archive;
+insert into myarchive(c1, c2) values('aa', 'bb'), ('cc', 'dd');
+select id,c1,c2 from myarchive;
+
+使用场景
+日志和数据采集类应用
+
+MySQL常用存储引擎之Memory
+文件系统存储特点
+也称HEAP存储引擎 所以数据保存在内存中
+
+功能特点
+支持HASH索引和BTree索引
+等值查找
+范围查找
+所有字段都为固定长度 varchar(10)=char(10)
+不支持BLOG和TEXT等大字段
+Memory存储引擎使用表级锁
+最大大小由max_heap_table_size参数决定
+
+create table mymemory(id int, c1 varchar(10), c2 char(10)) engine=memory;
+
+使用场景
+用于查找或者是映射表 例如邮编和地区的对应表
+用于保存数据分析中产生的中间表
+用于缓存周期性聚合数据的结果表
+Memory数据易丢失 所以要求数据可再生
+
+
+MySQL服务器参数
+
+MySQL获取配置信息路径
+命令行参数
+mysqld_safe --datadir=/data/sql_data
+配置文件
+mysqld --help --verbose | grep -A 1 'Default options'
+/etc/my.cnf /etc/mysql/my.cnf /home/mysql/my.cnf ~/.my.cnf
+
+MySQL配置参数的作用域
+全局参数 set global 参数名=参数值;  set @@global.参数名:=参数值;
+会话参数 set [session] 参数名=参数值;  set @@session.参数名:=参数值;
+
+内存配置相关参数
+确定可以使用的内存的上限
+确定MySQL的每个连接使用的内存 sort_buffer_size  join_buffer_size
+read_buffer_size read_rnd_buffer_size
+确定需要为操作系统保留多少内存
+如何为缓存池分配内存 Innodb_buffer_pool_size
+总内存 - 每个线程所需要的内存 * 连接数) - 系统保留内存
+key_buffer_size
+select sum(index_length) from information_schema.tables where
+
+I/O相关配置参数
+Innodb I/O相关配置
+Innodb_log_file_size  Innodb_log_files_in_group
+事务日志总大小 = Innodb_log_files_in_group * Innodb_log_file_size
+Innodb_log_buffer_size
+Innodb_flush_log_at_trx_commit
+0 每秒进行一次log写入cache 并flush log到磁盘
+1[默认] 在每次事务提交执行log写入cache 并flush log到磁盘
+2[建议] 每次事务提交 执行log数据写入到cache 每秒执行一次flush log到磁盘
+Innodb_flush_method=O_DIRECT
+Innodb_file_per_table = 1
+Innodb_doublewrite = 1
+
+delay_key_write
+OFF 每次写操作后刷新键缓冲中的脏块到磁盘
+ON 只对在键表时指定了delay_key_write选项的表使用延迟刷新
+ALL 对所有MYISAM表都使用延迟键写入
+
+安全相关配置参数
+expire_logs_days 指定自动清理binlog的天数
+max_allowed_packet 控制MySQL可以接收的包的大小
+skip_name_resolve 禁用DNS查找
+
+sysdate_is_now 确保sysdate()返回确定性日期
+read_only 禁止非super权限的用户写权限
+skip_slave_start 禁用Slave自动恢复
+
+sql_mode 设置MySQL所使用的SQL模式 
+strict_trans_tables no_engine_subtitution no_zero_date no_zero_in_date only_full_group_by
+
+其它常用配置参数
+sync_binlog 控制MySQL如何向磁盘刷新binlog
+tmp_table_size和max_heap_table_size控制内存临时表大小
+max_connections控制允许的最大连接数
+
+什么影响了性能
+数据库设计对性能的影响
+过分的反范式化为表建立太多的列
+过分的范式化造成太多的表关联
+在OLTP环境中使用不恰当的分区表
+使用外键保证数据的完整性
+
+什么是基准测试
+基准测试是一种测量和评估软件性能指标的活动用于建立某个时刻的性能基准
+以便当系统发生软硬件变化时重新进行基准测试以评佑变化对性能的影响
+
+基准测试是针对系统设置的一种压力测试
+基准测试 直接 简单 易于比较 用于评估服务器的处理能力
+压力测试 对真实的业务数据进行测试 获得真实系统所能承受的压力
+
+压力测试需要针对不同主题 所使用的数据和查询也是真实用到的
+基准测试可能不关心业务逻辑 所使用的查询和业务的真实性可以和业务环境没关系
+
+基准测试的目的
+建立MySQL服务器的性能基准线
+模拟比当前系统更高的负载 以找出系统的扩展瓶颈
+测试不同的硬件 软件和操作系统配置
+证明新的硬件设置是否配置正确
+
+如何进行基准测试
+对整个系统进行基准测试
+从系统入口进行测试(如网站Web前端 手机APP前端)
+优点 能够测试整个系统的性能 包括web服务器缓存 数据库等
+
+MySQL基准测试的常见指标
+单位时间内所处理的事务数(TPS)
+单位时间内所处理的查询数(QPS)
+响应时间 平均响应时间 最小响应时间 最大响应时间 各时间所占百分比
+并发量不等连接数
+
+常用的基准测试工具介绍
+MySQL基准测试式作之 mysqlslap
+常用参数说明
+--auto-generate-sql 由系统自动生成SQL脚本进行测试
+--auto-generate-sql-add-autoincrement 在生成的表中增加自增ID
+--auto-generate-sql-load-type 指定测试中使用的查询类型
+--auto-generate-sql-write-number 指定初始化数据时生成的数据量
+--concurrency 指定并发线程的数量
+--engine 指定要测试表的存储引擎 可以用逗号分割多个存储引擎
+--no-drop 指定不清理测试数据
+--iterations 指定测试运行的次数
+--number-int-cols 指定测试表中包含的INT类型列的数量
+--number-char-cols 指定测试表中包含的varchar类型的数量
+--create-schema 指定了用于执行测试的数据库的名字
+--query 用于指定自定义SQL的脚本
+--only-print 并不运行测试脚本 而是把生成的脚本打印出来
+
+常用的基准测试工具介绍
+Mysql基准测试工作之 sysbench
+
+安装说明
+./autogen.sh
+./configure --with-mysql-includes=/usr/local/mysql/include/ \
+--with-mysql-libs=/usr/local/mysql/lib
+make && make install
+
+常用参数
+--test 用于指定所要执行的测试类型 支持以下参数
+fileio 文件系统I/O性能测试
+cpu cpu性能测试
+memory 内存性能测试
+oltp 测试要指定具体的lua脚本
+lua脚本位于 sysbench-0.5/sysbench/tests/db
+--mysql-db 用于指定执行基准测试的数据库名
+--mysql-table-engine 用于指定所使用的存储引擎
+--oltp-tables-count 执行测试的表的数量
+--oltp-table-size 指定每个表中的数据行数
+--num-threads 指定测试的并发线程数量
+--max-time 指定最大的测试时间
+--report-interval 指定间隔多长时间输出一次统计信息
+--mysql-user 指定执行测试的MySQL用户
+--mysql-password 指定执行测试的MySQL用户的密码
+parpare 用于准备测试数据
+run 用于实际进行测试
+cleanup 用于清理测试数据
+sysbench --test=cpu --cpu-max-prime=10000 run
+free -m
+sysbench --test=fileio --file-total-size=1G prepare
+sysbench --test=fileio --num-threads=8 --init-rng=on --file-total-size=1G --file-test-mode=rndrw --report-interval=1 run
+create database imooc;
+grant all privileges on *.* to sbest@'localhost' identified by '123456';
+
+sysbench --test=./oltp.lua --mysql-table-engine=innodb --oltp-table-size=10000 --mysql-db=imooc 
+--mysql-user=sbest --mysql-password=123456 --oltp-tables-count=10 --mysql-socket=/usr/local/mysql/data/mysql.sock
+
+show progresslist;
+
+数据库结构设计的步骤
+
+需求分析
+全面了解产品设计的存储需求
+存储需求
+数据处理需求
+数据的安全性和完整性
+
+逻辑设计
+设计数据的逻辑存储结构
+数据实体之间的逻辑关系 解决数据冗余和数据维护异常
+
+物理设计
+根据所使用的数据库特点进行表结构设计
+关系型数据库 Oracle SQLServer Mysql postgresSQL
+非关系型数据库 mongo Redis Hadoop
+存储引擎 Innodb
+
+维护优化 根据实现情况对索引 存储结构等进行优化
+
+数据库设计范式
+设计出没有数据冗余和数据维护异常的数据库结构
+
+什么叫做反范式化设计
+反范式化是针对范式化而言的 在前面介绍了数据库设计的范式
+所谓的反范式化就是为了性能和读取效率的考虑而适当的对数据库设计
+范式的要求进行违反 而允许存在少量的数据冗余 换句话来说反范式就是使用
+空间来换取时间
+
+图书在线销售网站数据库的反范式化改造
+商品信息:{商品名称,出版社名称,图书价格,图书描述,作者}
+分类信息:{分类名称,分类描述}
+商品分类关系:{商品名称,分类名称}
+
+商品信息:{商品名称,分类名称,出版社名称,图书价格,图书描述,作者}
+分类信息:{分类名称,分类描述}
+
+订单表:{订单编号,下单用户名,下单日期,支付金额,物流单号}
+订单商品关联表:{订单编号,订单商品分类,订单商品名,商品数量}
+
+订单表:{订单编号,下单用户名,手机号,下单日期,支付金额,物流单号,订单金额}
+订单商品关联表:{订单编号,订单商品分类,订单商品名,商品数量,商品单价}
+
+反范式化改后的查询
+编写SQL查询出每一个用户的订单总金额
+select 下单用户名,sum(订单金额) from 订单表 group by 下单用户名;
+
+编写SQL查询出下下单用户和订单详情
+select a.订单编号,a.用户名,a.手机号,b.商品名称,b.商品单价,b.商品数量 from 订单表 a join 订单商品关联表 b on a.订单编号 = b.订单编号;
+
+不能完全按照范式化的要求进行设计
+考虑以后如何使用表
+
+范式化设计的优缺点
+优点
+可以尽量的减少数据冗余 数据表更新快体积小
+范式化的更新操作比反范式化更快
+范式化的表通常比反范式化更小
+
+缺点
+对于查询需要对多个表进行关联
+更难进行索引优化
+
+反范式设计的优缺点
+优点
+可以减少表的关联
+可以更好的进行索引优化
+缺点
+存在数据冗余及数据维护异常
+对数据的修改需要更多的成本
+
+物理设计
+根据所选择的关系型数据库的特点对逻辑模型进行存储结构设计
+
+物理设计涉及的内容
+定义数据库 表及字段的命名规范
+选择合适的存储引擎
+为表中的字段选择合适的数据类型
+建立数据库结构
+
+定义数据库 表及字段的命名规范
+数据库 表及字段的命名要遵守可读性原则
+数据库 表及字段的命名要遵守表意性原则
+数据库 表及字段的命名要遵守长名原则
+
+选择合适的存储引擎
+存储引擎     事务    锁粒度                主要应用                      忌用
+MYISAM       不支持  支持并发插入的表级锁  select insert                 读写操作频繁
+MRG_MYISAM   不支持  支持并发插入的表级锁  分段归档 数据仓库             全局查找过多的场景
+innodb       支持    支持MVCC的行级锁      事务处理                      无
+Archive      不支持  行级锁                日志记录 只支持insert select  需要随机读取 更新 删除
+Ndb cluster  支持    行级锁                高可用性                      大部分应用
+
+为表中的字段选择合适的数据类型
+当一个列可以选择多种数据类型时 应该优先考虑数字类型 其次是日期或二进制类型
+最后是字符类型 对于相同级别的数据类型 应该优先选择占用空间小的数据类型
+
+如何选择正确的整数类型
+列表型     存储空间  取值范围signed          unsigned
+tinyint    1字节     -128~127                0~255
+smallint   2字节     -32768~32767            0~65535
+mediumint  3字节     -8388608~8388607        0~16777215
+int        4字节     -2147483648~2147483647  0~4294967295
+bigint     8字节     -9223372036854775808~   0~18446744073709551615
+                     92233720368547758
+
+select i,sum(d1) as a,sum(d2) as b from t_double group by i having a<>b;
+列类型  存储空间                             是否精确类型
+float   4个字节                              否
+double  8个字节                              否
+decimal 每4个字节存9个数字 小数点占一个字节  是
+decimal(18,9) 需要9个字节来存储
+select i,sum(d1) as a, sum(d2) as b from t_decima group by i having a<>b;
+
+如何选择varchar和char类型
+varchar类型的存储特点
+varchar用于存储变长字符串 只占用必要的存储空间
+列的最大长度小于255则只占用一个额外字节用于记录字符串长度
+列的最大长度大于255则要占用两个额外字节用于记录字符串长度
+varchar长度的选择问题
+使用最小的符合需求的长度
+varchar(5)和varchar(200)存储MySQL字符串性能不同
+varchar的适用场景
+字符串列的最大长度比平均长度大很多
+字符串列很少被更新
+使用了多字节字符集存储字符串
+
+char类型的存储特点
+char类型是定义的
+字符串存储在char类型的列中会删除末尾的空格
+char类型的最大宽度为255
+
+char类型的适用场景
+char类型适合存储所长度近似的值
+char类型适合存储短字符串
+char类型适合存储经常更新的字符串列
+
+如何存储日期数据
+DATATIME类型 以YYYY-MM-DD HH:MM:SS[.fraction] 格式存储日期时间
+datetime = YYYY-MM-DD HH:MM:SS
+datetime(6) = YYYY-MM-DD HH:MM:SS.fraction
+DATATIME类型与时区无关 占用8个字节的存储空间
+时间范围1000-01-01 00:00:00到9999-12-31 23:59:59
+
+TIMESTAMP类型
+存储了由格林尼治时间1970年1月1日到当前时间的秒数
+以YYYY-MM-DD HH:MM:SS.[.fraction]的格式显示 占用4个字节
+时间范围1970-01-01 到 2038-01-19
+timestamp类型显示依赖于所指定的时区
+在行的数据修改时可以自动修改timestamp列的值
+set time_zone='+10:00';
+create table t(d1 datetime,d2 timestamp);
+insert into t values(now(),now());
+select * form t;
+set time_zone='-10:00';
+select * form t;
+alter table t modify d1 datetime(6),modify d2 timestamp(6);
+insert into t values(now(),now());
+select * from t;
+drop table t;
+create table t(id int,d1 datetime,d2 timestamp not null,d3 timestamp not null);
+insert into t values(1,now(),now(),now());
+select * from t;
+insert into t(id) values(1);
+select * from t;
+date类型和time类型
+存储用户生日时 只需要存储日期部分
+一是把日期部分存储为字符串(至少要8个字)
+二是使用int类型来存储(4个字节)
+三是使用datetime类型来存储(8个字节)
+
+date类型的优点
+1.占用的字节数比使用字符串 datetime int存储要少 使用date类型只需要3个字节
+2.使用Date类型还可以利用日期时间函数进行日期之间的计算
+date类型用于保存1000-01-01到9999-12-31之间的日期
+time类型用于存储时间数据 格式为HH:MM:SS
+
+存储日期时间数据的注意事项
+不要使用字符串类型来存储日期时间数据 日期时间类型通常比字符串占用的存储空间小
+日期时间类型在进行查找过滤时可以利用日期来进行对比
+日期时间类型还有着丰富的处理函数 可以方便的对时期类型进行日期计算
+使用int存储日期时间不如使用timestamp类型
+
+物理设计 (存储空间 存储引擎 数据类型) 
+innodb 为表中的每个列选择合适的类型 如何选择表的主键
+
+如何为Innodb选择主键
+主键应该尽可能的小
+主键应该是顺序增长的
+Innodb的主键和业务主键可以不同
+
+数据库结构 (查询性能要求 范式化要求)
+如何从数据库架构方面优化数据库
+维护和优化放到索引和sql优化部分讲解
+
+数据库设计简介
+什么是数据库设计
+简单来说 数据库设计就是根据业务系统的具体需要 结合我们所选用的DBMS(数据库管理系统)
+为这个业务系统构造出最优的数据存储模型 并建立好数据库中的表结构及表与之间的关联关系的过程
+使之能有效的对应用系统中的数据进行存储 并可以高效的对已经存储的数据进行访问
+
+数据库设计简介
+为什么要进行数据库设计
+优良的设计        糟糕的设计
+减少数据冗余      存在大量数据冗余
+避免数据维护异常  存在数据插入 更新 删除异常
+节约存储空间      浪费大量存储空间
+高效的访问        访问数据低效
+
+需求分析 --- 逻辑设计 --- 物理设计 --- 维护优化
+数据库需求的作用点
+1. 数据是什么  2.数据有哪些属性  3.数据和属性各自的特点有哪些
+逻辑设计
+使用ER图对数据库进行逻辑建模
+物理设计
+根据数据库自身的特点把逻辑设计转换为物理设计
+维护优化
+1.新的需求进行建表  2.索引优化  3.大表拆分
+
+为什么要进行需求分析
+1.了解系统中所要存储的数据
+2.了解数据的存储特点
+3.了解数据的生命周期
+
+要搞清楚的一些问题
+1.实体及实体之间的关系(1对1,1对多,多对多)
+2.实体所包含的属性有什么
+3.那些属性或属性的组合可以唯一标识一个实体
+
+实例演示
+以一个小型的电子商务网站为例 在这个电子商务网站的系统中包括了几个核心模块
+用户模块 商品模块 订单模块 购物车模块 供应商模块
+用户模块
+用于记录注册用户信息
+包括属性 用户名 密码 电话 邮箱 身价证号 地址 姓名 昵称 ...
+可选唯一标识属性 用户名 身份证 电话
+存储特点 随系统上线时间逐渐增加 需要永久存储
+
+商品模块
+用于记录网站中所销售的商品信息
+包括属性 商品编码 商品名称 商品描述 商品品类 供应商名称 重量 有效期 价格 ...
+可选唯一标识属性 商品名称 供应商名称 商品编码
+存储特点 对于下线商品可以归档存储
+
+订单模块
+用于用户订单商品的信息
+包括属性 订单号 用户姓名 用户电话 收货地址 商品编号 商品名称 数量 价格 订单状态 支付状态 订单类型
+可选唯一标识属性 订单号
+存储特点 永久存储(分表 分库存储)
+
+购物车模块
+用于保存用户购物时选对的商品
+包括属性 用户名 商品编号 商品名称 商品价格 商品描述 商品分类 加入时间 商品数量
+可选唯一标识属性 (用户名 商品编号 加入时间), 购物车编号
+存储特点 不用永久存储(设置归档 清理规则)
+
+供应商模块
+用于保存所销售商品的供应商信息
+包括属性 供应商编号 供应商名称 联系人 电话 营业执照号 地址 法人
+可选唯一标识属性 供应商编号 营业执照号
+存储特点 永久存储
+
+用户 --- 一对多 --- 订单   --- 多对多 --- 商品 --- 多对多 --- 供应商
+     --- 一对多 --- 购物车 --- 多对多 ---
+	  
+逻辑设计是做什么的
+1.将需求转化为数据库的逻辑模型
+2.通过ER图的型式对逻辑模型进行展示
+3.同所选用的具体的DBMS系统无关
+
+名词解释
+关系    一个关系对应通常所说的一张表
+元组    表中的一行即为一个元组
+属性    表中的一列即为一个属性 每一个属性都有一个名称 称为属性名
+候选码  表中的某个属性组 它可以唯一确定一个元组
+主码    一个关系有多个候选码 选定其中一个为主码
+域      属性的取值范围
+分量    元组中一个属性值
+
+ER图例说明
+矩形 表示实体集 矩形内写实体集的名字
+菱形 表示联系集
+椭圆 表示实体的属性
+线段 将属性连接到实体集 或将实体集连接到联系集
+
+MySQL复制功能提供分担读负载
+
+为高可用 灾难恢复 备份提供更多的选择
+
+复制解决了什么问题
+实现在不同服务器上的数据分布
+利用二进制日志增量进行
+不需要不太多的带宽
+但是使用基于行的复制在进行大批量的更改时
+会对带宽带来一定的压力
+特别是跨IDC环境下进行复制
+应该分批进行
+
+实现数据读取的负载均衡
+需要其它组件配合完成
+利用DNS轮询的方式把程序的读连接到不同的备份数据库
+使用LVS,haproxy这样的代理方式
+非共享架构 同样的数据分布在多台服务器上
+
+增强了数据安全性
+方便进行数据库高可用架构的部署
+避免MySQL单点失败
+
+实现数据库高可用和故障切换
+
+实现数据库在线升级
+
+MySQL服务层日志 二进制日志 慢查日志 通用日志
+MySQL存储引擎层日志 innodb 重做日志 回滚日志
+
+二进制日志
+记录了所有对MySQL数据库的修改事件
+包括增删改查事件和对表结构的修改事件
+
+二进制日志的格式 基于段的格式binlog_format=STATEMENT
+优点 日志记录量相对较小 节约磁盘及网络I/O 只对一条记录修改或者插入
+row格式所产生的日志量小于段产生的日志量
+
+缺点 必须要记录上下文信息
+保证语句在从服务器上执行结果和在主服务器上相同
+特定函数如UUID() user() 这样非确定性函数还是无法复制
+可能造成MySQL复制的主备服务器数据不一致
+
+MySQL二进制日志格式对复制的影响
+基于SQL语句的复制(SBR) 二进制日志格式使用的是statement格式
+基于行的复制(PBR) 二进制日志格式使用的是基于行的日志格式
+混合模式 根据实现内容在以上两者间切换
+
+基于SQL语句的复制(SBR)
+优点 生成的日志量少,节约网络转输I/O
+并不强制要求主从数据库的表定义完全相同
+要比于基于行的复制方式更为灵活
+缺点
+对于非确定性事件 无法保证主从复制数据的一致性
+对于存储过程 触发器 自定义函数进行的修改也可能造成数据不一致
+相比于基于行的复制方式在从上执行时需要更多的行锁
+
+基于行的复制(PBR)
+优点
+可以应用于任何SQL的复制包括非确定函数 存储过程等
+可以减少数据库锁的使用
+insert into order_cnt(timestr, total, amount)
+select date(order_date),count(*),sum(amount) from order group by date(order_date);
+
+缺点
+要求主从数据库的表结构相同 否则可能会中断复制
+无法从上单独执行触发器
+
+MySQL复制工作方式
+1.主服务器将变更写入二进制日志
+2.从读取主的二进制日志变更并写入到relay_log中
+3.在从上重放relay_log中的日志
+基于SQL段的日志是在从库上重新执行记录的SQL
+基于行的日志则是在从库上直接应用对数据库行的修改
+
+配置MySQL复制
+基于日志点的复制配置步骤
+在主DB服务器上建立复制账号
+create user 'repl' @'IP段' identified by 'password';
+
+mysql5.7之前 一个从库只能有一个主库 之后支持一从多主架构
+一主多从的复制拓扑
+优点
+配置简单
+可以用多个从库分担读负载
+用途
+为不同业务使用不同的从库
+将一台从库放到远程IDC 用作灾恢复
+分担主库的读负载
+ 
+主-主复制拓扑
+主主模式的主主复制
+主主模式下的主-主复制的配置注意事项
+产生数据冲突而造成复制链路的中断
+耗费大量的时间
+造成数据丢失
+两个主中所操作的表最好能够分开
+使用下面两个参数控制自增ID的生成
+auto_increment_increment=2
+auto_increment_offset=1|2
+
+主备模式下的主-主复制的配置注意事项
+只有一台主服务器对外提供服务
+一台服务器处理只读状态并且只作为热备使用
+在对外提供服务的主库出现故障或是计划性的维护时才会进行切换
+使原来的备库成为主库 而原来的主库会成为新的备库
+并处理只读或是下线状态 待维护完成后重新上线
+确保两台服务器上的初始数据相同
+确保两台服务器上已经启动binlog并且有不同的server_id
+在两台服务器上启用log_slave_updates参数
+在初始备库上启用read_only
+拥有备库的主-主复制拓扑
+
+MySQL复制性能优化
+影响主从延迟的因素
+主库写入二进制日志的时间
+控制主库的事务大小 分割大事务
+二进制日志传输时间 传输的日志量的多少
+使用mixed日志格式或设置set binlog_row_image=minimal;
+默认情况下从只有一个SQL线程 主上并发的修改在从上变成了串行
+使用多线程复制 在MySQL5.7中可以按照逻辑时钟的方式来分配SQL线程
+
+如何配置多线程复制
+stop slave
+set global slave_parallel_type='logical_clock'; 如何使用多线程复制
+set global slave_parallel_workers=4; 并发处理的线程数
+start slave;
+
+show variables like 'slave_parallel_type';
+set global slave_parallel_type='logical_clock';
+show variables like 'slave_parallel_workers';
+set global slave_parallel_workers=4;
+
+MySQL复制常见问题处理
+由于数据损坏或丢失所引起的主从复制错误
+主库或从库意外宕机引起的错误
+使用跳过二进制日志事件
+注入空事务的方式先恢复中断的复制链路
+再使用其它方法来对比主从服务器上的数据
+主库上的二进制日志损坏
+通过change master命令来重新指定
+备库上的中断日志损坏
+在从库上进行数据修改造成的主从复制错误
+不唯一的server_id或server_uuid
+分担主数据库的写负载 分库分表
+自动进行故障转移及主从切换
+提供读写分离功能
+
+什么是高可用
+高可用性HA(High Availability)指的是通过尽量缩短因日常维护操作(计划)
+和突发的系统崩溃(非计划)所导致的停机时间 以提高系统和应用的可用性
+
+如何实现高可用
+避免导致系统不可用的因素 减少系统不可用的时间
+服务器磁盘空间耗尽 性能糟糕的SQL 表结构和索引没有优化 主从数据不一致 人为的操作失误等等
+服务器磁盘空间耗尽 备份或者各种查询日志突增导致的磁盘空间被占满 MySQL由于无法记录二进制日志
+无法处理新的请求而产生的系统不可用的故障
+
+建立完善的监控及报警系统
+对备份数据进行恢复测试
+正确配置数据库环境
+对不需要的数据进行归档和清理
+增加系统冗余 保证发生系统不可用时可以尽快恢复
+避免存在单点故障
+主从切换及故障转移
+单点故障 是指在一个系统中提供相同功能的组件只有一个 如果这个组件失效了
+就会影响整个系统功能的正常使用 组成应用系统的各个组件都有可能成为单点
+
+如何避免MySQL单点故障
+利用SUN共享存储或DRDB磁盘复制解决MySQL单点故障
+利用多写集群或NDB集群来解决MySQL单点故障
+利用MySQL主从复制来解决MySQL单点故障
+
+如何解决主服务器的单点问题
+主服务器切换后 如何通知应用新的主服务器的IP地址
+如何检查MySQL主服务器是否可用
+如何处理从服务器和新主服务器之间的那种复制关系
+
+MMM(Multi-Master Replication Manager)
+MMM的主要作用
+监控和管理MySQL的主主复制拓扑 并在当前的主服务器失效时 进行主和主备服务器之间的
+主从切换和故障转移等工作
+
+MMM提供了什么功能
+MMM监控MySQL主从复制健康情况
+在主库出现宕机时进行故障转移并自动配置其它从对新主的复制
+如何找到从库对应的新的主库日志点的日志同步点
+如果存在多个从库出现数据不一致的情况如何处理
+提供了主写虚拟IP 在主从服务器出现问题时可以自动迁移虚拟IP
+
+MMM架构
+
+MMM部署所需资源
+名称资源    数量     说明
+主DB服务器  2        用于主备模式的主主复制配置
+从DB服务器  0-N      可以配置0台或多台从服务器 但不建议太多
+监控服务器  1        用于监控MySQL复制集群
+IP地址      2*(n+1)  n为MySQL服务器的数量
+监控用户    1        用户于监控数据库状态的MySQL用户(replication client)
+代理用户    1        用户MMM代理的MySQL用户(super,replication client,process)
+复制用户    1        用户配置MySQL复制的MySQL用户(replication slave)
+
+MMM部署步骤
+1.配置主主复制及主从同步集群
+2.安装主从节点所需要的支持包
+3.安装及配置MMM工具集
+4.运行MMM监控服务
+5.测试
+
+MMM工具的优点
+使用Perl脚本语言开发及完全开源
+提供了读写VIP(虚拟IP) 使服务器角色的变更对前端应用透明
+大从服务器出现大量的主从延迟 主从链路中断时可以把这台从服务器上的读的虚拟IP 
+漂移到集群中其它正常的服务器上
+MMM提供了从服务器的延迟监控
+MMM提供了主数据库故障转移后从服务器对新主的重新同步功能
+很容易对发生故障的主数据库重新上线
+MMM提供了从服务器的延迟监控
+缺点
+发布时间比较早不支持MySQL新的复制功能
+
+MHA(Master High Availability)由Perl脚本开发的
+MHA --- 主从复制 --- 主DB
+MHA提供了什么功能
+监控主数据库服务器是否可用
+当主DB不可用时 从多个从服务器中选举出新的主数据库服务器
+提供了主众切换和故障转移功能
+MHA主从切换过程
+尝试从出现故障的主数据库保存二进制日志
+从多个备选从服务器中选举出新的备选主服务器
+
+MHA的安装和部署
+MHA的优点与缺点
+MHA工具的优点
+同样是由Perl语言开发的开源工具
+可以支持基于GTID的复制模式
+MHA在进行故障转移时更不易产生数据丢失
+同一个监控节点可以监控多个集群
+
+MHA工具的缺点
+需要编写脚本或利用第三方工具来实现vip的配置
+MHA启动后只会对主数据库进行监控
+需要基于SSH免认证配置 存在一定的安全隐患
+没有提供从服务器的读负载均衡
+
+读写分离
+进行MySQL主从复制配置的一个主要目的
+为了分担主库的读负载
+为什么要读写分离呢 写负载是不能够分担的 只能在主上进行写操作
+读操作主从上都可以
+两种读写分离的方式
+由程序实现读写分离 由中间件来实现读写分离
+
+程序实现读写分离
+优点
+由开发人员控制什么样查询在从库上执行 因此比较灵活
+由程序直接连接数据库 所以性能损耗比较少
+缺点
+增加了开发的工作量 使程序代码更加复杂
+人为控制 容易出现错误
+
+读写分离中间件 mysql-proxy maxScale
+目前许多数据库中间件都可以完成数据分离的读写功能
+根据我们使用的软件的不同 其性能和功能特点也会有不一样的地方
+
+由中间件实现读写分离的优点
+由中间件根据查询语法分析 自动完成读写分离
+对程序透明　对于已有程序不用做任何调整
+
+由中间件实现读写分离的缺点
+由于增加了中间层 所以对查询效率有损耗
+对于延迟敏感业务无法自动在主库执行
+读写分离要解决的是如何在复制集群的不同角色上 支执行不同的SQL语句
+读的负载均衡主要解决的是具有相同角色的数据库 如何共同分担相同的负载
+
+如何实现读负载均衡
+软件 LVS Haproxy MaxScale  硬件 F5
+
+maxScale
+MaxScale core  Authentication Protocal Monitor Routing Filter&Logging
+Authentication 认证插件
+Protocal 协议插件
+Router 路由插件 (readconnroute readwritesplit)
+Monitor 监控插件
+Filter&Logging 日志和过滤插件
+
+
+MySQL支持的索引类型
+
+B-tree索引的特点
+B-tree索引以B+树的结构存储数据
+B-tree索引能够加快数据的查询速度
+B-tree索引更适合进行范围查找
+
+在什么情况下可以用到B树索引
+全值匹配的查询 order_sn=''
+匹配最左前缀的查询
+匹配列前缀查询 order_sn like '98%'
+匹配范围的查询 order_sn>'98' 
+精确匹配左前列并范围匹配另外一列
+只访问索引的查询
+
+Btree索引的使用限制
+如果不是按照索引最左列开始查找 则无法使用索引
+使用索引时不能跳过索引中的列
+Not in 和 <> 操作无法使用索引
+如果查询中有某个列的范围查询 则其右边所有列都无法使用索引
+
+Hash索引的限制
+Hash索引必须进行二次查找
+Hash索引无法用于排序
+Hash索引不支持部分索引查找也不支持范围查找
+Hash索引中Hash码的计算可能存在Hash冲突
+
+为什么要使用索引
+索引大大减少了存储引擎需要扫描的数据量
+
+索引是不是越多越好
+索引会增加写操作的成本
+太多的索引会增加查询优化器的选择时间
+
+安装演示数据库
+http://downloads.mysql.com/docs/sakila-db.tar.gz
+tar -zxf sakila-db.tar.gz
+mysql -uroot -p < sakila-schema.sql
+mysql -uroot -p < sakila-data.sql
+
+索引优化策略
+索引列上不能使用表达式或函数
+select ... from product where to_days(out_date)-to_days(current_date) <= 30
+索引列 out_date 函数 to_days
+select ... from product where out_date <= date_add(current_date, interval 30 day)
+
+前缀索引和索引列的选择性
+create index index_name on table(col_name(n));
+索引的选择性是不重复的索引值和表的记录数的比值
+
+联合索引
+如何选择索引列的顺序
+经常会被使用到的列的优先
+选择性高的列优先
+宽度小的列优先
+
+覆盖索引
+优点
+可以优化缓存 减少磁盘IO操作
+可以减少随机IO 变随机IO操作变为顺序IO操作
+可以避免对Innodb主键索引的二次查询
+可以避免MyISAM表进行系统调用
+无法使用覆盖索引的情况 存储引擎不支持覆盖索引 查询中使用了太多的列 使用了双%号的like查询
+
+desc film
+explain select language_id from film where language_id=1;
+show create table actor \G;
+explain select actor_id,last_name from actor where last_name="Joe" \G;
+
+使用索引来优化查询
+使用索引扫描来优化排序
+通过排序操作 按照索引顺序扫描数据
+索引的列顺序和Order By子句的顺序完全一致
+索引中所有列的方向(升序 降序)和Order by子句完全一致
+Ｏrder by中的字段全部在关联表中的第一张表中
+explain select * from rental where rental_date>'2005-01-01' order by rental_id;
+explain select * from rental where rental_date='2005-05-09' order by inventory_id,customer_id\G
+
+模拟Hash索引优化查询
+alter table film add title_md5 varchar(32);
+update film set title_md5=md5(title);
+create index idx_md5 on film(title_md5);
+explain select * from film where title_md5=md5('EGG IGBY') and title='EGG IGBY';
+只能处理键值的全值匹配查找
+所使用的Hash函数决定着索引键的大小
+
+利用索引优化锁
+索引可以减少锁定的行数
+索引可以加快处理速度 同时也加快了锁的释放
+show create table actor \G
+drop index idx_actor_last_name on actor;
+
+explain select * from actor where last_name='WOOD' \G
+begin;
+
+索引的维护和优化
+删除重复和冗余的索引
+primany key(id),unique key(id),index(id)
+index(a),index(a,b) primany key(id),index(a,id) 冗余索引
+pt-duplicate-key-checker h=127.0.0.1
+create index idx_customerid_staffid on payment(customer_id,staff_id)
+查找未被使用过的索引
+select object_schema,object_name,index_name,b.table_rows from performance_schema.table_io_waits_summary_by_index_usage a 
+join information_schema.tables b on a.object_schema=b.table_schema and a.object_name=b.table_name 
+where index_name is not null and count_star = 0 order by object_schema,object_name;
+
+更新索引统计信息及减少索引碎片 analyze table table_name
+使用不当会导致锁表 optimize table table_name
+
+SQL查询优化
+
+如何设计最优的数据库表结构
+如何建立最好的索引
+如何扩展数据库的查询
+
+查询优化 索引优化 库表结构优化需要齐头并进
+
+如何获取有性能问题的SQL
+通过用户反馈获取存储性能问题的SQL
+通过慢查日志获取存储性能问题的SQL
+实时获取存在性能问题的SQL
+
+使用慢查询日志获取有性能问题的SQL
+磁盘IO和存储日志所需要的磁盘空间
+存储日志所需要的大量的磁盘空间
+
+slow_query_log 启动停止记录慢查日志
+slow_query_log_file 指定慢查询日志的存储路径及文件 日志存储和数据存储分开存储
+long_query_time 指定记录慢查询日志SQL执行时间的伐值 记录所有符合条件的SQL 包括查询语句 数据修改语句 已经回滚的SQL
+log_queries_not_using_indexes 是否记录未使用索引的SQL
+
+set global sql_query_log=on;
+
+慢查询日志中记录的内容
+
+常用的慢查询日志分析工具 (mysqldumpslow)
+汇总除查询条件外其它完全相同的SQL 并将分析结果按照参数中所指定的顺序输出
+mysqldumpslow -s r -t 10 slow-mysql.log
+-s order(c,t,l,r,at,al,ar)
+指定按那种排序方式输出结果
+c 总次数 t 总时间 l 锁的时间 r 总数据行
+at,al,ar : t,l,r平均数 at = 总时间 / 总次数
+-t top 指定取前几条作为结束输出
+
+常用的慢查询日志分析工具 (pt-query-digest)
+pt-query-digest \ --explain h=127.0.0.1,u=root,p=p@ssW0rd \ slow-mysql.log
+
+如何实时获取有性能问题的SQL
+information_schema数据库 --- processlist表
+select id,user,host,db,command,time,state,info from information_schema.processlist where time>=60;
+
+查询速度为什么会慢
+客户端发送SQL请求给服务器
+服务器检查是否可以在查询缓存中命中该SQL
+服务器端进行SQL解析 预处理 再由优化器生成对应的执行计划
+根据执行计划 调用存储引擎API来查询数据
+将结果返回给客户端
+这就是MySQL服务器处理查询请求的整个过程
+
+查询缓存对SQL性能的影响
+对于一个读写频繁的系统使用查询缓存很可能会降低查询处理的效率
+所以在这种情况下建议大家不要使用查询缓存
+query_cache_type 设置查询缓存是否可用 (值为on off demand)
+demand表示只有在查询语句中使用SQL_CACHE和SQL_NO_CACHE来控制是否需要缓存
+query_cache_size 设置查询缓存的内存大小
+query_cache_limit 设置查询缓存可用存储的最大值 加上SQL_NO_CACHE可以提高效率
+query_cache_wlock_invalidate 设置数据表被锁后是否返回缓存中的数据
+query_cache_min_res_unit 设置查询缓存分配的内存块最小单位
+
+MySQL 依照这个执行计划和存储引擎进行交互
+之个阶段包括了多个子过程
+解析SQL 预处理 优化SQL执行计划
+语法解析阶段是通过关键字对MySQL语句进行解析 并生成一课对应的 解析树
+MySQL解析器将使用MySQL语法规则验证和解析查询
+包括检查语法是否使用了正确的关键字
+关键字的顺序是否正确等
+预处理阶段是根据MySQL规则进一步检查解析树是否合法
+检查查询中所涉及的表和数据列是否存在及名字或别名是否存在歧义等等
+语法检查全都通过了 查询优化器就可以生成查询计划了
+
+SQL的解析预处理及生成执行计划
+会造成MySQL生成错误的执行计划的原因
+统计信息不准确
+执行计划中的成本估算不等同于实际的执行计划的成本
+MySQL服务器层并不知道哪些页面在内存中
+哪些页面在磁盘上
+哪些需要顺序读取
+哪些需要页面随机读取
+MySQL优化器所认为的最优可能与你所认为的最优不一样
+基于其成本模型选择最优的执行计划
+MySQL从不考虑其他并发的查询 这可能会影响当前查询的速度
+MySQL有时候也会基于一些固定的规则来生成执行计划
+MySQL不会考虑不受其控制的成本
+
+MySQL优化器可优化的SQL类型
+重新定义表的关联顺序
+将外连接转化成内连接 where条件和库表结构等 a left join b
+使用等价变换规则 (5=5 and a > 5) 改为 a > 5
+优化count() min() 和 max()  select tables optimized away
+优化器已经从执行计划中移除了该表 并以一个常数取而代之
+将一个表达式转化为常数表达式
+子查询优化
+提前终止查询
+explain select * from film where film_id=-1;
+对in()条件进行优化
+
+如何确定查询处理各个阶段所消耗的时间
+使用profile
+减少查询所消耗的时间 加快查询的响应速度
+set profiling=1; 启动profile
+执行查询
+show profiles; 查看每一个查询所消耗的时间
+show profile for query N
+
+set profiling=1;
+select count(*) from film;
+show profiles;
+show profile cpu for query 3;
+
+使用performance_schema
+update setup_instruments set enabled='yes',timed='yes' where name like 'stage%';
+update setup_consumers set enabled='yes' where name like 'events%';
+select a.thread_id,sql_text,c.event_name,(c.timer_end-c.timer_start)/1000000000 as 'duration (ms)'
+from event_statements_history_long a join threads b on a.thread_id=b.thread_id 
+join event_stages_history_long c on c.thread_id=b.thread_id and c.event_id 
+between a.event_id and a.end_event_id where b.processlist_id=connection_id() 
+and a.event_name='statement/sql/select' order by a.thread_id,c.event_id;
+
+大表的数据修改最好要分批处理
+1000万行记录的表中删除/更新100万行记录 一次删除/更新5000行 再睡眠几秒
+
+delimiter $$
+use imooc $$
+drop procedure if exists p_delete_rows $$
+create definer=`root`@`127.0.0.1` procedure `p_delete_rows` ()
+begin
+declare v_rows int;
+set v_rows = 1;
+while v_rows > 0
+do
+delete from sbtest1 where id >= 90000 and id <= 190000 limit 5000;
+select row_count() into v_rows;
+select sleep(5);
+end while;
+end$$
+delimiter;
+
+如何修改大表的表结构
+对表中的列的字段类型进行修改
+改变字段的宽度时还是会锁表
+无法解决主从数据库延迟的问题
+pt-online-schema-change \
+--alter="modify c varchar(150) not null default" \
+--user=root --password=PassWord D=imooc,t=sbtest4 \
+--charset=utf8 --execute
+
+特定SQL的查询优化
+如何优化not in和<>查询
+select customer_id,first_name,last_name,email from customer 
+where customer_id not in (select customer_id from payment)
+select a.customer_id,a.first_name,a.last_name,a.email from customer a 
+left join payment b on a.customer_id=b.customer_id where b.customer_id is null;
+
+使用汇总表优化查询
+select count(*) from product_comment where product_id = 999
+汇总表就是提前以要统计的数据进行汇总并记录到表中以备后续的查询使用
+create table product_comment_cnt(product_id int,cnt int); 显示每个商品的评论数
+select sum(cnt) from (select cnt from product_comment_cnt where product_id=999 
+union all select count(*) from product_comment where product_id = 999 and timestr > date(now())) a;
+
+数据库分片前的准备
+
+如何选择分区键
+分区键要能尽量避免跨分片查询的发生
+分区键要能尽量使各个分片中的数据平均
+
+如何存储无需分片的表
+每个分片中存储一份相同的数据
+使用额外的节点统一存储
+
+如何在节点上部署分片
+
+实例演示
+
+
+MySQL数据库我们都要监控什么
+
+为什么进行监控
+对数据库服务可用性进行监控
+通过网络连接到数据库并且确定
+对数据库性能进行监控
+对主从复制进行监控
+对服务器资源的监控
+
+服务器磁盘空间大
+CPU的使用情况 
+
+如何确认数据库是否可以通过网络连接
+如何确认数据库是否可读写
+检查数据库的read_only参数是否为off
+建立监控表并对表中数据进行更行
+
+数据库可用性监控
+记录性能监控过程中所采集到的数据库的状态
+如何计算QPS和TPS
+QPS=(Queries2-Queries1)/(Uptime_since_flush_status2-Uptime_since_flush_status1)
+
+
+如何监控数据库的并发请求数量
+数据库系统的性能会随着并发处理请求数量的增加而下降
+cpu的使用率
+show global status like 'threads_running'
+并发处理的数量通常会远小于同一时间连接到数据库的线程的数量
+数据库出现大量阻塞
+如何监控Innodb的阻塞
+select b.trx_mysql_thread_id as '被阻塞线程',b.trx_query as '被阻塞SQL'
+,c.trx_mysql_thread_id as as '阻塞线程',c.trx_query as '阻塞SQL'
+,(unix_timestamp()-unix_timestamp(c.trx_started)) as '阻塞时间' 
+from information_schema.innodb_lock_waits a 
+join information_schema.innodb_trx b on a.requesting_trx_id=b.trx_id 
+join information_schema.innodb_trx c on a.blocking_trx_id=c.trx_id 
+where (unix_timestamp()-unix_timestamp(c.trx_started))>60
+
+select connection_id();
+set global innodb_lock_waits_timeout=180;
+select * from t;
+begin;
+select * from t for update;
+
+如何监控主从复制链路的状态
+如何验证主从复制的数据是否一致
+pt-table-checksum u=dba,p='PassWord' \
+--databases mysql \
+--replicate test.checksums
+grant select,process,super,replication slave on *.* to 'dba'@'ip' identified by 'password';

@@ -1,0 +1,153 @@
+MySQL5.7 复制实战
+
+MySQL复制基础
+如何实现基于日志点的复制
+如何在线变更复制类型
+如何使用多master复制
+如何使用多线程复制
+
+MySQL复制基础
+MySQL的复制是异步复制
+MySQL的复制是基于BinLog日志
+存在三种日志格式
+Statement BinLog中存储SQL语句 存储日志量是最小的    
+Row 存储event数据 存储日志量大 但是不能很直接的进行读取
+Mixed 介于Row和Statement之间 对于不确定的操作使用Row记录 如果每天数据操作量很大
+产生的日志比较多 可以考虑选择使用mixed格式
+
+MySQL复制可是对整个实例进行复制 也可以对实例中的某个库或是某个表进行复制
+Master端
+--binlog-do-db
+--binlog-ignore-db
+
+Slave端
+--replicate-do-db
+--replicate-ignore-db
+--replicate-do-table
+--replicate-ignore-table
+--replicate-wild-do-table
+--replicate-wild-ignore-table
+
+存在两种复制类型
+基于二进制日志的复制
+使用GTID完成基于事务的复制
+MySQL支持半同步复制
+
+如何实现基于日志点的复制
+在master端建立复制用户
+备份master端的数据 并在slave端恢复
+使用change master 命令配置复制
+
+grant replication slave on *.* to 'dba'@'192.168.3.%' identified by '123456'
+show warnings;
+
+drop user dba@'192.168.3.%'
+select user.host from mysql.user;
+5.7
+create user 'dba'@192.168.3.%' identified by '123456'
+grant replication slave on *.* to dba@'192.168.3.%';
+show databases;
+create database dba;
+use dba;
+create table t(id int, cl varchar(10), primary key(id)) engine=innodb default charset=utf8 comment '';
+insert into t(1,'aa'),(2,'bb'),(3,'cc');
+select * from t;
+cd /tmp
+mysqldump --single-transaction --master-data=2 --triggers --routines --all-databases -uroot -p > all.sql
+scp all.sql root@192.168.3.101:/tmp
+
+如何在线将基于日志的复制变更为基于事务的复制
+处理步骤
+show status like 'ongoing_anonymous_transaction_count';
+set @@global.gtid_mode=on;
+stop slave;
+change master to master_auto_position=1;
+start slave;
+
+如何在线将基于事务的复制变更为基于日志的复制
+先决条件
+集群中所有服务器的版本均高于5.7.6
+集群中所有服务器gtid_mode都设为on
+
+处理步骤
+stop slave;
+change master to master_auto_position=0
+,master_log_file='file',master_log_pos=position
+start slave;
+set @@global.gtid_mode=on_permissive;
+set @@global.gtid_mode=off_permissive;
+select @@global.gtid_mode_owned;
+set @@global.gtid_mode=off;
+
+如何使用多源复制
+多源复制也就是多Master复制 允许一个Slave对应对多个Master
+
+change master to option
+option
+master_bind="interface_name"
+master_host="host_name"
+master_user="user_name"
+master_password="password"
+master_port=port_num
+master_connect_retry=interval
+master_retry_count=count
+master_delay=interval
+master_heartbeat_period=interval
+master_log_file="master_log_name"
+master_log_pos=master_log_pos
+
+channel_option: for channel 
+
+实例
+ip addr
+mysql -uroot -p
+show variables like 'gtid_mode';
+create database N3;
+use N3
+create table t3(id int,c1 varchar(10),c3 varchar(10),primary key(id)) engine=innodb default charset=utf8 comment '';
+show create table t3;
+insert into t3 values(1,'aa','bb'),(2,'cc','dd');
+select * from t3;
+create user dba@'192.168.3.%' identified by '123456';
+grant replication slave on *.* to dba@'192.168.3.%';
+change master to master_host=‘192.168.3.102’,
+master_user='dba',
+master_password='123456',
+master_auto_position=1 for channel 'N3';
+show slave status \G;
+start slave for channel n3;
+show slave status \G;
+stop slave;
+select user,host from user;
+drop user dba@'192.168.3.%';
+start slave;
+
+use performance_schema;
+show tables like 'replication%';
+select * from replication_applier_configuration;
+select * form replication_applier_status \g;
+
+如何使用多程复制
+在slave服务器上停止所有链路的复制
+set global slave_parallel_type='logical_clock';
+set global slave_parallel_workers=4;
+start slave;
+
+show variables like 'slave_parallel%';
+stop slave;
+set global slave_parallel_type='logical_clock';
+set global slave_parallel_workers=4;
+start slave;
+
+use performance_schema;
+show tables like 'replication%';
+replication_applier_configuration
+replication_applier_status
+replication_applier_status_by_coordinator
+replication_applier_status_by_worker
+replication_connection_configuration
+replication_connection_status
+replication_group_member_stats
+replication_group_members
+
+select * form replication_applier_status_by_coordinator \G;

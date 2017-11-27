@@ -1,0 +1,43 @@
+$start_time = strtotime("2017-8-1");
+$end_time = strtotime('2017-11-1');
+$teacher = $task->t_teacher_lecture_appointment_info_b2->get_teacher_list($start_time, $end_time);
+foreach($teacher as $item) {
+if (stripos($item['user_agent'],'ipad')) continue;
+if (stripos($item['user_agent'],'mac') ) {
+$this->output($item,'teacherid',4.3,'mac');
+} elseif(stripos($item['user_agent'],"windows") ) {
+$this->output($item,'teacherid',4.3,'windows');
+} else {
+$this->output($item,'teacherid',5.3,'android');
+}
+}
+echo PHP_EOL.'=================学生================='.PHP_EOL;
+$student = $task->t_teacher_lecture_appointment_info_b2->get_student_list($start_time, $end_time);
+$assistant = $task->t_teacher_lecture_appointment_info_b2->get_assistant_info();
+foreach($student as $item) {
+    if (stripos($item['user_agent'],'ipad')) continue;
+    $nick = '';
+    $id = $item['assistantid'];
+    if ($id && isset($assistant[$id])) {
+        $nick = $assistant[$id]['nick'];
+    }
+    if (stripos($item['user_agent'],'mac') ) {
+        $this->output($item,'userid',5.3,'android', $nick);
+    } elseif(stripos($item['user_agent'],"windows") ) {
+        $this->output($item,'userid',5.3,'android', $nick);
+    } else {
+        $this->output($item,'userid',5.3,'android', $nick);
+    }
+}
+
+function output($item, $id, $ver, $dev, $nick='') {
+$version = json_decode($item['user_agent'], true);
+if (isset($version['device_model'])) {
+    if($version['version'] < $ver) {
+        if($id='userid') {
+            echo $item['userid'].' '.$item['realname'].' '.$item['phone'].' '.$nick.' '.$dev.' '.$version['version'].'.'.PHP_EOL;
+        } else {
+            echo $item['teacherid'].' '.$item['realname'].' '.$item['phone'].' '.$dev.' '.$version['version'].'.'.PHP_EOL;        }
+        }
+    }
+}

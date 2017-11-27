@@ -1,0 +1,50 @@
+文章模块
+路由 路由 模板
+表设计 表设计 模型
+页面逻辑 文章列表 添加文章 编辑文章 删除文章 文章详情
+
+1. 编辑路由 routes/web.php
+Route::get(url, 控制器@行为)
+Route::get('/article', '\App\Http\Controllers\ArticleController@index');
+
+2. 编辑控制器 (php artisan make:controller ArticleController 使用命令生成控制器)
+class ArticleController extends Controller
+{
+    // 文章列表页
+    public function index()
+    {
+    return view("article/index");
+    }
+}
+
+3.编辑模板 resources/views/article --- index.blade.php
+
+生成表迁移 (使用migrate创建数据表)
+php artisan make:migration create_articles_table;
+Schema::create('articles', function (Blueprint $table) {
+    $table->increments('id')->comment('主键ID');
+    // 设置标题长度为 100
+    $table->string('title', 100)->default()->comment('文章标题');
+    $table->text('content')->comment('文章内容');
+    $table->integer('user_id')->default(0)->comment('用户ID');
+    $table->timestamps();
+});
+
+Schema::dropIfExists('articles');
+
+//mb4string 767 / 4 = 191  Providers/AppServiceProvider.php 文件中 boot方法中添加以下代码
+Schema::defaultStringLength(191);
+
+php artisan migrate
+insert into articles(title, content, user_id, create_at) values('aa', 'content', 1, '2017-09-28');
+
+
+进入数据库验证是否成功
+alias my='mysql -uroot -p123456'
+
+id int
+title varchar
+content text
+user_id int
+created_at timestamp
+updated_at timestamp

@@ -1,0 +1,42 @@
+通过编写简单的文件自创docker镜像
+
+第一个Dockerfile
+FROM alpine:latest
+MAINTAINER xbf
+CMD echo 'welcome docker'
+
+mkdir df
+cd df
+vi Dockerfile
+ls
+docker build -t wel_docker .
+docker images wel_docker
+docker run wel_docker
+
+第二个Dockerfile
+FROM ubuntu
+MAINTAINER xbf
+RUN apt-get update
+RUN apt-get install -y nginx
+COPY index.hmtl /var/www/html
+ENTRYPOINT ["/usr/sbin/nginx","-g","daemon off;"]
+EXPOSE 80
+
+FROM base image
+RUN 执行命令
+ADD 添加文件
+COPY 拷贝文件
+CMD 执行命令
+EXPOSE 暴露端口
+WORKDIR 指定路径
+MAINTAINER 维护者
+ENV 设定环境变量
+ENTRYPOINT 容器入口
+USER 指定用户
+VOLUME mount point
+
+镜像分层
+Dockerfile中的每一行都产生一个新层
+FROM apline:latest
+MAINTAINER xbf
+CMD echo 'wel docker'

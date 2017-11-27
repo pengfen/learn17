@@ -1,0 +1,36 @@
+main.js入口文件
+
+new Vue({ ---> import Vue from 'vue'
+  el: '#app', #组件挂载点
+  router, ---> import router from './router' #加载router目录下的文件
+  template: '<Layout/>',
+  components: { Layout } ---> import Layout from './components/Layout'
+})
+
+components/Layout 布局文件
+<template></template> 编写模板
+<script>
+export default {} #脚本
+</script>
+<style></style> #css文件
+
+路由 (router目录 index.js)
+Vue.use(Router) ---> import Vue from 'vue'
+                ---> import Router from 'vue-router'
+
+export default new Router({
+	mode: 'history',
+    routes: [
+		{
+		  path: '/',
+		  component: Index ---> import Index from '@/pages/index'
+		}
+    ]
+})
+
+pages/index index组件文件
+<template></template> 编写模板
+<script>
+export default {} #脚本
+</script>
+<style></style> #css文件

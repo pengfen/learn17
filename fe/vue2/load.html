@@ -1,0 +1,37 @@
+定义数据 (也可从后台加载)
+export default {
+  data () {
+    return {
+	    productList: {
+		    pc: {
+			    title: "PC产品",
+				list: [
+				    {
+					    name: '数据统计',
+						url: 'http://test1.com'
+					},
+					{
+					    name: '数据统计',
+						url: 'http://test1.com'
+					},
+					{
+					    name: '数据统计',
+						url: 'http://test1.com'
+					}
+				]
+			},
+		}
+	}
+}
+}
+
+页面加载
+<template v-for="product in productList">
+	<h3>{{ product.title }}</h3>
+	<ul>
+		<li v-for="item in product.list">
+			<a :href="item.url">{{ item.name }}</a>
+		</li>
+	</ul>
+	<div v-if="!product.last" class="hr"></div>
+</template>

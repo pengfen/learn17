@@ -1,0 +1,104 @@
+在 components目录下编写组件 (单文件组件 模板 css JS)
+<template>
+  <div class="hello">
+    <h1>{{ msg }}</h1>
+    <h2>welcome to apple view</h2>
+  </div>
+</template>
+
+配置路由
+import Apple from '@/components/Apple'
+	{
+      path: '/apple',
+      name: 'Apple',
+      component: Apple
+    }
+	
+cnpm run dev
+页面访问 http://localhost:8080/#/apple
+
+mode:history 支持向前向后
+也支持 http://localhost:8080/apple
+
+<router-link :to="{path:'apple'}">apple</router-link>
+会自动转化<a href='/apple'></a>
+
+路由参数
+path: '/apple/:color',
+<button @click="getParam">获取路由参数</button>
+methods: {
+  getParam () {
+	console.log(this.$route.params)
+  }
+
+子路由
+path: '/apple',
+component: Apple
+children: [
+{
+path: "red",
+component: RedApple
+}
+]
+
+实战
+<router-link class="button" :to="{path: 'detail/' + item.toKey}">立即购买</router-link>
+toKey: 'analysis' ---> <a data-v-036f8287="" href="/detail/analysis" class="button">立即购买</a>
+toKey: 'count'    ---> <a data-v-036f8287="" href="/detail/count" class="button">立即购买</a>
+toKey: 'forecast' ---> <a data-v-036f8287="" href="/detail/forecast" class="button">立即购买</a>
+toKey: 'publish'  ---> <a data-v-036f8287="" href="/detail/publish" class="button">立即购买</a>
+
+路由基础介绍
+什么是前端路由
+路由是根据不同的url地址展示不同的内容或页面
+前端路由就是把不同路由对应不同的内容或页面的任务交给前端来做 之前是通过服务端根据url的不同返回不同的页面实现的
+什么时候使用前端路由
+在单页面应用 大部分页面结构不变 只改变部分内容的使用
+
+前端路由有什么优点和缺点
+优点 用户体验好 不需要每次都从服务器全部获取 快速展现给用户
+缺点 不利于SEO
+使用浏览器的前进 后退键的时候会重新发送请求 没有合理地利用缓存
+单页面无法记住之前滚动的位置 无法在前进 后退的时候记住滚动的位置
+
+vue-router 用来构建SPA
+<router-link></router-link>或者this.$router.push({path:''})
+<router-view></router-view>
+
+动态路由匹配
+嵌套路由
+编程式路由
+命名路由和命名视图
+
+动态路由匹配
+什么是动态路由
+模式                           匹配路径            $route.params
+/user/:username                /user/evan          {username: 'evan'}
+/user/:username/post/:post_id  /user/evan/post/123 {username: 'evan', post_id: 123}
+
+import Goods from '@/pages/GoodsList'
+@是别名(webpack.base.conf.js) '@': resolve('src');
+
+加载参数
+path: '/goods/:GoodsId',
+<span>{{ $route.params.GoodsId }}</span> #获取参数
+http://localhost:8080/goods/88
+
+嵌套路由
+什么是嵌套路由
+路由嵌套路由
+<router-link to="/goods/image">加载图片子组件</router-link>
+
+编程式路由
+什么是编程式路由
+通过js来实现页面的跳转
+$router.push("name")
+$router.push({path: "name"})
+$router.push({path: "name?a=123"})或者$router.push({path:"name", query:{a:123})
+$router.go(1)
+
+命名路由和命名视图
+什么是命名路由和命名视图
+给路由定义不册的名字 根据名字进行匹配
+给不同的router-view定义名字 通过名字进行对应组件的渲染
+<router-link v-bind:to="{name:'cart', params:{cartId:123}}">跳转到购物车页面</router-link>

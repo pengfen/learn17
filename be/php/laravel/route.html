@@ -1,0 +1,20 @@
+路由 routes/web.php
+Route::get(url, 控制器@行为)
+Route::get('/article', '\App\Http\Controllers\ArticleController@index');
+Route::get('/', function() { return view("welcome");});
+Route::any('/article','');
+Route::match(['get', 'post'], '/article', '');
+
+路由参数
+Route::get('/articles/{id}', '');
+
+路由分组
+Route::group(['prefix' => 'articles'], function() {
+Route::put('/', '');
+Route::get('/{id}', '');
+});
+绑定模型 (参数直接传递的是模型类)
+Route::get('/articles/{article}', '');
+function show(\App\Article $article) {
+//
+}

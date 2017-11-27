@@ -1,0 +1,33 @@
+注册
+路由 --- 控制器 --- 模板(注册页面) --- 控制器(添加注册数据) --- 视图(成功至少登录页 失败停在注册页)
+
+登录
+路由 --- 控制器 --- 模板(登录页面) --- 控制器(添加登录数据) --- 视图(成功至首页 失败停在注册页)
+$is_member = boolval(\request('is_remember'));
+    if (\Auth::attempt($user, $is_member)) {
+    return redirect('/articles');
+}
+
+退出
+路由 --- 控制器 --- 模板(登录页面)
+
+权限
+定义策略类 php artisan make:policy ArticlePolicy
+注册策略类和模型关联
+// 修改文章权限
+public function update(User $user, Article $article)
+{
+    return $user->id == $article->user_id;
+}
+'App\Article' => 'App\Policies\ArticlePolicy', // 关联
+
+控制器中添加权限
+$this->authorize('update', $article);
+
+策略判断
+@if (Auth::user()->can('update', $post))
+
+@endif
+@if (Auth::user()->can('update', $post))
+
+@endif

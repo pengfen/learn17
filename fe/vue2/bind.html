@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+	<title>双向数据绑定实现</title>
+</head>
+<body>
+    <input type="text" id="userName">
+	<br>
+	<span id="uName"></span>
+	
+	<script>
+	    var obj = {
+		    pwd: "123456"
+		};
+		// 可以页面console 输入obj查看obj内容
+		Object.defineProperty(obj, "userName", {
+		    get: function() {
+			    console.log('get init');
+			},
+			set: function(val) { // obj.userName='peng' 触发此函数
+			    console.log('set init');
+				document.getElementById('uName').innerText = val;
+				document.getElementById('userName').value = val;
+			}
+		});
+		document.getElementById("userName").addEventListener("keyup", function(event) {
+		    obj.userName = event.target.value;
+			//document.getElementById('uName').innerText = event.target.value;
+		});
+	</script>
+</body>
+</html>

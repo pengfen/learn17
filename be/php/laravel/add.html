@@ -1,0 +1,75 @@
+路由
+Route::get('/articles/create', '\App\Http\Controllers\ArticleController@create');
+
+控制器直接渲染
+return view('crticle/create');
+
+模板
+防crsf 使用token
+<input type="hidden" name="_token" value="{{csrf_token}}">
+可使用{{csrf_field}}代替input隐藏域
+
+model 使用基类
+class Model extends BaseModel
+{
+    protected $guarded = []; // 不可注入的字段
+
+    protected $fillable = ['title', 'content']; // 可注入的字段
+}
+
+添加数据到数据库
+1 验证数据
+$this->validate(request(), [
+    'title' => 'required|string|max:100|min:5',
+    'content' => 'required|string|min:10',
+]);
+
+2 逻辑
+Article::create(request(['title', 'content']));
+
+3 渲染
+return redirect('/articles');
+
+错误提示
+添加中文错误提示包 resources/lang/zh
+配置中文 config/app.php 'locale' => 'zh',
+
+图片上传
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

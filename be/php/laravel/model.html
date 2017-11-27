@@ -1,0 +1,47 @@
+数据模型
+创建article的模型  php artisan make:model Article
+tinker的使用 (使用tinker测试 注意时区)
+config/app.php  timezone = 'UTC' 改变 timezone = 'Asia/Shanghai';
+
+php artisan tinker
+$article = new \App\Article();
+$article->title = "this is article";
+$article->content = "this is article1 content";
+$article->save();
+
+查看数据库是否濡加成功
+\App\Article::find(2);
+\App\Article::where('title', 'this is article')->first();
+\App\Article::where('title', 'this is article')->get();
+
+控制器加载数据
+$articles = Article::orderBy('create_at', 'desc')->get();
+return view('article/index', compact('articles'));
+
+模板中使用
+@foreach($articles as $article)
+{{$article->title}}
+@endforeach
+
+时间格式 http://carbon.nesbot.com/docs/
+{{$article->create_at->toFormattedDateString()}}
+
+数据填充 https://github.com/fzaninotto/faker/
+
+database/factories/ModelFactory.php
+$factory->define(App\Article::class, function (Faker\Generator $faker) {
+    return [
+        'title' => $faker->sentence(6),
+        'content' => $faker->paragraph(10),
+    ];
+});
+
+php artisan tinker
+factory(App\Article:;class, 10)->make();
+注意 make()打印在控制台
+create()会数据添加到数据库
+
+分页
+$articles = Article::orderBy('created_at', 'desc')->paginate(6);
+模板中使用 {{ $articles -> links() }}
+

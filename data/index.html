@@ -1,0 +1,66 @@
+MySQL支持的索引类型
+
+B-tree索引的特点
+B-tree索引以B+树的结构存储数据
+B-tree索引能够加快数据的查询速度
+B-tree索引更适合进行范围查找
+
+在什么情况下可以用到B树索引
+全值匹配的查询 order_sn=''
+匹配最左前缀的查询
+匹配列前缀查询 order_sn like '98%'
+匹配范围的查询 order_sn>'98' 
+精确匹配左前列并范围匹配另外一列
+只访问索引的查询
+
+Btree索引的使用限制
+如果不是按照索引最左列开始查找 则无法使用索引
+使用索引时不能跳过索引中的列
+Not in 和 <> 操作无法使用索引
+如果查询中有某个列的范围查询 则其右边所有列都无法使用索引
+
+Hash索引的限制
+Hash索引必须进行二次查找
+Hash索引无法用于排序
+Hash索引不支持部分索引查找也不支持范围查找
+Hash索引中Hash码的计算可能存在Hash冲突
+
+为什么要使用索引
+索引大大减少了存储引擎需要扫描的数据量
+
+索引是不是越多越好
+索引会增加写操作的成本
+太多的索引会增加查询优化器的选择时间
+
+安装演示数据库
+http://downloads.mysql.com/docs/sakila-db.tar.gz
+tar -zxf sakila-db.tar.gz
+mysql -uroot -p < sakila-schema.sql
+mysql -uroot -p < sakila-data.sql
+
+索引优化策略
+索引列上不能使用表达式或函数
+select ... from product where to_days(out_date)-to_days(current_date) <= 30
+索引列 out_date 函数 to_days
+select ... from product where out_date <= date_add(current_date, interval 30 day)
+
+前缀索引和索引列的选择性
+create index index_name on table(col_name(n));
+索引的选择性是不重复的索引值和表的记录数的比值
+
+联合索引
+如何选择索引列的顺序
+经常会被使用到的列的优先
+选择性高的列优先
+宽度小的列优先
+
+覆盖索引
+优点
+可以优化缓存 减少磁盘IO操作
+可以减少随机IO 变随机IO操作变为顺序IO操作
+可以避免对Innodb主键索引的二次查询
+可以避免MyISAM表进行系统调用
+无法使用覆盖索引的情况 存储引擎不支持覆盖索引 查询中使用了太多的列 使用了双%号的like查询
+
+desc 
+explain select 

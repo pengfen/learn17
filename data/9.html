@@ -1,0 +1,118 @@
+MySQL5.7 新特性
+
+MySQL服务功能增强
+数据库初始化方式变更
+支持为表增加计算列
+引入JSON列类型及相关函数
+
+MySQL5.7之前
+scripts/mysql_install_db \
+--datadir=/data/sql_data \
+--user=mysql --basedir=/home/mysql
+MySQL5.7之后
+bin/mysqld --initialize --user=mysql \
+--basedir=/home/mysql \
+--datadir=/home/mysql/data
+
+bin/mysqld_safe --defaults-file=./my.cnf &
+
+MySQL服务功能增强
+支持为表增加计算列
+MySQL5.7之前 需要使用触发器实现相关功能
+create table t(id int auto_increment not null, c1 int, c2 int, c3 int, primary key(id));
+show create table t;
+create trigger inst_t before insert on t for each row set new.c3=new.c1+new.c2;
+show triggers;
+insert into t(c1,c2) values(1,2);
+select * from t;
+create trigger upd_t before update on t for each row set new.c3=new.c1+new.c2;
+show triggers;
+update t set c1=5 where id=1;
+select * from t;
+create view vw_t as select id,c1,c2,c1+c2 as c3 from t;
+select * from vw_t;
+MySQL5.7之后
+在create table 及 alter table 语句中支持增加计算列的方式
+col_name data_type [generated always] as (expression) [virtual|stored] 
+[unique[key]][comment comment][[not] null][[primary] key]
+
+drop table t;
+drop table vw_t
+show triggers;
+create table t (id int auto_increment not null,c1 int,c2 int,c3 int as (c1+c2),primary key(id))engine=innodb default charset=utf8 comment '';
+show create table t;
+insert into t(c1,c2) values(1,2);
+update t set c1=5 where id=1;
+show triggers;
+
+引入JSON列类型及相关函数
+MySQL5.7之前
+只能在varchar或是text等字符类型的列中存储json类型的字符串 并通过程序使用json字符串
+MySQL5.7之后
+增加了json列类型及以json_开头的相关处理函数 如json_type(),json_object(),json_merge()等
+
+select json_array('a','b',now());
+select json_object('key1',1,'key2',2);
+
+create table t1 (jdoc json) engine=innodb default charset=utf8 comment '';
+show create table t1;
+insert into t1(jdoc) values(json_array('a','b',now());
+
+Replication相关增强
+支持多源复制
+基于库或是逻辑锁的多线程序复制
+在线变更复制方式
+
+基于表的多线程复制
+MySQL5.7之前
+从MySQL5.6开始支持多线程复制 只不过是对于每一个库一个复制线程
+MySQL5.7之后
+MySQL5.7后对多线程复制功能进行了加强 增加了slave_parallel_type参数可以控制并发同步是基于database还是logical_clock
+
+在线变更复制方式
+MySQL5.7之前
+要把基于日志点的复制方式变为基于gtid的复制方式或是把基于gtid的复制方式变为基于日志点的复制方式必须要重启master服务器
+MySQL5.7之后
+允许在线变列复制的方式 而不用重启master服务器
+
+1.set @@global.enforce_gtid_consistency=warn; 执行完这一步后要保证在所有服务器都没有警告发生
+2.set @@global.enforce_gtid_consistency=on;
+3.set @@global.gtid_mode=off_permissive;
+4.set @@global.gtid_mode=on_permissive;
+5.show status like 'ongoing_anonymous_transaction_count';
+6.set @@global.gtid_mode=on; 并加gtid-mode=on到my.cnf
+7.stop slave [for channel 'channel'];
+change master to master_auto_position=1 [for channel 'channel'];
+start slave[for channel 'channel'];
+
+Innodb引擎增强
+支持缓冲池大小在线变更
+增加innodb_buffer_pool导入导出功能
+支持为innodb表建立表空间
+
+支持在线变更innodb_buffer_pool大小
+MySQL5.7之前 要变更innodb_buffer_pool大小必须更改my.cnf文件后重启数据库服务器
+MySQL5.7之后 innodb_buffer_pool_size参数变为动态参数 可以在线调整innodb缓存池的大小
+
+增加innodb_buffer_pool导入导出功能
+MySQL5.7之后
+增加以下参数控制innodb_buffer_pool的导入导出
+innodb_buffer_pool_dump_pct
+innodb_buffer_pool_dump_now
+innodb_buffer_pool_dump_at_shutdown
+innodb_buffer_pool_load_at_startup
+innodb_buffer_pool_load_now
+
+show variables like 'innodb_buffer_pool%';
+
+支持为innodb建立表空间
+MySQL5.7之前 具有系统表空间及可以为每个表建立一个的独立表空间
+MySQL5.7之后 支持create tablespace语法为一个表或多个表建立共用的表空间
+
+安全及管理方面的增强
+不再支持old_password认证
+增加账号默认过期时间及加强了对账号的管理功能
+show variables like 'default_password_lifetime';
+增加了sys管理数据库
+show create table statement_analysis \G
+
