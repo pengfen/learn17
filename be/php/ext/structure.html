@@ -1,0 +1,46 @@
+创建构建脚本
+cd /home/wwwroot
+mkdir structure;
+cd structure;
+vim struct.sh;
+vim struct.php;
+
+----------------------------------------------
+vim struct.sh
+#!/bin/bash
+
+echo 'test success';
+
+vim struct.php
+<?php
+
+exec('/home/wwwroot/structure/struct.sh');
+
+vim /usr/local/php/etc/php.ini
+/disable_
+去掉 exec
+
+php -version
+php -struct.php
+
+vim struct.sh
+
+#!/bin/bash
+
+#从github上拉取代码 (以后改进添加判断目录是否存在 不存在使用git clone 存在使用git pull)
+#git clone https://github.com/pengfen/WWW.git;
+cd /home/wwwroot/structure/WWW
+git pull origin master
+
+#备份以前项目的代码
+dir1="/home/wwwroot/resource";
+#获取当前日期 如20160903
+date_now=`date +%Y%m%d`;
+dir2=${dir1}${date_now};
+mv /home/wwwroot/resource $dir2;
+#将拉取的代码复制到项目目录 (以后改进使用 ssh登录到第三方主机)
+cp -rp /home/wwwroot/structure/WWW/ /home/wwwroot/resource
+cd /home/wwwroot/resource
+#修改文件属性变可执行文件 (注意github上项目不上传web/index.php文件) 有时使用 chmod 755 init
+chmod a+x init
+./init
