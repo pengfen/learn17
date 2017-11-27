@@ -1,0 +1,173 @@
+编码
+--------------------------------------------
+package com.peng.mr;
+
+public class WcMapper extends 	Mapper<LongWritable, Text, Text, IntWritable> {
+
+	// 每次调用 map 方法全传入 split 中一行数据 key 该行数据所有文件中的位置下标 value 这行行数据
+	public void map(LongWritable key, Text value, Context context)
+			throws IOException, InterruptedException {
+		String line = value.toString();
+		StringTokenizer st = new StringTokenizer(line);
+		while (token.hasMoreTokens()) {
+			String world = st.nextToken();
+			context.write(new Text(world), new IntWritable(1)); // map的输出
+		}
+	}
+}
+
+public class WcReduce extends
+			Reducer<Text, IntWritable, Text, IntWritable> {
+	public void reduce(Text key, Iterable<IntWritable> values,
+			Context context) throws IOException, InterruptedException {
+		// 累计计算
+		int sum = 0; // 初始化总值
+		// IntWritable 迭代器
+		for (IntWritable val : values) {
+			sum += val.get();
+		}
+		context.write(key, new IntWritable(sum));
+	}
+}
+
+package com.peng.mr;
+
+public class JobRun {
+	public static void main(String[] args) throws Exception {
+		Configuration conf = new Configuration();
+		conf.set("mapred.job.tracker", "node1:9001");
+		try {
+			Job job = new Job(conf);
+		    job.setJarByClass(JobRun.class);
+		    job.setMapperClass(WcMapper.class);
+		    job.setReducerClass(WcReducer.class);
+		    job.setOutputKeyClass(Text.class);
+		    job.setOutputValueClass(IntWritable.class);
+
+		    // job.setNumReduceTasks(1); // 设置 reduce 任务的个数
+
+		    // mapreduce 输入数据所在目录或者文件
+		    FileInputFormat.addInputPath(job, new Path("/usr/input/wc/"));
+		    // mapreduce 执行之后的输出数据的目录
+		    FileOutputFormat.setOutputPath(job, new Path("/usr/output/wc/"));
+
+		    System.exit(job.waitForCompletion(true) ? 0 : 1);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+}
+
+单个文件
+import java.io.IOException;
+import java.util.StringTokenizer;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+
+public class WordCount {
+	public static class WordCountMap extends
+			Mapper<LongWritable, Text, Text, IntWritable> {
+		private final IntWritable one = new IntWritable(1);
+		private Text word = new Text();
+
+		public void map(LongWritable key, Text value, Context context)
+				throws IOException, InterruptedException {
+			String line = value.toString();
+			StringTokenizer token = new StringTokenizer(line);
+			while (token.hasMoreTokens()) {
+				word.set(token.nextToken());
+				context.write(word, one);
+			}
+		}
+	}
+
+	public static class WordCountReduce extends
+			Reducer<Text, IntWritable, Text, IntWritable> {
+		public void reduce(Text key, Iterable<IntWritable> values,
+				Context context) throws IOException, InterruptedException {
+			int sum = 0;
+			for (IntWritable val : values) {
+				sum += val.get();
+			}
+			context.write(key, new IntWritable(sum));
+		}
+	}
+
+	public static void main(String[] args) throws Exception {
+		Configuration conf = new Configuration();
+		Job job = new Job(conf);
+		job.setJarByClass(WordCount.class);
+		job.setJobName("wordcount");
+		job.setOutputKeyClass(Text.class);
+		job.setOutputValueClass(IntWritable.class);
+		job.setMapperClass(WordCountMap.class);
+		job.setReducerClass(WordCountReduce.class);
+		job.setInputFormatClass(TextInputFormat.class);
+		job.setOutputFormatClass(TextOutputFormat.class);
+		FileInputFormat.addInputPath(job, new Path(args[0]));
+		FileOutputFormat.setOutputPath(job, new Path(args[1]));
+		job.waitForCompletion(true);
+	}
+}
+
+入参
+--------------------------------------------
+welcome hadoop welcome hello
+world put get
+put get welcom
+hadoop hello
+world put get
+put hello welcome
+
+出参
+--------------------------------------------
+get	3
+hadoop	2
+hello	3
+put	4
+welcom	1
+welcome	3
+world	2
+
+出入参位置
+--------------------------------------------
+user/input/wc/test #输入内容
+user/output/wc/part.... #输出内容
+
+运行
+--------------------------------------------
+[root@peng1 hadoop1.2]# ./bin/hadoop fs -ls /user
+Found 3 items
+drwxr-xr-x   - root supergroup          0 2016-03-10 21:28 /user/input
+drwxr-xr-x   - root supergroup          0 2016-03-11 00:58 /user/output
+drwxr-xr-x   - root supergroup          0 2016-03-10 21:38 /user/root
+[root@peng1 hadoop1.2]# ./bin/hadoop fs -rmr /user/input/
+rmr: org.apache.hadoop.hdfs.server.namenode.SafeModeException: Cannot delete /user/input. Name node is in safe mode.
+[root@peng1 hadoop1.2]#
+[root@peng1 hadoop1.2]# ./bin/hadoop dfsadmin -safemode leave
+Safe mode is OFF
+[root@peng1 hadoop1.2]#
+[root@peng1 hadoop1.2]# ./bin/hadoop fs -rmr /user/input/
+Deleted hdfs://peng1:9000/user/input
+[root@peng1 hadoop1.2]# ./bin/hadoop fs -rmr /user/output/
+Deleted hdfs://peng1:9000/user/output
+
+[root@peng1 hadoop1.2]# ./bin/hadoop fs -mkdir /user/input/
+[root@peng1 hadoop1.2]# ./bin/hadoop fs -put /root/test /user/input/
+
+http://peng1:50070/dfshealth.jsp
+http://peng1:50030/jobtracker.jsp
+主机重启后页面访问无效
+
+防火墙问题
+service iptables stop

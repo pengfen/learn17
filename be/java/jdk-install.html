@@ -1,0 +1,99 @@
+jdk下载
+-----------------------------------
+http://www.oracle.com/technetwork/java/javase/downloads/index.html
+下载 jdk-8u73-windows-x64.exe (与windows相同位数)
+jdk-8u73-linux-x64.gz (与linux相同位数)
+
+linux系统上安装jdk
+-----------------------------------
+删除系统上自带的jdk
+[root@peng1 ~]# rpm -qa | grep jdk # 查看系统上自带的jdk
+java-1.6.0-openjdk-1.6.0.0-1.45.1.11.1.el6.i686
+
+使用 rpm 删除 
+rpm -e java-1.6.0-openjdk-1.6.0.0-1.45.1.11.1.el6.i686
+
+使用 yum 删除
+[root@peng1 ~]# yum -y remove java-1.6.0-openjdk-1.6.0.0-1.45.1.11.1.el6.i686
+
+Loaded plugins: fastestmirror, security
+Setting up Remove Process
+Resolving Dependencies
+--> Running transaction check
+---> Package java-1.6.0-openjdk.i686 1:1.6.0.0-1.45.1.11.1.el6 will be erased
+--> Finished Dependency Resolution
+base                                                     | 3.7 kB     00:00
+base/primary_db                                          | 3.6 MB     00:35
+extras                                                   | 3.4 kB     00:00
+extras/primary_db                                        |  30 kB     00:00
+updates                                                  | 3.4 kB     00:00
+updates/primary_db                                       | 3.8 MB     00:02
+
+Dependencies Resolved
+
+================================================================================
+ Package
+    Arch Version                   Repository                              Size
+================================================================================
+Removing:
+ java-1.6.0-openjdk
+    i686 1:1.6.0.0-1.45.1.11.1.el6 @anaconda-CentOS-201207051201.i386/6.3  82 M
+
+Transaction Summary
+================================================================================
+Remove        1 Package(s)
+
+Installed size: 82 M
+Downloading Packages:
+Running rpm_check_debug
+Running Transaction Test
+Transaction Test Succeeded
+Running Transaction
+  Erasing    : 1:java-1.6.0-openjdk-1.6.0.0-1.45.1.11.1.el6.i686            1/1
+  Verifying  : 1:java-1.6.0-openjdk-1.6.0.0-1.45.1.11.1.el6.i686            1/1
+
+Removed:
+  java-1.6.0-openjdk.i686 1:1.6.0.0-1.45.1.11.1.el6
+
+Complete!
+
+安装jdk
+#查看系统位数
+[root@iZ94f2imuwkZ java]# uname -a #阿里云服务器
+Linux iZ94f2imuwkZ 2.6.32-431.23.3.el6.x86_64 #1 SMP Thu Jul 31 17:20:51 UTC 2014 x86_64 x86_64 x86_64 GNU/Linux
+
+[root@peng1 bin]# uname -a #本地虚拟机 linux
+Linux peng1 2.6.32-279.el6.i686 #1 SMP Fri Jun 22 10:59:55 UTC 2012 i686 i686 i386 GNU/Linux
+
+[root@peng1 jdk]# cd /usr/local/
+[root@peng1 local]# mkdir java
+[root@peng1 local]# pwd
+/usr/local
+[root@peng1 local]# cd /root/jdk/
+[root@peng1 jdk]# ls
+jdk-8u73-linux-x64.gz  jdk-8u73-linux-x64.rpm
+[root@peng1 jdk]# mv jdk-8u73-linux-x64.gz /usr/local/java/
+[root@peng1 jdk]# cd /usr/local/java/
+[root@peng1 java]# ls
+jdk-8u73-linux-x64.gz
+[root@peng1 java]# tar -zxvf jdk-8u73-linux-x64.gz
+
+[root@peng1 java]# ls
+jdk1.8.0_73  jdk-8u73-linux-x64.gz
+[root@peng1 java]# cd jdk1.8.0_73/
+
+[root@peng1 jdk1.8.0_73]# vi /etc/profile
+
+export JAVA_HOME=/usr/local/java/jdk1.8.0_73
+export JRE_HOME=/usr/local/java/jdk1.8.0_73/jre
+export PATH=$JAVA_HOME/bin:$PATH
+export CLASSPATH=./:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
+
+[root@peng1 java]# source /etc/profile # 使当前环境环境立即生效
+[root@peng1 java]# java -version
+
+windows系统上安装jdk
+-----------------------------------
+查看电脑配置 下载 (www.oracle.com) 与电脑相对应的版本安装 (单击下一步直接安装)
+
+配置环境变量 计算机 --- 属性 --- 高级系统设置 --- 环境变量 --- path 中追加 D:\files\java\jdk1.8\bin (jdk 安装环境)
