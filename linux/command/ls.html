@@ -1,0 +1,46 @@
+[root@localhost ~]#
+root 当前登录用户
+localhost 主机名
+~ 当前所在目录 (家目录)
+# 超级用户的提示符
+$ 普通用户的提示符
+
+命令 [选项] [参数]
+注意 个别命令使用不遵循此格式
+	 当有多个选项时 可以写在一起
+	 简化选项与完整选项
+	 -a 等于 -all
+
+ls [选项][文件或目录]
+选项
+	 -a 显示所有文件 包括隐藏文件
+	 -l 显示详细信息
+	 -d 查看目录属性
+	 -h 人性化显示文件大小
+	 -i 显示 inode
+
+	[root@apeng ~]# ls -l #同 ll 一样
+	total 12
+	drwxr-xr-x 6 root root 4096 Feb 23 22:13 hadoop
+	drwxr-xr-x 4 root root 4096 Feb 20 16:35 jee
+	drwxr-xr-x 4 root root 4096 Feb 20 11:31 lnmp
+	[root@apeng ~]# ll
+	total 12
+	drwxr-xr-x 6 root root 4096 Feb 23 22:13 hadoop
+	drwxr-xr-x 4 root root 4096 Feb 20 16:35 jee
+	drwxr-xr-x 4 root root 4096 Feb 20 11:31 lnmp
+	[root@apeng ~]# ls -d
+	.
+	[root@apeng ~]#
+	[root@apeng ~]# ls -n
+	total 12
+	drwxr-xr-x 6 0 0 4096 Feb 23 22:13 hadoop
+	drwxr-xr-x 4 0 0 4096 Feb 20 16:35 jee
+	drwxr-xr-x 4 0 0 4096 Feb 20 11:31 lnmp
+	[root@apeng ~]# ls -i
+	1051755 hadoop  1190540 jee  1188194 lnmp
+	[root@apeng ~]# ls
+	hadoop  jee  lnmp
+
+	ls -lh 查看文件大小
+	ll -h  查看文件大小
