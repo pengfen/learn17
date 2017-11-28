@@ -6,4 +6,6 @@ ls.html      ls命令
 
 date.html    date命令
 
+cd.html      cd命令
+
 command.html 相关命令
