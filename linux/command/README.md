@@ -4,4 +4,6 @@ history.html history命令
 
 ls.html      ls命令
 
+date.html    date命令
+
 command.html 相关命令
