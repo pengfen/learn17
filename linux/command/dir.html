@@ -1,0 +1,114 @@
+目录相关命令
+建立目录
+mkdir -p [目录名]
+-p 递归创建
+命令英文原意 make directories
+mkdir -p apeng/peng (mkdir apeng cd ./apeng mkdir peng)
+
+
+
+查询所在目录位置 pwd
+命令英文原意 print working directory
+
+[root@apeng ~]# pwd
+/root
+
+删除空目录 rmdir
+rmdir [目录名]
+命令英文原意 remove empty directories
+
+[root@apeng ~]# mkdir test
+[root@apeng ~]# ll
+total 16
+drwxr-xr-x 6 root root 4096 Feb 23 22:13 hadoop
+drwxr-xr-x 4 root root 4096 Feb 20 16:35 jee
+drwxr-xr-x 4 root root 4096 Feb 20 11:31 lnmp
+drwxr-xr-x 2 root root 4096 Mar  3 09:10 test
+[root@apeng ~]#
+[root@apeng ~]# rmdir test
+[root@apeng ~]#
+[root@apeng ~]# ll
+total 12
+drwxr-xr-x 6 root root 4096 Feb 23 22:13 hadoop
+drwxr-xr-x 4 root root 4096 Feb 20 16:35 jee
+drwxr-xr-x 4 root root 4096 Feb 20 11:31 lnmp
+[root@apeng ~]#
+[root@apeng ~]# mkdir test
+[root@apeng ~]#
+[root@apeng ~]# ll
+total 16
+drwxr-xr-x 6 root root 4096 Feb 23 22:13 hadoop
+drwxr-xr-x 4 root root 4096 Feb 20 16:35 jee
+drwxr-xr-x 4 root root 4096 Feb 20 11:31 lnmp
+drwxr-xr-x 2 root root 4096 Mar  3 09:10 test
+[root@apeng ~]# cd test/
+[root@apeng test]# vim text.html
+[root@apeng test]# cd ..
+[root@apeng ~]# rmdir test
+rmdir: failed to remove `test': Directory not empty
+
+删除文件或目录 rm
+rm -rf [文件或目录]
+命令英文原意 remove
+选项
+	 -r 删除目录
+	 -f 强制
+
+[root@apeng ~]# rmdir test
+rmdir: failed to remove `test': Directory not empty
+[root@apeng ~]#
+[root@apeng ~]# rm -rf test
+[root@apeng ~]# ll
+total 12
+drwxr-xr-x 6 root root 4096 Feb 23 22:13 hadoop
+drwxr-xr-x 4 root root 4096 Feb 20 16:35 jee
+drwxr-xr-x 4 root root 4096 Feb 20 11:31 lnmp
+
+如果修改某个文件出现假死机， 关闭窗口后 会自动为该文件生成一个 .swp 文件
+每次再打开这文件时 会出现提示信息 删除 swp 文件后就可以直接打开此文件
+[root@peng1 ~]# rm -rf /etc/.profile.swp
+
+
+复制命令 cp
+cp [选项] [原文件或目录] [目标目录]
+命令英文原意 copy
+选项
+	 -r 复制目录
+	 -p 连带文件属性复制
+	 -d 若源文件是链接文件 则复制链接属性
+	 -a 相当于 -pdr
+	 cp -a yii2 test
+
+mv [原文件或目录] [目标目录]
+命令英文原意 move
+
+常用目录的作用
+/根目录
+/bin 命令保存目录 (普通用户就可以读取的命令)
+/boot 启动目录 启动相关文件
+/dev 设备文件保存目录
+/etc 配置文件保存目录
+/home 普通用户的家目录
+/lib 系统库保存目录
+/mnt 系统挂载目录
+/media 挂载目录
+
+/root 超级用户的家目录
+/tmp 临时目录
+/sbin 命令保存目录 (超级用户才能使用的目录)
+/proc 直接写入内存的
+/sys
+/usr 系统软件资源目录
+	 /usr/bin/系统命令 (普通用户)
+	 /usr/sbin/系统命令 (超级用户)
+/var 系统相关文档内容
+
+根目录下的 bin 和sbin usr 目录下的 bin 和 sbin 这四个目录都是用来保存系统命令的
+
+proc sys 目录不能直接操作 这两个目录保存的是内存的过载点
+	
+	
+文件操作
+tail -f filename 监视文件增长
+tail -n 10 filename 查看文件尾十条
+tail -n 10 -f filename	

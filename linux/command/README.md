@@ -10,4 +10,6 @@ cd.html      cd命令
 
 help.html    帮助命令(whatis help man)
 
+dir.html     目录相关操作命令
+
 command.html 相关命令
