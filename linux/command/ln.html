@@ -1,0 +1,36 @@
+链接命令 ln
+ln -s [原文件] [目标文件]
+命令英文原意 link
+功能描述 生成链接文件
+选项 -s 创建软链接
+
+硬链接特征
+拥有相同的 i 节点和存储 block 块 可以看做是同一个文件
+可通过 i 节点识别
+不能跨分区
+不能针对目录使用
+
+软链接特征
+类似 windows 快捷方式
+软链接拥有自己的 i 节点和 block 块 但是数据块中只保存原文件的文件名和 i 节点号 并没有实际的文件数据
+lrwxrwxrwx l 软链接 (软链接文件权限都为 rwxrwxrwx)
+修改任意文件 另一个都改变
+删除原文件 软链接不能使用
+
+echo 1111 >> /root/cangls
+cat /tmp/cangls.soft
+cat /tmp/cangls.hard
+echo 2222 >> /tmp/cangls.soft
+cat /tmp/cangls/hard
+cat /root/cangls
+echo 3333 >> /tmp/cangls.hard
+cat /root/cangls
+cat /tmp/cangls.soft
+rm -rf /root/cangls
+ll /tmp
+touch csb
+ls
+ln -s /root/csb /tmp/
+touch sb
+ln -s sb /tmp
+ll /tmp

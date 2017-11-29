@@ -112,3 +112,12 @@ proc sys 目录不能直接操作 这两个目录保存的是内存的过载点
 tail -f filename 监视文件增长
 tail -n 10 filename 查看文件尾十条
 tail -n 10 -f filename	
+
+查看全文多少行
+cat gather.log | wc -l
+cat gather.log | grep '当前消息' | wc -l #查看包含当前消息共有多少行
+
+watch 监控命令
+watch date #监控当前时间
+cal -y #查看当前所有月份
+cal -m #查看当前月份

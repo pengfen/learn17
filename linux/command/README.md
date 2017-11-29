@@ -16,4 +16,8 @@ search.html  搜索命令(find grep)
 
 zip.html     压缩命令
 
-command.html 相关命令
+ln.html      链接命令
+
+mount.html   挂载命令
+
+command.html 其它相关命令

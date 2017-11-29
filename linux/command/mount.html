@@ -1,0 +1,42 @@
+查询与自动挂载
+[root@localhost ~]# mount #查询系统中已经挂载的设备
+[root@localhost ~]# mount -a #依照配置文件 /etc/fstab 的内容 自动挂载
+
+挂载命令格式
+[root@localhost ~]# mount [-t 文件系统] [-o 特殊选项] 设备文件名 挂载点
+-t 文件系统 加入文件系统类型来指定挂载的类型 可以 ext3 ext4 iso9660 等文件系统
+-o 特殊选项 可以指定挂载的额外选项
+
+特殊选项参数
+atime/noatime 更新访问时间 / 不更新访问时间 访问分区文件时 是否更新文件的访问时间 默认为更新
+async/sync 异步/同步 默认为异步
+auto/noauto 自动/手动 mount -a 命令执行时 是否会自动安装 /etc/fstab 文件内容挂载 默认为自动
+defaults 定义默认值 相当于 rw suid dev exec auto nouser async 这七个选项
+exec/noexec 执行/不执行 设定是否允许在文件系统中执行可执行文件 默认是 exec 允许
+remount 重新挂载已经挂载的文件系统 一般用于指定修改特殊权限
+rw/ro 读写/只读 文件系统挂载时 是否具有读写权限 默认是 rw
+suid/nosuid 具有/不具有 SUID 权限 设定文件系统是否具有 SUID 和 SGID 的权限 默认是具有
+user/nouser 允许/不允许普通用户挂载 设定文件系统是否允许普通用户挂载 默认是不允许 只有 root 可以挂载分区
+usrquota 写入代表文件系统支持用户磁盘配额 默认不支持
+grpquota 写入代表文件系统支持组磁盘配额 默认不支持
+
+[root@localhost ~]# mount -o remount,noexec/home #重新挂载 /boot 分区 并使用 noexec 权限
+[root@localhost sh]# cd /home
+[root@localhost boot]# vi hello.sh
+[root@localhost boot]# chmod 755 hello.sh
+[root@localhost boot]# ./hello.sh
+[root@localhost boot]# mount -o remount,exec /home #记得改回来啊 要不会影响系统启动的
+
+挂载光盘
+[root@localhost ~]# mkdir /mnt/cdrom/ #建立挂载点
+[root@localhost ~]# mount -t iso9660 /dev/cdrom/mnt/cdrom/ #挂载光盘
+[root@localhost ~]# mount /dev/sr0 /mnt/cdrom/
+
+卸载命令
+[root@localhost ~]# umount 设备文件名或挂载点
+[root@localhost ~]# umount /mnt/cdrom
+
+挂载 U 盘
+[root@localhost ~]# fdisk -l #查看 U 盘设备文件名
+[root@localhost ~]# mount -t vfat /dev/sdb1 /mnt/usb/
+注意 linux 默认是不支持 NTFS 文件系统的
