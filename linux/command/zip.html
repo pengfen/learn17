@@ -1,0 +1,30 @@
+压缩命令
+常用压缩格式 .zip .gz .bz2
+常用压缩格式 .tar.gz .tar.bz2
+
+.zip 格式压缩
+zip 压缩文件名 源文件 #压缩文件
+zip -r 压缩文件名 源目录 #压缩目录
+
+.gz 格式压缩
+gzip 源文件 #压缩为 .gz 格式的压缩文件 源文件会消失
+gzip -c 源文件 > 压缩文件 #压缩为 .gz 格式 源文件保留
+gzip -c cangls > cangls.gz
+gzip -r 目录 #压缩目录下所有的子文件 但是不能压缩目录
+
+bzip2 源文件 #压缩为 .bz2 格式 不保留源文件
+bzip2 -k 源文件 #压缩之后保留源文件
+注意 bzip2 命令不能压缩目录
+bzip2 -d 压缩文件 #解压缩 -k 保留压缩文件
+bunzip2 压缩文件 #解压缩 -k 保留压缩文件
+
+打包命令 tar
+tar -cvf 打包文件名 源文件
+-c 打包
+-v 显示过程
+-f 指定打包后的文件名
+tar -cvf longzls.tar longzls
+
+tar -xvf 打包文件名
+-x 解打包
+tar -xvf longzls.tar

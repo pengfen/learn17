@@ -14,4 +14,6 @@ dir.html     目录相关操作命令
 
 search.html  搜索命令(find grep)
 
+zip.html     压缩命令
+
 command.html 相关命令
