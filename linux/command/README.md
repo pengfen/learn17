@@ -12,4 +12,6 @@ help.html    帮助命令(whatis help man)
 
 dir.html     目录相关操作命令
 
+search.html  搜索命令(find grep)
+
 command.html 相关命令

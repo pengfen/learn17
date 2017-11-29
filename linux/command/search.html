@@ -1,0 +1,70 @@
+文件搜索命令 locate
+命令搜索命令 whereis 与 which
+文件搜索命令 find
+字符串搜索命令 grep
+find 命令与 grep 命令的区别
+
+locate 文件名
+在后台数据库中按文件名搜索 搜索速度更快
+touch /tmp/cangls
+updatedb
+locate cangls 只
+
+/var/lib/mlocate
+#locate 命令所搜索的后台数据库
+
+updatedb 更新数据库
+/etc/updatedb.conf 配置文件
+PRUNE_BIND_MOUNTS = "yes"
+#开启搜索限制
+PRUNEFS = 
+#搜索时 不搜索的文件系统
+PRUNENAMES =
+#搜索时 不搜索的文件类型
+PRUNEPATHS =
+#搜索时 不搜索的路径
+
+find [搜索范围] [搜索条件]
+#搜索文件
+find / -name install.log #阿里云服务器上是搜索不到文件的
+find / -name lnmp-install.log
+/root/lnmp-install.log
+#避免大范围搜索 会非常耗费系统资源
+#find是在系统当中搜索符合条件的文件名 如果需要匹配 使用通配符匹配 通配符是完全匹配
+
+* 匹配任意内容
+? 匹配任意一个字符
+[] 匹配任意一个中括号内的字符
+
+find /root -iname install.log #不区分大小写
+find /root -user root #按照所有者搜索
+find /root -nouser #查找没有所有者的文件
+find /var/log/ -mtime +10 #查找10天前修改的文件
+-10 10 天内修改文件
+10  10天当天修改的文件
++10 10天前修改的文件
+
+atime 文件访问时间
+ctime 改变文件属性
+mtime 修改文件内容
+
+find . -size 25k #查找文件大小是 25KB 的文件
+-25K 小于 25KB 的文件
+25K  等于 25KB 的文件
++25K 大于 25KB 的文件
+find . -inum 262422 #查找 i 节点是 262422 的文件
+
+find /etc -size +20k -a -size -50k #查找/etc/目录下 大于 20KB 并且小于 50KB 的文件
+-a and 逻辑与 两个条件都满足
+-o or  逻辑或 两个条件满足一个即可
+find /etc -size +20k -a -size -50k -exec ls -lh {} \; #查找 /etc/ 目录下 大于 20KB 并且小于 50KB 的文件 并显示详细信息
+#-exec/-ok 命令 {} \; 对搜索结果执行操作
+
+搜索字符串命令 grep
+grep [选项] 字符串 文件名 #在文件当中匹配符合条件的字符串
+-i 忽略大小写
+-v 排除指定字符串
+
+find 命令与 grep 命令的区别
+find 命令 在系统当中搜索符合条件的文件名 如果需要匹配 使用通配符匹配 通配符是完全匹配
+grep 命令 在文件当中搜索符合条件的字符串 如果需要匹配 使用正则表达式进行匹配 正则表达式时包含匹配
