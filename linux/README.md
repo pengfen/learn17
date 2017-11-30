@@ -12,7 +12,7 @@ user.html     用户
 
 scp.html      scp
 
-iptables.html iptables
+chmod.html    chmod命令
 
 scan.html     扫描
 
@@ -25,3 +25,4 @@ vm            vm安装 centos安装
 shell         shell  
 server        相关服务(apache nginx)  
 ELK           ELK
+iptables iptables
