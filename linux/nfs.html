@@ -1,0 +1,77 @@
+nfs
+network file system
+
+/etc/exports				主配
+/usr/sbin/exportfs		维护nfs共享资源的命令
+/usr/sbin/showmount		查看共享资源的命令
+/var/lib/nfs/*tab			etab nfs完整权限		xtab 记录曾经连接到nfs主机的client的数据
+
+
+相关进程
+rpc.nfsd			管理客户端能否登录服务器
+rpc.mountd		权限验证
+portmap			端口分发
+
+
+/etc/exports
+共享目录        客户端地址(权限,另一个权限)     另一个客户端(权限,另一个权限)
+客户端地址      192.168.18.1
+             www.vfast.com
+                		192.168.18.0/24
+                *.vfast.com
+                		*
+
+权限
+ro              只读
+rw              读写
+no_root_squash  登录nfs主机，使用共享目录的用户，如果是root，那么对于这个目录就具有root的权限
+root_squash     ：      ：      ：      ：      ：：    ： ，就会被贬为匿名用户nobody nsfnobody
+all_squash      :       :       :       :       , 不论是谁，都会被贬为匿名用户
+
+                                no_root_squash          root_squash             all_squash
+nfs server                      root                    nobody/nfsnobody        nobody/nfsnobody
+nfs client                      root                    root                    all
+
+
+anonuid         指定被贬用户UID
+anongid                     GID
+sync            同步写入
+async           异步写入
+
+exportfs	-a		all 	/etc/exports内的共享目录
+			-r		重新挂载主配内的共享目录，更新 xtab etab内容
+			-u		卸载目录
+			-v		详细信息
+
+showmount	-a		显示server和client的连接状况
+				-e		显示指定主机的共享
+
+client设定
+showmount -e serverip
+
+mount -t nfs 192.168.18.251:/tmp /nfs
+
+nfs固定端口
+[root@localhost ~]# vim /etc/sysconfig/nfs 
+[root@localhost ~]# cat /etc/sysconfig/nfs  | grep -v "#"
+RQUOTAD_PORT=10001
+LOCKD_TCPPORT=10002
+LOCKD_UDPPORT=10002
+MOUNTD_PORT=10003
+STATD_PORT=10004
+
+
+iptables -A INPUT -p tcp -m multiport --dport 111,2049 -j ACCEPT
+iptables -A INPUT -p udp -m multiport --dport 111,2049 -j ACCEPT
+iptables -A INPUT -p tcp --dport 10001:10004 -j ACCEPT
+iptables -A INPUT -p udp --dport 10001:10004 -j ACCEPT
+
+
+nfs自动挂载
+RHCSA英文全称：Red Hat Certified System Administrator ，中文全称：红帽认证系统管理员
+RHCE英文全称：Red Hat Certified Engineer，中文全称：红帽认证工程师。[1] 
+RHCA英文全称：Red Hat Certified Architect，中文全称：红帽认证架构师。
+RHCSS英文全称：Red Hat Certified Security Specialist，中文全称：红帽认证安全专家。
+RHCDS英文全称：Red Hat Certified Datacenter Specialist ，中文全称：红帽认证数据中心专家。[2] 
+RHCVA英文全称：Red Hat Certified Virtualization Administrator，中文全称：红帽企业虚拟化管理
+
