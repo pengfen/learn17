@@ -1,0 +1,135 @@
+Python自动化运维
+了解自动化运维的概念
+了解主流自动化运维工具的使用
+掌握使用python编写自动化运维脚本
+
+前置技术
+了解Python基础知识
+了解运维的基础知识
+运行环境 python2.7
+
+运维发展的不同阶段
+传统运维 命令行 批量脚本
+自运化运维
+云运维
+
+传统运维特点
+资源少 业务结构简单 运维工作简单
+传统运维缺点 效率低 无法跨平台 资源分散 无标准
+
+什么是自动化运维
+运维自动化是一组将静态的设备结构转化为根据IT服务需求动态弹性响应的策略 
+目的就是实现IT运维的质量 隆低成本
+
+运维自动化优点
+高效率 平台化 标准化 流程化
+
+自动化运维工具
+部署类 jenkins  环境类 ansible  监控类 ngios
+
+运维自动化设计思想
+管理体系化 工作流程化 人员专业化 任务自动化(环境定义自动化 部署自动化 监控自动化)
+
+为什么选python做自动化运维
+自动化运维关心的问题 自动化 易实现 跨平台 轻量级
+
+运维人员的技能
+编程能力偏弱 熟悉运维 算法能力偏弱
+适合自动运维编程语言特点
+丰富的第三方库 学习成本低 跨平台 轻量级
+
+主要函数讲解
+os.system
+功能 执行命令
+返回 命令的返回值
+补充 命令的输出会输出到标准输出
+
+# coding = utf-8
+
+vim install_python
+import os
+import sys
+
+if os.getuid() == 0:
+    pass
+else:
+    print '当前用户不是root用户,请以root用户执行脚本'
+	sys.exit(1)
+
+version = raw_input('请输入你想安装的python版本(2.7/3.5)')
+if version == '2.7'
+    url = 'https://www.python.org/ftp/python/2.7.12/Python-2.7.12.tgz'
+	elif version == '3.5'
+	    url = 'http://www.python.org/ftp/python/3.5.2/Python-3.5.2.tgz'
+	else:
+	    print '您输入的版本号有误,请输入2.7或者3.5'
+		sys.exit(1)
+		
+	cmd = 'wget '+url
+	res = os.system(cmd)
+	if res != 0:
+	    print '下载源码包失败,请检查网络'
+		sys.exit(1)
+	
+	if version == '2.7'
+	    package_name == 'Python-2.7.12'
+	else:
+	    package_name = 'Python-3.5.2'
+	cmd = 'tar xf '+package_name+'.tgz'
+	res = os.system(cmd)
+	if res != 0:
+	    print '解压源码包失败,请重新运行这个脚本下载源包'
+		sys.exit(1)
+		
+	cmd = 'cd '+package_name+' && ./configure --prefix=/usr/local/python && make && make install'
+	res = os.system(cmd)
+	if res != 0:
+	    print '编译python源码失败,请检查是否缺少依赖库'
+		sys.exit(1)
+	
+自动化运维缺点
+数据无法共享 无法主动式发现问题 部署成本高 标准不统一
+
+云运维简介
+资源数据共享 主动发现问题 统一标准 成本低
+
+Ansbile教程
+了解Ansible  学习使用Ansible管理IT资源  学习Ansible API  阅读Ansible部分源码
+Ansbile是什么  Ansbile是一个自动化管理IT资源的工具
+
+Ansbile是一个自动化管理IT资源的工具 自动化 管理 IT资源
+
+Ansbile功能有哪些 系统环境配置 安装软件 持续集成 热回滚
+
+Ansbile优点 无客户端 推送式 丰富的module 基于YAML的Playbook 商业化支持
+Ansbile缺点  效率低 易挂起  并发性能差 
+
+Ansbile与其他软件对比
+对比项目   Puppet  Chef    Salt      Ansbile
+客户端     有      有      有        无
+通信方式   socket  ssh     Rabbitmq  ssh
+Web页面    有      有      有        有
+效率       一般    一般    高        低
+实现语言   ruby    python  python    python
+API        有      有      有        有
+开源社区   4219    2279     6998     19504
+
+Ansbile安装部署 配置运行
+学会Ansible安装 学会运行Ansible 了解Ansible配置项
+Python Setuptools Pip(可选)
+
+Ansbile快速安装
+安装pip: easy_install pip
+安装Ansible: pip install ansible
+
+mkdir pip
+cd pip
+wget https://pypi.python.org/packages/source/s/setuptools/setuptools-7.0.tar.gz
+tar setuptools-7.0.tar.gz 
+tar -zxvf setuptools-7.0.tar.gz 
+cd setuptools-7.0
+python setup.py install
+
+wget https://pypi.python.org/packages/source/p/pip/pip-1.3.1.tar.gz --no-check-certificate   
+tar -zxvf pip-1.3.1.tar.gz 
+python pip-1.3.1/setup.py install
