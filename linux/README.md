@@ -20,6 +20,8 @@ net.html      网络
 
 io.html       输入输出
 
+nfs.html      nfs
+
 相关目录
 vm            vm安装 centos安装  
 shell         shell  
