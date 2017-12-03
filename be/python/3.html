@@ -1,0 +1,481 @@
+Python全栈开发
+
+了解前端开发基础知识
+Python后端开发技术栈
+掌握Python Web全栈开发技能
+
+前端开发需求
+1.计算机及相关专业统招全日制本科或以上学历
+2.计算机软件或互联网行业 相关工作经验至少3年
+3.精通HTML5/CSS3 JavaScript Ajax等Web开发技术 (需要核心掌握并应用的技术)
+4.熟练掌握前端开发技术(HTML5 JS JSON XHTML CSS3) 了解各项技术的相关标准
+并严格按照标准进行开发 熟练使用JQuery框架能与后台开发人员一起编写Ajax交互程序
+5.熟悉各种浏览器的兼容性调试
+6.对数据结构以及后台语言Java等有简单了解
+7.良好的沟通与表达能力 思路清晰 有强烈的责任心和创新意识 业务逻辑理解与分析能力强
+
+HTML 介绍
+HTML HyperText Markup Language 超文本标记语言
+HTML不是一种编程语言 而是一种标记语言
+标记语言是一套标记标签
+HTML使用标记标签来描述网页
+
+CSS 介绍
+CSS Cascading Style Sheets 层叠样式表
+样式定义如何显示HTML元素
+样式表可以内置于HTML文件中 但专业的做法是独立存放
+
+JS 介绍
+JS JavaScript 一种高级编程语言
+JavaScript是可插入HTML页面的编程代码
+JavaScript是一种轻量级的编程语言
+JavaScript是一种服务于网页交互的前端编程语言
+
+HTML 定义了网页有哪些元素
+CSS 定义了网页元素如何呈现
+JS 定义了网页元素如何与用户产生交互
+
+实践
+step1 加载html元素 定义网页元素构成
+step2 加载css文件 渲染元素样式(这里用一个icon表示)
+step3 加载js文件 执行用户交互(点击鼠标 加载图片)
+
+总结
+HTML CSS JS是前端开发必备基础技能
+HTML 定义了网页有哪些元素
+CSS 定义了网页元素如何呈现
+JS 定义了网页元素如何与用户产生交互
+
+后端开发需求
+1.精通Python
+2.熟悉MVC架构 精通Django或者其他Python Web开发框架者优先
+3.具备数据库设计能力 精通掌握MySql/MongoDB者优先
+4.熟悉Linux操作系统 熟悉Apache/Tomcat/Nigix等WebServer的部署和应用
+5.有大型网络数据挖掘 在高并发 高稳定性方面有经验者优先
+6.具备良好的编码习惯及开发文档书写习惯
+7.具有优秀的团队合作和沟通协作能力 善于学习 乐于分享
+8.了解支付业务 了解或熟悉HTML CSS JavaScript等前端技术优先
+
+后端开发特点 技术变更快 知识面要广 结合业务
+技术变更快 编程语言 行业 项目
+知识面要广
+1.前端 后端 前后端结合/分离
+2.大数据 分布式
+3.数据库 关系型/非关系型
+4.操作系统 开源项目
+结合业务 逻辑设计 实现 优化 部署
+
+web框架 flask django web.py web2py
+数据库 mysql redis mongo
+数据处理 pandas numpy scipy sklearn
+业务框架 spark hadoop AWS docker
+
+flask 一个最小的应用
+from flask import flask
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+return 'welcome to flask world'
+if __name__ == '__main__';
+app.run()
+把它保存为wel.py 然后用Pyghon解释器来运行 确保你的应用文件名不是flask.py
+因为这将与Flask本般冲突
+$ python wel.py
+
+Python 概念与特点
+解释型 面向对象 动态数据类型的高级程序设计语言
+目前有两个大版本 2.7和3.x
+语言轻量化 依赖python包做开发
+生态库完善
+
+Python数据结构
+了解Python的基础数据结构
+重点掌握Python中的str list tuple set dict
+高级特性简单介绍
+字符串 str unicode
+>>> a_str = 'adbc'
+>>> type(a_str)
+<type 'str'>
+>>> 
+>>> a_u = u'adbc'
+>>> type(a_u)
+<type 'unicode'>
+
+列表 list tuple set
+字典 dict
+>>> a_list = [1,2,3,4]
+>>> type(a_list)
+<type 'list'>
+>>> a_tuple = (1,2,3,4)
+>>> type(a_tuple)
+<type 'tuple'>
+>>> a_set=set([1,2,3])
+>>> type(a_set)
+<type 'set'>
+>>> a_list
+[1, 2, 3, 4]
+>>> a_tuple
+(1, 2, 3, 4)
+>>> a_list.append(1)
+>>> a_list
+[1, 2, 3, 4, 1]
+>>> a_set
+set([1, 2, 3])
+>>> a_list = [1,2,1]
+>>> a_list
+[1, 2, 1]
+>>> a_set = set(a_list)
+>>> a_set
+set([1, 2])
+>>> 
+>>> a_dict = {'1','2'}
+>>> a_dict
+set(['1', '2'])
+>>> a_dict.keys()
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+AttributeError: 'set' object has no attribute 'keys'
+>>> 
+>>> a_dict = {'1':'a','2':'b'}
+>>> a_dict
+{'1': 'a', '2': 'b'}
+>>> a_dict.keys()
+['1', '2']
+>>> a_dict.values()
+['a', 'b']
+
+python中的高级特性 生成器 迭代器 切片
+>>> for i in xrange(10):
+...     print i #注意要空格
+... 
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+>>> for i in range(10):
+...     print i
+... 
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+>>> a_list
+[1, 2, 1]
+>>> a_list = range(10)
+>>> a_list
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+>>> a_list[5:7]
+[5, 6]
+>>> a_list[-2:]
+[8, 9]
+
+认识编程模型
+语言层面 函数式 面向对象
+框架层面 actor socket map reduce
+应用 spark hadoop
+
+函数式编程 把运算过程尽量写成一系列嵌套的函数调用
+函数就是面向过程的程序设计的基本单元
+一等公民 功能地位与数据变量一样
+
+函数式
+def 自定义函数
+lambda 匿名函数
+functools partial 函数封装
+functools wraps 装饰器
+
+函数式
+Python 中的函数式 自定义函数
+def hi(name=''):
+    print 'hello,{}'.format(name)
+	return None
+	
+	hi()
+	
+	hi('everyone')
+	
+	
+	func = lambda x:x**2
+	func(20)
+	
+	a_list = range(10)
+	
+	map(func, a_list)
+	map(lambda x: x**2, a_list)
+	
+Python web应用程序结构
+了解python web开发框架
+熟悉flask web开发框架
+熟悉python flask web开发标准
+
+python web 开发框架
+首先 三者都是非常好的框架 没有最好 只有最合适
+flask 简单 轻量 灵活性大
+django 简单 比flask重 灵活性没有flask好 但时间长
+web.py 简单 轻量 但不会再积极维护了
+
+cd /opt/app/flask
+easy_install flask
+vi 2.4.py
+#coding=utf-8
+from flask import Flask # 导出Flask类
+app = Flask(__name__)   # 生成一个 web app 对象
+
+@app.route('/')         # 注册一个url 表示当请求url + '/' 这个网址时 执行wel这个函数
+def hello_world();
+    return 'wel'
+
+if __name__ == '__main__';
+    app.run()              # 启动这个app应用
+	                       # 相关参数 app.run(host=None, port=None, debug=None, ***options)
+						   # host默认是127.0.0.1  port默认是5000
+					
+熟悉flask web开发框架 http://docs.jinkan.org/docs/flask/index.html
+
+熟悉python flask web开发标准
+目录结构 配置 发布 资源 日志 测试
+前端后端协作 整体发布 分离发布
+
+Python 技巧介绍
+了解一些python中的技巧
+掌握常见的python技巧
+
+python中的常见技巧
+匿名函数 列表/字典推导式 列表/字典解析式 函数为第一公民的应用
+
+Python Web开发框架对比
+Flask 
+Django Python中做web开发历史比较长的框架
+Web.py Python中做web框架比较轻量的框架
+
+Flask 
+创建于2010年 项目吸取了很多前辈的优势 同时又有自身特色
+轻量 灵活 功能丰富 配置简单
+社区活跃 关注度超过django
+
+Django
+发布于2006年 历史比较长
+功能全面 有自己的一套开发 配置规则
+没有flask轻量和灵活 但历史长 用户也不少
+
+Web.py
+发布于2008年左右 历史稍长
+商业化实践没有flask和django多
+web.py 仅仅是一个框架 周边插件比较少
+
+Python Flask框架使用
+一个最小的Flask程序分析
+如何编写一个Flask应用
+如何调试Flask应用
+
+如何编写一个Flask应用
+选择技术框架 数据库 开发模式 部署模式 应用拆分等等
+设计 实现后端接口
+
+如何编写一个Flask应用 图书馆为例
+主页信息 获取书籍信息 获取学生借阅信息
+
+@app.route('/')
+def home_page():
+    return 'data of home page'
+
+@app.route('/books')
+def books():
+    return 'all books list'
+
+@app.route('/book/<string: book_id>')
+def book(book_id):
+    return 'return data of a book: {}'.format(book_id)
+
+@app.route('/students')
+def students():
+    return 'all students list'
+	
+@app.route('/student/<string: student_id>')
+def student(student_id):
+    return 'return data of a student : {}'.format(student_id)
+	
+如何调试Flask应用
+设置app.run(debug=True)  打印log
+本地开发可以直接在应用里使用断点调试
+
+实现上课的图书馆例子
+图书馆主页
+书籍管理 书单 每本书的详情
+学生管理 学生列表 每个学生的详情
+
+接口与逻辑分开设计
+
+@app.route('/')
+def home_page():
+    home_data = logic.get_home()
+	return home_data
+	
+@app.route('/books') #接口部分 定义了接口名字  接口方法 返回的数据结构
+def books():
+    books_data = logic.get_books() # 逻辑部分 封装了数据库  序列化 逻辑处理等操作
+	return books_data
+	
+	@app.route('/book/<string: book_id>')
+	def book(book_id):
+	    book_data = logic.get_book(book_id)
+		return book_data
+	
+	@app.route('/students')
+	def students():
+	    students.data = logic.get_students()
+		return students.data
+	
+	@app.route('/student/<string: student_id>')
+	def student(student_id):
+	    student_data = logic.get_student(student_id)
+		return student_data
+	
+	vi logic.py
+	#coding=utf-8
+	def get_home():
+	    # 获取图书馆主页资料 一般是读取数据库或者缓存系统
+		return 'data of home page'
+		
+	def get_books():
+	    # 获取图书馆所有书籍列表 一般是读取缓存系统
+		return 'list of books basic info'
+		
+	def get_book(book_id):
+	    # 获取某一本书的详细信息 一般是读取数据库 如果书籍比较热门的话 一般可以读取取缓存系统
+		return 'datailed info of book : {}'.format(book_id)
+	
+	def get_students():
+	    # 获取学生列表 一般是读取数据库
+		return 'list of student basic info'
+	
+	def get_student(student_id):
+	    #获取某一个学生的详细信息 一般是读取数据库
+		return 'datailed info of student: {}'.format(student_id)
+	
+	views.py 接口逻辑
+	logic.py 逻辑处理
+	run.py 应用发布
+	
+	前端开发介绍
+	认识前端开发三把瑞士军刀
+	一个简单的实例
+	熟悉前端开发调试方法
+	
+	前端简单的实例 显示当前时间
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+	    <title>实时报时</title>
+		<meta charset="UTF-8">
+	</head>
+	<body>
+	    <div><p>当前时间:</p><p id="time"></p></div>
+	</body>
+	
+	<script type="text/javascript">
+	    document.getElementById("time").textContent = Date();
+	</script>
+	</html>
+	
+	熟悉前端开发调试方法 无调试 不开发
+	没有不经过调试就上线的系统
+	调试能力和开发能力一样重要
+	TDD Test Driven Develop 测试驱动开发
+	
+	熟悉前端开发技术 HTML CSS JS
+	增强型例子实践
+	显示当前时间
+	颜色 布局 中间显示 字体颜色不一样
+	整个页面刷新
+	仅仅时间元素刷新
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+	    <title>实时报时2</title>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" href="./4.2.css">
+		<script src="./4.2.js"></script>
+	</head>
+	
+	<body>
+	    <div id="container">
+		    <button onclick="start_time()" id="start">开始</button>
+			<p id="prefix">当前时间:</p><p id="time"></p>
+		</div>
+	</body>
+	<script type="text/javascript">
+	    var refresh_id = 0;
+		function start_time() {
+		    var button = document.getElementById('start');
+			if (button.textContent == "开始") {
+			    refresh_id = setInterval('refresh_time()', 1);
+				button.textContent = "停止";
+			} else {
+			    button.textContent = "开始";
+				clearInterval(refresh_id);
+			}
+		}
+	</script>
+	</html>
+	
+	4.2.css
+	#container {
+	    margin-top: 200px;
+		margin-left: 500px;
+	}
+	#prefix {
+	    font-weight: bold;
+		color: blue;
+	}
+	#time {
+	    color: red;
+	}
+	
+js
+function refresh_time()
+{
+	var time = new Date();
+    document.getElementById('time').textContent = time.toISOString();
+}
+
+前后端分离技术基础
+熟悉前后端分离理念及设计模式
+介绍课程案例及课程完整的开源项目
+前端 后端分开开发 各自持续集成 分离上线
+前后端架构的协作可以靠配置文件完成
+
+应用设计
+前端设计
+整体结构上采取 侧边栏 + 主体内容
+主页 当前dashboard列表
+sql 暂时不实现 可以看原版的 本案例中跳转到主页
+help 跳转到github issues页面 可以在该页面提问题
+后端设计
+整体上采用Python + Flask + Redis 来作为后端技术栈
+一个页面一个模块实现
+抽取公用的API作为一个公用的服务
+http://ued.iliunian.com/?p=570
+https://github.com/litaotao/IPython-Dashboard #开源项目
+
+启动后台应用
+redis-server
+python run.py
+
+熟悉常见的应用发布 维护方式
+python应用的发布工具 常见的CI CD流程和工具
+setup.py打包 pip安装/卸载
+github hooks, travis, jenkins工具介绍

@@ -133,3 +133,57 @@ python setup.py install
 wget https://pypi.python.org/packages/source/p/pip/pip-1.3.1.tar.gz --no-check-certificate   
 tar -zxvf pip-1.3.1.tar.gz 
 python pip-1.3.1/setup.py install
+
+[root@localhost ~]# pip install ansible
+Downloading/unpacking ansible
+
+Ansbile源码安装
+获取源码(github)  解压源码 进入源码目录 运行source ./hacking/env-setup
+
+Ansbile系统源安装
+centos  yum install ansible
+ubuntu
+apt-get install software-properties-common
+apt-add-repository ppa:ansible/ansible
+apt-get update
+apt-get install ansible
+
+Ansbile配置文件路径
+export ANSIBLE_CONFIG
+./ansible.cfg
+~/.ansible.cfg
+/etc/ansible/ansible.cfg
+
+Ansbile配置详解
+defaults默认配置项
+privilege_escalatiion执行命令的用户权限设置
+paramiko_connection paramika插件设置
+ssh_connection ssh连接设置
+accelerate
+selinux & colors
+ask_pass & ask_sudo_pass
+ask_pass 可以控制 Ansbile剧本playbook是否会自动默认弹出弹出密码
+ask_sudo_pass 用户使用的系统平台开启了sudu密码的话 应该开启这一参数
+gather_subset 设置收集的内容 包括all network hardware virtual facter ohai
+remote_port&remote_tmp&remote_user 客户机的设置 分别对登录的用户和端口 以及临时目录
+sudo_exe&sudo_flags&sudo_user sudo命令相关设置 分别是sudo命令路径 sudo参数能够使用sudo的user
+action_plugins&callback_plugins&connection_plugins&filter_plugins&lookup_plugins&vars_plugins
+开发者中心的插件相关功能 开发者可以开发相应的插件 来完成自己的功能
+分别对应的功能为 激活事件 回调 连接 过滤器 加载路径 任何地方加载
+forks 最大开辟的进程数 这个数不易过大 过大性能耗费高 不易过小
+过小的话 并发性能低 一般的设置方法是cpu核数*2
+
+module_name 这个是/usr/bin/ansible的默认模块名(-m) 默认是command模块
+之前提到过 command模块不支持shell变量 管道 配额 所以也许你希望把这个参数改为 shell
+vault_password_file 这个文件也可以称为一个脚本的形式 如果你使用脚本而不是单纯文件的话
+请确保它可以执行并且密码可以在标准输出上打印出来 如果你的脚本需要提示请求数据
+请求将会发到标准错误输出中
+
+pattern 如果没有提供hosts节点 这是playbook要通信的默认主机组
+默认值是对所有主机通信 如果不想被惊吓到 最好还是设置个个选项
+inventory&library 分别存放可通信主机的目录和Ansible默认搜寻模块路径
+
+yum install git
+git -v
+git clone https://github.com/ansible/ansible.git
+source hacking/env-setup
