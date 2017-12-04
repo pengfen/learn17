@@ -1,0 +1,156 @@
+python装饰器
+1.函数作用域LEGB
+2.闭包理解与使用
+3.装饰器
+
+LEGB
+L local函数内部作用域
+E enclosing函数内部与内嵌函数之间
+G global全局作用域
+B build-in内置作用域
+
+vi func.py
+passline = 69
+def func(val):
+    passline = 90 #局部作用域
+    if val >= passline:
+	    print('pass')
+	else:
+	    print('failed')
+	def in_func(): #内部函数
+	    print(val)
+	in_func()
+
+def Max(val1, val2):
+    return max(val1, val2)
+func(89)
+print(Max(90, 100))
+python func.py
+
+Python 闭包
+闭包概念
+Closure 内部函数中对enclosing作用域的变量进行引用
+
+函数实质与属性
+1.函数是一个对象
+2.函数执行完成后内部变量回收
+3.函数属性
+4.函数返回值
+#coding:utf-8
+passline = 60 #100分的及格线
+def func(val):
+    passline = 90 #150分及格线
+	print('%x'%id(val))
+	if val >= passline:
+	    print('pass')
+	else:
+	    print('failed')
+	def in_func:
+	    print(val)
+	in_func()
+	return in_func
+
+f = func(89)
+f() #in_func
+print(f.__closure__)
+
+#coding=utf-8
+def func_150(val):
+    passline = 90
+	if val >= passline:
+	    print('%d pass'%val)
+	else:
+	    print('failed')
+def func_100(val):
+    passline = 60
+	if val >= passline:
+	    print('%d pass'%val)
+	else:
+	    print('failed')
+func_100(89)
+func_150(89)
+def set_passline(passline): #passline = 60
+    def cmp(val):
+	    if val >= passline:
+		    print('pass')
+		else:
+		    print('failed')
+	return cmp
+f_100 = set_passline(60)
+print(type(f_100))
+print(f_100.__closure__)
+f_100(59)
+f_100(89)
+
+闭包作用 封装 代码复用
+vi arg.py
+#coding:utf-8
+def my_sum(*arg):
+    if len(arg) == 0: #判断长度
+	    return 0
+	for val in arg:
+	    if not isinstance(val, int): #判断元素类型是否为整型
+		    return 0
+    return sum(arg)
+def my_average(*arg):
+    if len(arg) == 0: #判断长度
+	    return 0
+	for val in arg:
+	    if not isinstance(val, int):
+		    return 0
+    return sum(arg)/len(arg)
+
+print(my_sum(1,2,3,4,5))
+print(my_average(1,2,3,4,5))
+print(my_sum(1,2,3,4,5,'6')
+print(my_average())
+
+def dec(func):
+    def in_dec(*arg):
+	    if len(arg) == 0:
+		    return 0
+		for val in arg:
+		    if not isinstance(val, int):
+			    return 0
+		return func(*arg)
+	return in_dec
+#my_sum = in_dec(*arg)
+my_sum = dec(my_sum)
+
+Python装饰器
+1.装饰器用来装饰函数
+2.返回一个函数对象
+3.被装饰函数标识符指向返回的函数对象
+4.语法糖 @deco
+#coding:utf-8
+def dec(func):
+    def in_dec(*arg):
+	    if len(arg) == 0:
+		    return 0
+		for val in arg:
+		    if not isinstance(val, int):
+			    return 0
+		return func(*arg)
+	return in_dec
+
+@dec
+def my_sum(*arg)
+    return sum(arg)
+my_sum(1,2,3,4,5)
+def my_average(*arg)
+    return sum(arg)/len(arg)
+	
+def deco(func):
+    def in_deco(x,y):
+	    print("in deco")
+		func(x, y)
+	print('call deco')
+	return in_deco
+#deco(bar) --> in_deco
+#bar = in_deco
+#bar() in_deco() bar()
+@deco
+def bar(x,y)
+    print('in bar', x+y)
+print(type(bar))
+bar(1,2)
