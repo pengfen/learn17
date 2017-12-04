@@ -1,0 +1,41 @@
+python 错误和异常
+错误和异常概念
+常见的错误
+异常处理 try_except使用及else使用 截获异常 try_finaly使用 异常处理综合使用
+with...as语句与上下文管理
+标准异常和自定义异常
+raise和assert语句
+错误和异常概念
+异常 执行过程中出现问题导致程序无法执行
+1.程序遇到逻辑或者算法问题
+2.运行过程中计算机错误(内存不够或者IO错误)
+错误
+代码运行前的语法或者逻辑错误
+语法错误在执行前修改 逻辑错误无法修改
+
+异常分为两个步骤
+1. 异常产生 检查到错误且解释器认为是异常 抛出异常
+2. 异常处理 截获异常 忽略或者终止程序处理异常
+
+try-except 异常处理
+try:
+    try_suite
+except Exception [e]:
+    exception_block
+1.try用来捕获try_suite中的错误 并且将错误交给except处理
+2.except用来处理异常 如果处理异常和设置捕获异常一致 使用exception_block处理异常
+
+vi error.py
+import random
+
+num = random.randint(0, 100)
+while True:
+    guess = int(raw_input('Enter 1~100'))
+	if guess > num:
+	    print "guess bigger:",guess
+	elif guess < num:
+	    print "guess Smaller:",guess
+	else:
+	    print "Guess Ok,Game Over"
+		break
+	print "\n"
