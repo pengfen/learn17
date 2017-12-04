@@ -5,3 +5,4 @@
 5.html python操作数据库
 6.html python在数据科学中的应用
 7.html python错误和异常
+8.html python数据分析
