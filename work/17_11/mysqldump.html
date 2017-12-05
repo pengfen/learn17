@@ -1,0 +1,12 @@
+问题 c6发布提示模型不存在
+
+1.c6 上重新备份数据
+mysqldump -uroot -p database_name table_name > my.sql #备份某库中某表
+mysqldump -uroot -p --all-databases > my.sql #备份所有数据库
+mysqldump -uroot -p --databases db1 db2 > my.sql #备份指定数据库
+
+2.将c6上的备份文件拉到本地 get6 (scp -2 -P 22 jim@192.168.0.6:~/my.sql .)
+
+3.导入数据 my <my.sql
+
+4.重新push
