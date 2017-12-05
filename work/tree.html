@@ -38,6 +38,74 @@ $tree[] = $v;
 return $tree;
 }
 
+public function test_list() {
+$info = $this->t_company_wx_department->get_all_list();
+
+// 生成树节点
+$info = $this->genTree($info, 0);
+dd($info);
+
+// 获取某节点的所有父节点
+//$info = $this->get_parent_node($info,74);
+
+// 获取某节点的所有子节点
+$info = $this->get_child_node($info, 74);
+dd($info);
+}
+
+public function genTree($data,$pid) {
+$tree = '';
+foreach($data as $k => $v)
+{
+if($v['pId'] == $pid)
+{
+$v['children'] = $this->genTree($data, $v['id']); // 找子节点
+
+// if (isset($users[$v['id']])) {
+//     $v['users'] = $users[$v['id']];
+// }
+$tree[] = $v;
+}
+}
+return $tree;
+}
+
+public function get_parent_node($data, $parent) {
+foreach($data as $k => $v) {
+if ($parent == 0) {
+return $parent;
+}
+if ($v['id'] == $parent) {
+$parent .= '-'.$this->get_parent_node($data, $v['pId']);
+break;
+}
+}
+return $parent;
+}
+
+public function get_child_node($data, $child) {
+$tree = [];
+foreach($data as $k => $v) {
+if ($v['pId'] == $child) {
+$ret = $this->get_child_node($data, $v['id']);
+// if (is_array($ret)) { // 数组方式显现
+//     $tree[] = $v;
+//     $tree = array_merge($tree, $ret);
+// } else {
+//     $tree[] = $v;
+// }
+if ($ret) {
+$tree[] = $v['id'];
+$tree = array_merge($tree, $ret);
+} else {
+$tree[] = $v['id'];
+}
+}
+}
+return $tree;
+}
+
+
 js树
 <link href="/ztree/zTreeStyle.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="/ztree/jquery.ztree.all.min.js"></script>
