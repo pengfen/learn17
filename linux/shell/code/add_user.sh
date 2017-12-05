@@ -48,7 +48,6 @@ id user6 || useradd user6
 [root@localhost work]# echo `wc -l /etc/inittab | cut -d' ' -f1` #以空格区分
 17
 
-
 变量名称 
     1.只能包含字母 数字和下划线 并且不能数字开头 
 	2.不应该跟系统中已有的环境变量重名
