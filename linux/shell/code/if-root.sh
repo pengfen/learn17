@@ -6,6 +6,7 @@
 #root
 
 # = 前后不能加空格
+#cut -d 用来定义分隔符，默认为tab键
 test=$(env | grep "USER" | cut -d "=" -f2)
 echo $test;
 # [] 前后需要加空格
