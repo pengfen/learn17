@@ -1,0 +1,215 @@
+grep sed(流编辑器) awk
+
+sed基本用法
+sed 行编辑器(全屏编辑器 vi)
+
+sed 模式空间
+默认不编辑原文件 仅对模式空间中的数据做处理 而后 处理结束后 将模式空间打印至屏幕
+
+sed [options] 'AddressCommand' file ...
+-n 静默模式 不再默认显示模式空间中的内容
+-i 直接修改原文件
+-e SCRIPT -e SCRIPT: 可以同时执行多个脚本
+-f /PATH/TO/SED_SCRIPT (sed -f /path/to/scripts file)
+-r 表示使用扩展正则表达式
+
+Address
+1. StartLine,EndLine
+    比如1,100
+	$ 最后一行
+2. /RegExp/
+    /^root/
+3. /pattern1/,/pattern2/
+    第一次被pattern1匹配到的行开始 至第一次被pattern2匹配到的行结束 这中间的所有行
+4. LineNumber 指定的行
+5. StartLine, +N
+    从startLine开始 向后的N行
+
+Command
+    d: 删除符合条件的行
+	p: 显示符合条件的行
+	a \string: 在指定的行后面追加新行 内容string
+	\n: 可以用于换行
+	i \string: 在指定的行前面添加新行 内容为string
+	r FILE: 将指定的文件的内容添加至符合条件的行处
+	w FILE: 将地址指定的范围内的行另存至指定的文件中
+	s/pattern/string/修饰符 查找并替换 默认只替换每行中第一次被模式匹配到的字符串
+	    加修饰符
+		g: 全局替换
+		i: 忽略字符大小写
+	s///: s###, s@@@
+	\(\), \1, \2,
+	
+	1...e: like--->liker
+	       love--->lover
+		   
+		   like--->Like
+		   love--->Love
+	
+	& 引用模式匹配整个串
+	
+sed练习
+1. 删除/etc/grub.conf文件中行首的空白符
+sed -r 's@^[[:spapce:]]+@@g' /etc/grub.conf
+2. 替换/etc/inittab文件中"id:3:initdefault:"一行中的数字为5:
+sed 's@\(id:\)[0-9]\(:initdefault:\)@\15\2@g' /etc/inittab
+3. 删除/etc/inittab文件中的空白行
+sed '/^$/d' /etc/inittab
+4. 删除/etc/inittab文件中开头的#号
+sed 's@^#@@g' /etc/inittab
+5. 删除某文件中开头的#号 但要求#号后面必须有空白字符
+sed -r 's@^[[:space:]]+@@g' /etc/inittab
+6. 删除某文件中以空白字符后面跟#类的行中的开头的空白字符及#
+sed -r 's@^[[:space:]]+@@g' /etc/inittab
+7. 取出一个文件路径的目录名称
+echo "/etc/rc.d/" | sed -r 's@^(/.*/)[^/]+/?@\1@g'
+基名
+echo "/etc/rc.d/" | sed -r 's@^/.*/([^/]+)/?@\1@g'
+
+练习
+传递一个用户名参数给脚本 判断此用户的用户名跟其基本组的组名是否一致 并将结果显示出来
+字符测试
+= 两边有空格 否则会被判定为赋值
+==
+!= 测试是否不等 不等为真 等为假
+>
+<
+-n string 测试指定字符串是否为空 空则真 不空则假
+-s string 测试指定字符串是否不空 不空为真 空则为假
+
+#!/bin/bash
+
+if ! id $1 &> /dev/null; then
+    echo "没有此用户"
+    exit 10
+fi
+
+if [ `id -n -u $1` == `id -n -g $1` ]; then
+    echo "一样"
+else
+    echo "不一样"
+fi
+chmod +x first.sh
+./first.sh root
+./first.sh user1
+groupadd welcome
+useradd -g welcome wel
+./first.sh wel
+
+练习 写一个脚本
+传递一个参数(单字符就行)给脚本 如参数为q 就退出脚本 否则 就显示用户的参数
+
+练习 写一个脚本
+传递一个参数(单字符就行)给脚本 如参数为q Q quit或Quit 就退出脚本 否则 就显示用户的参数
+#!/bin/bash
+
+if [ $1 = 'q' ]; then
+    echo "Quiting ..."
+	exit 1
+elif [ $1 = 'Q' ]; then
+    echo "Quiting ..."
+	exit 2
+elif [ $1 = 'quit' ]; then
+    echo "Quiting ..."
+	exit 3
+elif [ $1 = 'Quit' ]; then
+    echo "Quiting ..."
+	exit 4
+else
+    echo $1
+fi
+
+练习
+传递三个参数给脚本 第一个为整数 第二个为算术运算符 第三个为整数 将计算结果显示出来 要求保留两位精度 形如
+./calc.sh 5/2
+echo "scale=2;111/22;" | bc
+bc <<< "scale=2;111/22;"
+
+练习
+传递3个参数给脚本 参数均为用户名 将这些用户的账号信息取出来后放置于/tmp/testusers.txt文件中 并要求每一行行首有行号
+echo "1 $LINE" >> /tmp/testusers
+echo "2 $LINE" >> /tmp/testusers
+
+写一个脚本
+判断当前主机的CPU生产商 其信息在/proc/cpuinfo文件中vendor id一行中
+如果其生产商为AuthenticAMD 就显示其为AMD公司
+如果其生产商为GenuineIntel 就显示其为Intel公司
+否则 就说其为非主流公司
+
+写一个脚本
+给脚本传递三个整数 判断其中的最大数和最小数 并显示出来
+MAX=0
+MAX -eq $1
+MAX=$1
+MAX -lt $2
+MAX=$2
+
+循环 进入条件 退出条件
+1, ... ,100
+for
+while
+until
+
+for 变量 in 列表; do
+    循环体
+done
+
+for I in 1 2 3
+    加法运算
+done
+
+遍历完成之后 退出
+
+如何生成列表
+[1 ... 100]
+`seq [起始数 [步进长度]] 结束数`
+1, ... ,100
+
+#!/bin/bash
+
+declare -i SUM=0
+for I in [1..100]; do
+    let SUM=$[$SUM+$I]
+done
+
+echo "和是: $SUM"
+
+wc -l /etc/passwd
+LINES=`wc -l /etc/passwd | cut -d' ' -f1`
+for I in `seq 1 $LINES`; do
+    echo "wel, " `head -n $I /etc/passwd | tail -1 | cut -d: -f1`
+done
+
+写一个脚本
+1. 设定变量FILE的值为/etc/passwd
+2. 依次向/etc/passwd中的每个用户问好 并显示对方的shell 形如
+    wel, root, you shell: /bin/bash
+3. 统计一共有多少个用户
+
+只向默认shell为bash的用户问好
+
+写一个脚本
+1. 添加10个用户user1到user10 密码同用户名 但要求只有用户不存在的情况下才能添加
+
+扩展
+接受一个参数
+add 添加用户user1 ... user10
+del 删除用户user1 ... user10
+其它 退出
+
+写一个脚本
+计算100以内所有能被3整除的正整数的和
+取模 取余%
+3%2=1
+100%55=45
+
+写一个脚本
+计算100以内所有奇数的和以及所有偶数的和 分别显示之
+
+写一个脚本 分别显示当前系统上所有默认shell为bash的用户和默认shell为/sbin/nologin的用户
+并统计各类shell下的用户总数 显示结果形如
+BASE, 3users, they are:
+root,redhat,gentoo
+
+NOLOGIN, 2users, they are:
+bin,ftp
