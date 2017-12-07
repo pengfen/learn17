@@ -138,3 +138,49 @@ js树
     for (var i = 0; i < nodes.length; i ++) {
     // 处理节点
     }
+
+    $("#id_show_power").on("click",function(){ // 显示有权限部分
+    var treeObj = $.fn.zTree.getZTreeObj('treeDemo');
+    var nodes = treeObj.getCheckedNodes(false);
+    //alert(nodes.length);
+    for (var i = 0; i < nodes.length; i ++) {
+    if (nodes[i].isParent) {
+    var child = nodes[i].children;
+    var flag = true;
+    for (var j = 0; j < child.length; j ++) {
+    if (child[j].checked == true) {
+    flag = false;
+    break;
+    }
+    if (child[j].isParent && child[j].checked == false) {
+    var three = child[j].children;
+    for(var k = 0; k < three.length; k ++) {
+    if (three[k].checked == true) {
+    flag = false;
+    break;
+    }
+    }
+    }
+    }
+    if (flag == true) {
+    treeObj.hideNode(nodes[i]);
+    }
+    } else {
+    treeObj.hideNode(nodes[i]);
+    }        
+    }
+    });
+
+    $("#id_show_all_power").on("click",function(){ // 显示所有权限
+    var treeObj = $.fn.zTree.getZTreeObj('treeDemo');
+    var nodes = treeObj.getNodesByParam("isHidden", true);
+    treeObj.showNodes(nodes);
+    treeObj.expandAll(true);
+    })
+
+// 展开某一父节点下所有子节点
+    var treeObj = $.fn.zTree.getZTreeObj("tree");
+    var nodes = treeObj.getSelectedNodes();
+    if (nodes.length>0) {
+	  treeObj.expandNode(nodes[0], true, true, true);
+    }

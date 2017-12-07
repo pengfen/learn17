@@ -1,0 +1,31 @@
+1. 编写job
+cd app/Jobs
+namespace App\Jobs;
+
+use App\Jobs\Job;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use \App\Helper\Config as Config;
+use Illuminate\Support\Facades\Redis;
+
+class update_company_wx_data extends Job implements ShouldQueue
+{
+use InteractsWithQueue, SerializesModels;
+
+public function handle() {
+//处理逻辑
+}
+}
+
+2. 调用job
+dispatch( new \App\Jobs\update_company_wx_data());
+
+3. 监听job
+/var/www/admin.yb1v1.com/artisan queue:work --sleep=3 --tries=3 --daemon
+
+4. 查看输出日志
+cd storage/logs
+tail -f ...log
+
+5. 调用方法
