@@ -68,3 +68,55 @@ grep [选项] 字符串 文件名 #在文件当中匹配符合条件的字符串
 find 命令与 grep 命令的区别
 find 命令 在系统当中搜索符合条件的文件名 如果需要匹配 使用通配符匹配 通配符是完全匹配
 grep 命令 在文件当中搜索符合条件的字符串 如果需要匹配 使用正则表达式进行匹配 正则表达式时包含匹配
+
+grep egrep fgrep 文本查找
+文件查找
+locate 非实时 模糊匹配 查找是根据全系统文件数据库进行的
+# updatedb 手动生成文件数据库 速度快
+find 实时 精确 遍历指定目录中的所有文件完成查找 速度慢
+支持众多查找标准
+
+find 查找路径 查找标准 查找到以后的处理运作
+查找路径 默认为当前目录
+查找标准 默认为指定路径下的所有文件
+处理运作 默认为显示
+
+匹配标准
+    -name 'FILENAME' 对文件名作精确匹配
+	文件名通配
+	* 任意长度的任意字符
+	?
+	[]
+-iname 'FILENAME' 文件名匹配时不匹分大小写
+-regex PATTERN 基于正则表达式进行文件名匹配
+-user USERNAME 根据属主查找
+-group GROUPNAME 根据属组查找
+-uid UID 根据UID查找
+-gid GID 根据GID查找
+-nouser 查找没有属主的文件
+-nogroup 查找没有属组的文件
+-type
+    f 普通文件
+	d
+	c
+	b
+	l
+	p
+	s
+
+-size k M G
+
+组合条件 -a -o -not
+
+/tmp目录 不是目录 并且还不能套接字类型的文件
+/tmp/test目录下 属主不是user1 也不是user2的文件
+
+--perm MODE 精确匹配
+/MODE 任意一位匹配即满足条件
+-MODE 文件权限能完全包含此MODE时才符合文件
+
+-644
+644 rw-r--r--
+755 rwxr-xr-x
+750 rwxr-xr--
+find ./ -perl -001

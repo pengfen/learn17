@@ -119,6 +119,16 @@ else
     echo $1
 fi
 
+#!/bin/bash
+
+if [ $1 == 'q' -o $1 == 'Q' -o $1 == 'Quit' -o $1 == 'quit' ]; then
+    echo "Quiting..."
+	exit 0
+else
+    echo "未知参数"
+	exit 1
+fi
+
 练习
 传递三个参数给脚本 第一个为整数 第二个为算术运算符 第三个为整数 将计算结果显示出来 要求保留两位精度 形如
 ./calc.sh 5/2
@@ -196,7 +206,102 @@ done
 add 添加用户user1 ... user10
 del 删除用户user1 ... user10
 其它 退出
+adminusers --add user1,user2,user3
 
+#!/bin/bash
+
+for I in (1..10); do
+    if id user$I &> /dev/null; then
+	    echo "user$I exists."
+	else
+	    useradd user$I
+		echo user$I | passwd --stdin user$I &> /dev/null
+		echo "Add user user$I finished."
+	fi
+done
+
+#!/bin/bash
+
+for I in (1..10); do
+    if id user$I &> /dev/null; then
+	    userdel -r user$I
+		echo "Delete user$I finished."
+	else
+	    echo "user$I not exists."
+	fi
+done
+
+#!/bin/bash
+
+if [ $# -lt 1]; then
+    echo "Usage: adminusers ARG"
+	exit 7
+fi
+
+if [ $1 == 'add' ]; then
+    for I in (1..10); do
+	    if id user$I &> /dev/null; then
+		    echo "user$I exists."
+		else
+		    useradd user$I
+			echo user$I | passwd --stdin user$I &> /dev/null
+			echo "Add user$I finished."
+		fi
+	done
+elif [ $1 == '--del']; then
+    for I in (1..10); do
+	    if id user$I &> /dev/null; then
+		    userdel -r user$I
+			echo "Delete user$I finished."
+		else
+		    echo "No user$I."
+		fi
+	done
+else
+    echo "未知参数"
+	exit 8
+fi
+	
+#!/bin/bash
+
+echo $1
+for I in `sed 's/,/ /g'`; do
+    if id $1 &> /dev/null; then
+	    echo "$I exists."
+	else
+	    user $I
+		echo $I | passwd --stdin $I &> /dev/null
+		echo "add $I finished."
+	fi
+done
+
+#!/bin/bash
+
+if [ $1 == '--add' ]; then
+    for I in `echo $2 | sed 's/,/ /g'`; do
+	    if id $I &> /dev/null; then
+		    echo "$I exists."
+		else
+		    useradd $I
+			echo $I | passwd --stdin $I &> /dev/null
+			echo "add $I finished."
+		fi
+	done
+elif [ $1 == '--del' ]; then
+    for I in `echo $2 | sed 's/,/ /g'`; do
+	    if id $I &> /dev/null; then
+		    userdel -r $I
+		    echo "Delete $I finished."
+		else
+		    echo "$I not exists."
+		fi
+	done
+elif [ $1 == '--help' ]; then
+    echo "Usage: adminusers.sh --add USER1,USER2... | --del USER1,USER2... | --help"
+else
+    echo "未知参数"
+fi
+	
 写一个脚本
 计算100以内所有能被3整除的正整数的和
 取模 取余%
