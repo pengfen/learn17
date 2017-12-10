@@ -84,13 +84,15 @@ su laravel
 3 配置中国镜像(全局配置文件)
 composer config -g repo.packagist composer https://packagist.phpcomposer.com
 
-4 安装 laravel (默认安装5.0 加5.4会安装laravel5.4)
+4 安装 laravel (默认安装5.0 加5.4会安装laravel5.4) php版本不能太低(安装lnmp1.3以上)
 composer create-project --prefer-dist laravel/laravel laravel54 "5.4.*"
 
+su root
 nginx 修改nginx.conf配置文件
 vi /usr/local/nginx/conf/nginx.conf
 root /opt/laravel/laravel54/public;
 
+#注意这里注释掉不然 报错500 ，因为引入了php 配置，其中有句 try_files 开启就有报错
 #include enable-php.conf;
 
 #新增 支持laravel 优雅链接，在laravel 文档里有说明
@@ -113,7 +115,9 @@ location ~ \.php$ {
 [root@peng3 laravel54]# chmod -R 777 storage/
 [root@peng3 laravel54]# chmod -R 777 vendor/
 
-http://192.168.179.129/ # 页面访问
+lnmp restart
+http://192.168.179.133/ lnmp欢迎页
+http://192.168.179.129/index.php # 页面访问
 
 修改配置 .env
 APP_DEBUG=true
@@ -121,8 +125,8 @@ DB_DATABASE=laravel
 DB_USERNAME=root
 DB_PASSWORD=123456
 
-进入数据库 create database laravel5
+进入数据库 create database laravel
 php artisan migrate:install
 mysql -uroot -p
-use laravel5;
+use laravel;
 show tables;# 查看是否存在migrations表

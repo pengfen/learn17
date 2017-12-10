@@ -7,3 +7,4 @@ centos6.5.html   centos6安装
 centos7.html     centos7安装
 init.html        系统安装后初始化
 ip.html          配置IP
+ricky2.html      虚拟机ricky2的使用

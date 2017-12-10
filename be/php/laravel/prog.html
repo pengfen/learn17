@@ -24,8 +24,8 @@ php artisan make:migration create_articles_table;
 Schema::create('articles', function (Blueprint $table) {
     $table->increments('id')->comment('主键ID');
     // 设置标题长度为 100
-    $table->string('title', 100)->default()->comment('文章标题');
-    $table->text('content')->comment('文章内容');
+    $table->string('title', 100)->default('')->comment('文章标题');
+    $table->text('content')->default('')->comment('文章内容');
     $table->integer('user_id')->default(0)->comment('用户ID');
     $table->timestamps();
 });
