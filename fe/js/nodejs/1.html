@@ -1,0 +1,125 @@
+nodejs.cn 下载
+
+打开阿里云镜像
+
+tar -zxvf node-v8...
+[root@localhost download]# mv node-v8.9.0-linux-x64 /opt/app/node8
+[root@localhost bin]# ln -s /opt/app/node8/bin/node /usr/local/bin/node 
+[root@localhost bin]# node -v
+v8.9.0
+[root@localhost bin]# ln -s /opt/app/node8/bin/npm /usr/local/bin/npm
+[root@localhost bin]# npm -v
+5.5.1
+
+Node基础编程
+1.基于Chrome V8引擎
+2.单线程
+3.使用JavaScript开发后端代码
+4.非阻塞的IO
+
+演示Common规范
+创建一个Http Server
+创建一个Web容器 可以访问到HTML内容
+Http模块客户端演示
+
+var http = require("http");
+
+http.createServer(function(req, res) {
+    res.writeHead(200, {"Content-Type": "text/plain"});
+    res.write("welcome to nodejs");
+    res.end();
+}).listen(8000);
+console.log("nodejs start listen 8899 port!");
+
+[root@localhost code]# node test.js
+nodejs start listen 8899 port!
+
+vi User.js
+module.exports = {
+    userName:"ricky",
+    sayWel:function () {
+        return 'welcome to nodejs world';
+    }
+}
+
+vi test_user.js
+let user = require('./User');
+
+console.log(`用户名:${user.userName}`);
+
+console.log(`我是 ${user.userName},我说 ${user.sayWel()}`);
+
+node test_user.js
+[root@localhost code]# node test_user.js
+用户名:ricky
+我是 ricky,我说 welcome to nodejs world
+
+vi User.js
+exports.userName = "ricky";
+exports.sayWel = function () {
+    return "welcome to nodejs world";
+}
+node test_user.js
+[root@localhost code]# node test_user.js
+用户名:ricky
+我是 ricky,我说 welcome to nodejs world
+
+let http = require('http');
+
+http.createServer((req,res) => {
+    res.statusCode = 200;
+
+    res.setHeader("Content-Type","text/plain; charset=utf-8");
+
+    res.end("welcome to nodejs world");
+}).listen(8000, '192.168.179.134', ()=>{
+    console.log("服务器已经运行 请打开浏览器 http://192.168.179.134:8000");
+});
+
+[root@localhost code]# node test_user.js
+用户名:ricky
+我是 ricky,我说 welcome to nodejs world
+服务器已经运行 请打开浏览器 http://192.168.179.134:8000
+
+http://192.168.179.134:8000/
+
+let http = require('http');
+let url = require('url');
+let util = require('util');
+
+let fs = require('fs');
+
+let server = http.createServer((req,res)=>{
+    var pathname = url.parse(req.url).pathname;
+    fs.readFile(pathname.substring(1),function(err,data){
+        if(err) {
+            res.writeHead(404,{
+                'Content-Type':'text/html'
+            });
+        } else {
+            res.writeHead(200,{
+                'Content-Type':'text/html'
+            });
+            res.write(data.toString());
+        }
+        res.end();
+    });
+}).listen(8000, '192.168.179.134', ()=>{
+    console.log("服务器已经运行 请打开浏览器 http://192.168.179.134:8000");
+});
+
+http://192.168.179.134:8000/index.html
+
+[root@localhost code]# node test_out_html.js 
+服务器已经运行 请打开浏览器 http://192.168.179.134:8000
+
+搭建基于Express框架运行环境
+安装express generator生成器
+通过生成器自动创建项目
+配置分析
+cnpm -i -g express-generator
+cnpm i #安装依赖
+node bin/www
+
+
+
