@@ -1,0 +1,23 @@
+src/pages/index.vue
+export default {
+    components: {
+	    slideShow
+	},
+    created: function() {
+	    this.$http.post('api/getNewsList')
+		.then((res) => {
+		    this.newsList = res.data
+		}, (err) => {
+		    console.log(err)
+		})
+	},
+}
+
+config/index.js
+proxyTable: {
+    '/goods': {
+	    target:'http://localhost:3000'
+	}
+}
+
+
