@@ -16,3 +16,5 @@ php-mongo.html         php 操作mongo (mongo 语句对应php脚本)
 sql-mongo.html         sql到mongo的对应表
 mongo-distinct.html 
 php-ext.html           php-mongo 扩展安装
+
+1.html                 vue + nodejs + mongo

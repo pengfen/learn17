@@ -1,0 +1,119 @@
+mongoDB 高可扩展性 分布式存储 低成本 结构灵活
+
+下载安装包或者压缩包
+添加db存储和日志存储文件夹
+添加服务 配置环境变量 启动Mongo
+
+www.cnblogs.com/jacksoft/p/6910709.html
+https://pan.baidu.com/s/1mhPejwO
+
+wget https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-3.4.4.tgz
+tar -zxvf mongodb-linux-x86_64-3.4.4.tgz 
+[root@localhost download]# mv mongodb-linux-x86_64-3.4.4 /opt/app/mondodb
+
+cd mongoDB
+mkdir data
+mkdir logs
+cd logs
+touch mongo.log
+
+mkdir etc
+vi mongo.conf
+dbpath=/mongodb/data
+logpath=/mongodb/logs/mongo.log
+logappend=true
+journal=true
+quiet=true #测试时设为false 不过滤
+port=27017
+
+mongod -f /mongo/etc/mongo.conf
+ln -s /.../bin/mongo /usr/local/bin/mongo
+ln -s /.../bin/mongod /usr/local/bin/mongod
+
+show dbs #查看数据库
+use demo
+db.goods.insert({id:100,"name":"test it"})
+db.goods.find()
+
+MongoDB创建用户
+1.创建管理员
+2.授权认证
+3.给使用的数据库添加用户
+
+mongod -f mongo.conf
+mongo
+show dbs
+use admin
+db.createUser({user:"admin",pwd:"admin",roles:["root"]})
+db.auth("admin":"admin")
+
+use test
+db.createUser({user:"root",pwd:"123456",roles:[{role:"dbOwner",db:"test"}]})
+
+use dumall
+db.createUser({user:"root",pwd:"123456",roles:[{role:"dbOwner",db:"dumall"}]})
+
+MongoDB基本语法
+数据库对比
+SQL术语/概念  MongoDB术语/概念  解释/说明
+database      database          数据库
+table         collection        数据库表/集合
+row           document          数据记录行/文档
+column        field             数据字段/域
+index         index             索引
+table joins                     表连接MongoDB不支持
+primary key   primary key       主键 MongoDB自动将_id字段设置为主键
+
+插入文档 更新文档 删除文档 查询文档
+show dbs
+use demo
+db.createCollect("user")
+db.user.insert({id:1})
+db.user.drop()
+show collections
+db.user.insert({userId:101,userName:'jack',userAge:28,class:{name:'imooc',num:10}})
+db.user.findOne()
+db.user.update({userName:'jack'},{$set:{userAge:30}})
+db.user.update({userName:'jack'},{$set:{'class.name':'test'}})
+db.user.find({userAge:{$gt:20}})
+$eq =
+$gte >=
+$lt <
+db.user.remove({userId:101})
+
+Goods:
+{
+    "productId":String,
+	"productName":String,
+	"salePrice":Number,
+	"checked":String,
+	"productNum":Number,
+	"productImage":String
+}
+
+Users:
+{
+    "userId":String,
+	"userName":String,
+	"userPwd":String,
+	"orderList":Array,
+	"cartList":[
+	    {
+		    "productId":String,
+			"productName":String,
+			"salePrice":Number,
+			"checked":String,
+			"productNum":Number,
+			"productImage":String
+		}
+	],
+	"addressList":[
+	    {
+		    "addressId":String,
+			"userName":String,
+			"streeName":String,
+		}
+	]
+}
+
+mongoimport -d db_demo -c users --file /...
