@@ -1,0 +1,136 @@
+Spark SQL 日志分析
+
+统计imooc主站最受欢迎的课程/手记的Top N 访问次数
+按地市统计imooc主站最受欢迎的Top N课程
+按流量统计imooc主站最受欢迎的Top N课程
+
+参与项目技术平台开发方案设计
+参与项目技术平台开发
+参与项目平台开发部分性能优化与bug修改
+
+熟悉Linux操作系统 熟悉Linux shell编程
+熟悉java或scala语言 具有一年以上实际开发经验
+熟悉spark sql或spark streaming或spark core等编程 具有实际开发经验
+
+任职要求
+熟悉Hadoop生态环境或分布式存储与计算技术
+具有良好的开发习惯
+思维敏捷 学习能力强 具有良好的逻辑分析能力
+
+快速突破口
+掌握Hadoop Hive的基本使用
+重点突击Spark
+明确DataFrame/Dataset在整个Spark框架中的核心地位
+
+Hadoop部分
+大数据概述
+零基础学习Hadoop框架三大核心组件的使用
+Hive快速入门及使用
+
+Spark SQL部分
+认知Spark及生态圈
+零基础搭建Spark环境(源码编译 Spark部署)
+Spark SQL概述
+如何从Hive平滑的过渡到Spark SQL
+DataFrame&Dataset操作详解
+外部数据源详解
+Spark SQL的愿景深度剖析
+日志分析项目实战
+
+Spark SQL务必要掌握的N件事情
+
+前置基础知识要求
+熟悉基本SQL的使用
+熟悉常用Linux命令的使用
+熟悉一门编程语言(Java/Scala/Python)均可
+
+选择Scala作为开发语言的原因
+Spark内核源码是采用Scala开发的
+Scala相对于Java开发更加优雅和方便
+
+环境参数
+Linux版本 CentOS(6.4)
+Hadoop版本 CDH(hadoop-2.6.0-cdh5.7.0)
+Hive版本 CDH(hive-1.1.0-cdh5.7.0)
+Scala版本 2.11.8
+Spark版本 spark-2.1.0
+开发工具 IDEA
+
+如何学习大数据
+项目实战对知识点进行巩固和融会贯通
+社区活动 Meetup 开源社区大会 线下沙龙
+多动手 多练习 贵在坚持
+
+课程整套CDH相关的软件下载地址 http://archive.cloudera.com/cdh5/cdh/5 cdh-5.7.0-cdh5
+生产或者测试环境选择对应CDH版本时 一定要采用尾号是一样的版本
+《基于CentOS6.4环境编译Spark-2.1.0源码》：http://www.imooc.com/article/18419
+
+启动vm --- 文件 --- 打开 --- hadoop001 --- hadoop001.vmx
+运行之前设置内存为4G
+
+用户名/密码 hadoop:hadoop
+ifconfig
+
+ls
+cd software #所有软件
+app # 所有应用
+data #所有测试数据
+shell 所有脚本
+
+./start-dfs.sh
+hadoop fs -ls /
+./start-yarn.sh
+./hive
+
+./spark-shell --master local[2] --jars ~/software/mysql-connector-java-5.1.27-bin.jar
+
+大数据概述
+什么是大数据 关于大数据的定义 不同行业有不同的声音
+专业咨询公司IDC对大数据特征的定义 4V
+数据量volume 基于高度分析的新价值value 速度velocity 多样性 复杂性 variety
+
+大数据带来的技术变革
+计算瓶颈 存储瓶颈 数据库瓶颈
+
+大数据公司现存的模式
+手握大数据 但是没有利用好
+没有数据 但是知道如何帮助有数据的人利用它
+既有数据 又有大数据思维
+
+Hadoop概述
+Hadoop的由来
+是一个虚构的名词
+Hadoop项目作者的孩子给一个棕黄色的大象样子的填充玩具的命名
+
+什么是Hadoop
+一个分布式系统基础架构 由Apache基金会开发 用户可以在不了解分布式底层细节的情况下 
+开发分布式程序 充分利用集群的威力高速运算和存储
+
+Distributed File System(HDFS) 分布式文件存储系统
+YARN
+MapReduce
+
+对于apache的顶级项目来说 projectname.apache.org
+hadoop: hadoop.apache.org
+hive: hive.apache.org
+spark: spark.apache.org
+hbase: hbase.apache.org
+
+为什么很多公司选择Hadoop作为数据平台的解决方案
+1.源码开源
+2.社区活跃 参与者很多 spark
+3.涉及到分布式存储和计算的方方面面 flume进行数据采集
+spark/Mr/Hive等进行数据处理
+HDFS/HBase进行数据存储
+4.已得到企业界的验证
+
+分布式文件系统HDFS
+什么是HDFS
+Hadoop实现了一个分布式文件系统(Hadoop Distributed File System) 简称HDFS
+源自于Google的GFS论文
+发表于2003年 HDFS是GFS的克隆版
+
+HDFS的设计目标 非常巨大的分布式文件系统
+运行在普通廉价的硬件上
+易扩展 为用户提供性能不错的文件存储服务
+
