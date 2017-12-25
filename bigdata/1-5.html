@@ -1,0 +1,384 @@
+从Hive平滑过渡到Spark SQL
+SQLContext/HiveContext/SparkSession的使用
+spark-shell/spark-sql的使用
+thriftserver/beeline的使用
+jdbc方式编程访问
+
+// idea的使用
+// 下载idea https://www.jetbrains.com/idea/download/#section=windows 安装idea
+// 安装scala 插件  File --- Settings --- Plugins --- install ... --- Scala --- install
+// 修改编码 File --- Settings --- File encoding --- UTF-8
+// 修改背景色 File --- Settings --- Color Scheam Font --- Darcula --- Apply --- OK
+// 修改字体大小 File --- Setttings --- Font --- 修改size
+// 编码 创建scala项目 src/main/scala --- new --- Scala Class --- 编码
+// 运行 run
+object wel {
+  def main(args:Array[String]): Unit = {
+    println("welcome to scala world")
+  }
+}
+
+创建maven项目
+File --- New --- Project --- 勾选create from archetype --- org.scala-tools.archetype:scala-archetype-simple
+GroupId com.peng.wel
+Artifactid sql
+
+删除无用 main目录 ... App文件 test/scala目录下所有文件
+添加相关依赖 pom.xml
+  <properties>
+    <scala.version>2.11.0</scala.version>
+    <spark.version>2.1.0</spark.version>
+  </properties>
+  
+  <dependencies>
+    <!-- scala 依赖 -->
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-library</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
+
+    <!-- sparkSQL 依赖 -->
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-sql_2.11</artifactId>
+      <version>${spark.version}</version>
+    </dependency>
+  </dependencies>
+
+代码
+package com.peng.spark
+
+import org.apache.spark.SparkContext
+import org.apache.spark.sql.SQLContext
+
+import org.apache.spark.SparkConf
+
+/**
+ * SQLContext的使用:
+ * 注意：IDEA是在本地，而测试数据是在服务器上 ，能不能在本地进行开发测试的？
+ *
+ */
+object SQLContextApp {
+
+  def main(args: Array[String]) {
+
+    val path = args(0)
+
+    //1)创建相应的Context
+    val sparkConf = new SparkConf()
+
+    //在测试或者生产中，AppName和Master我们是通过脚本进行指定
+    //sparkConf.setAppName("SQLContextApp").setMaster("local[2]")
+
+    val sc = new SparkContext(sparkConf)
+    val sqlContext = new SQLContext(sc)
+
+    //2)相关的处理: json
+    val people = sqlContext.read.format("json").load(path)
+    people.printSchema()
+    people.show()
+
+
+
+    //3)关闭资源
+    sc.stop()
+  }
+
+}
+
+cmd
+cd IdeaProjects/sql
+mvn clean package -DskipTests
+C:\Users\caopeng\IdeaProjects\sql\target\sql-1.0.jar
+
+提交Spark Application到环境中运行
+spark-submit \
+--name SQLContextApp \
+--class com.imooc.spark.SQLContextApp \
+--master local[2] \
+/home/hadoop/lib/sql-1.0.jar \
+/home/hadoop/app/spark-2.1.0-bin-2.6.0-cdh5.7.0/examples/src/main/resources/people.json
+
+
+注意：
+1）To use a HiveContext, you do not need to have an existing Hive setup
+2）hive-site.xml
+
+代码
+import org.apache.spark.sql.hive.HiveContext
+import org.apache.spark.{SparkConf, SparkContext}
+
+/**
+ * HiveContext的使用
+ * 使用时需要通过--jars 把mysql的驱动传递到classpath
+ */
+object HiveContextApp {
+
+  def main(args: Array[String]) {
+    //1)创建相应的Context
+    val sparkConf = new SparkConf()
+
+    //在测试或者生产中，AppName和Master我们是通过脚本进行指定
+    //sparkConf.setAppName("HiveContextApp").setMaster("local[2]")
+
+    val sc = new SparkContext(sparkConf)
+    val hiveContext = new HiveContext(sc)
+
+    //2)相关的处理:
+    hiveContext.table("emp").show
+
+    //3)关闭资源
+    sc.stop()
+  }
+
+}
+
+Spark2.x中Spark SQL的入口点 SparkSession
+val spark = SparkSession
+.builder()
+.appName("Spark SQL basic example")
+.config("spark.some.config.option", "some-value")
+.getOrCreate()
+
+代码
+import org.apache.spark.sql.SparkSession
+
+/**
+ * SparkSession的使用
+ */
+object SparkSessionApp {
+
+  def main(args: Array[String]) {
+
+    val spark = SparkSession.builder().appName("SparkSessionApp")
+      .master("local[2]").getOrCreate()
+
+    val people = spark.read.json("file:///Users/rocky/data/people.json")
+    people.show()
+
+    spark.stop()
+  }
+}
+
+[hadoop@hadoop001 bin]$ ./spark-shell --master local[2] --jars ~/software/mysql-connector-java-5.1.27-bin.jar 
+Setting default log level to "WARN".
+To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).
+17/12/25 04:02:52 WARN SparkContext: Support for Java 7 is deprecated as of Spark 2.0.0
+17/12/25 04:02:52 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+17/12/25 04:02:59 WARN ObjectStore: Failed to get database global_temp, returning NoSuchObjectException
+Spark context Web UI available at http://192.168.17.128:4040
+Spark context available as 'sc' (master = local[2], app id = local-1514203373311).
+Spark session available as 'spark'.
+Welcome to
+      ____              __
+     / __/__  ___ _____/ /__
+    _\ \/ _ \/ _ `/ __/  '_/
+   /___/ .__/\_,_/_/ /_/\_\   version 2.1.0
+      /_/
+         
+Using Scala version 2.11.8 (Java HotSpot(TM) 64-Bit Server VM, Java 1.7.0_51)
+Type in expressions to have them evaluated.
+Type :help for more information.
+
+scala> spark.sql("show tables").show
++--------+------------+-----------+
+|database|   tableName|isTemporary|
++--------+------------+-----------+
+| default|        dept|      false|
+| default|         emp|      false|
+| default|hive_table_1|      false|
+| default|hive_table_2|      false|
+| default|           t|      false|
++--------+------------+-----------+
+
+scala> spark.sql("select * from dept").show  #注意dfs要开启 sbin/start-dfs.sh
++------+----------+--------+
+|deptno|     dname|     loc|
++------+----------+--------+
+|    10|ACCOUNTING|NEW YORK|
+|    20|  RESEARCH|  DALLAS|
+|    30|     SALES| CHICAGO|
+|    40|OPERATIONS|  BOSTON|
++------+----------+--------+
+
+scala> spark.sql("select * from emp e join dept d on e.deptno=d.deptno").show
++-----+------+---------+----+----------+------+------+------+------+----------+--------+
+|empno| ename|      job| mgr|  hiredate|   sal|  comm|deptno|deptno|     dname|     loc|
++-----+------+---------+----+----------+------+------+------+------+----------+--------+
+| 7369| SMITH|    CLERK|7902|1980-12-17| 800.0|  null|    20|    20|  RESEARCH|  DALLAS|
+| 7499| ALLEN| SALESMAN|7698| 1981-2-20|1600.0| 300.0|    30|    30|     SALES| CHICAGO|
+| 7521|  WARD| SALESMAN|7698| 1981-2-22|1250.0| 500.0|    30|    30|     SALES| CHICAGO|
+| 7566| JONES|  MANAGER|7839|  1981-4-2|2975.0|  null|    20|    20|  RESEARCH|  DALLAS|
+| 7654|MARTIN| SALESMAN|7698| 1981-9-28|1250.0|1400.0|    30|    30|     SALES| CHICAGO|
+| 7698| BLAKE|  MANAGER|7839|  1981-5-1|2850.0|  null|    30|    30|     SALES| CHICAGO|
+| 7782| CLARK|  MANAGER|7839|  1981-6-9|2450.0|  null|    10|    10|ACCOUNTING|NEW YORK|
+| 7788| SCOTT|  ANALYST|7566| 1987-4-19|3000.0|  null|    20|    20|  RESEARCH|  DALLAS|
+| 7839|  KING|PRESIDENT|null|1981-11-17|5000.0|  null|    10|    10|ACCOUNTING|NEW YORK|
+| 7844|TURNER| SALESMAN|7698|  1981-9-8|1500.0|   0.0|    30|    30|     SALES| CHICAGO|
+| 7876| ADAMS|    CLERK|7788| 1987-5-23|1100.0|  null|    20|    20|  RESEARCH|  DALLAS|
+| 7900| JAMES|    CLERK|7698| 1981-12-3| 950.0|  null|    30|    30|     SALES| CHICAGO|
+| 7902|  FORD|  ANALYST|7566| 1981-12-3|3000.0|  null|    20|    20|  RESEARCH|  DALLAS|
+| 7934|MILLER|    CLERK|7782| 1982-1-23|1300.0|  null|    10|    10|ACCOUNTING|NEW YORK|
++-----+------+---------+----+----------+------+------+------+------+----------+--------+
+
+vi  ../conf/hive-site.xml #禁用检测属性
+        <property>
+                <name>hive.metastore.schema.verification</name>
+                <value>false</value>
+        </property>
+解决spark启动时 报错
+ERROR ObjectStore: Version information found in metastore differs 1.1.0 from
+expected schema version 1.2.0 ...
+
+[hadoop@hadoop001 bin]$ ./spark-sql --master local[2] --jars ~/software/mysql-connector-java-5.1.27-bin.jar 
+http://192.168.17.128:4040
+spark-sql> select * from dept;
+http://192.168.17.128:4040
+
+
+Job Id  Description                       Submitted            Duration  Stages: Succeeded/Total  Tasks (for all stages): Succeeded/Total 
+0       select * from dept                2017/12/25 04:39:02  0.7 s     1/1                      1/1
+		processCmd at CliDriver.java:376     
+
+
+
+create table t(key string, value string);
+explain extended select a.key*(2+3), b.value from  t a join t b on a.key = b.key and a.key > 3;
+
+== Parsed Logical Plan ==
+'Project [unresolvedalias(('a.key * (2 + 3)), None), 'b.value]
++- 'Join Inner, (('a.key = 'b.key) && ('a.key > 3))
+   :- 'UnresolvedRelation `t`, a
+   +- 'UnresolvedRelation `t`, b
+
+== Analyzed Logical Plan ==
+(CAST(key AS DOUBLE) * CAST((2 + 3) AS DOUBLE)): double, value: string
+Project [(cast(key#321 as double) * cast((2 + 3) as double)) AS (CAST(key AS DOUBLE) * CAST((2 + 3) AS DOUBLE))#325, value#324]
++- Join Inner, ((key#321 = key#323) && (cast(key#321 as double) > cast(3 as double)))
+   :- SubqueryAlias a
+   :  +- MetastoreRelation default, t
+   +- SubqueryAlias b
+      +- MetastoreRelation default, t
+
+== Optimized Logical Plan ==
+Project [(cast(key#321 as double) * 5.0) AS (CAST(key AS DOUBLE) * CAST((2 + 3) AS DOUBLE))#325, value#324]
++- Join Inner, (key#321 = key#323)
+   :- Project [key#321]
+   :  +- Filter (isnotnull(key#321) && (cast(key#321 as double) > 3.0))
+   :     +- MetastoreRelation default, t
+   +- Filter (isnotnull(key#323) && (cast(key#323 as double) > 3.0))
+      +- MetastoreRelation default, t
+
+== Physical Plan ==
+*Project [(cast(key#321 as double) * 5.0) AS (CAST(key AS DOUBLE) * CAST((2 + 3) AS DOUBLE))#325, value#324]
++- *SortMergeJoin [key#321], [key#323], Inner
+   :- *Sort [key#321 ASC NULLS FIRST], false, 0
+   :  +- Exchange hashpartitioning(key#321, 200)
+   :     +- *Filter (isnotnull(key#321) && (cast(key#321 as double) > 3.0))
+   :        +- HiveTableScan [key#321], MetastoreRelation default, t
+   +- *Sort [key#323 ASC NULLS FIRST], false, 0
+      +- Exchange hashpartitioning(key#323, 200)
+         +- *Filter (isnotnull(key#323) && (cast(key#323 as double) > 3.0))
+            +- HiveTableScan [key#323, value#324], MetastoreRelation default, t
+
+spark-shell/spark-sql的使用
+hive-site.xml 配置文件
+--jars传递mysql驱动包
+
+
+thriftserver/beeline的使用
+1) 启动thriftserver: 默认端口是10000 ，可以修改
+2）启动beeline
+sbin/start-thriftserver.sh --master local[2] --jars ~/software/mysql-connector-java-5.1.27-bin.jar
+beeline -u jdbc:hive2://localhost:10000 -n hadoop
+0:jdbc:hive2://localhost:10000> show tables;
+...
+
+修改thriftserver启动占用的默认端口号：
+./start-thriftserver.sh  \
+--master local[2] \
+--jars ~/software/mysql-connector-java-5.1.27-bin.jar  \
+--hiveconf hive.server2.thrift.port=14000 
+
+beeline -u jdbc:hive2://localhost:14000 -n hadoop
+
+
+
+thriftserver和普通的spark-shell/spark-sql有什么区别？
+1）spark-shell、spark-sql都是一个spark  application；
+2）thriftserver， 不管你启动多少个客户端(beeline/code)，永远都是一个spark application
+	解决了一个数据共享的问题，多个客户端可以共享数据；
+
+thriftserver/beeline的使用
+启动thriftserver
+通过beeline连接到thriftserver
+
+jdbc方式编程访问
+maven添加依赖 org.spark-project.hive#hive-jdbc
+开发代码访问thritfserver
+
+启动thriftserver
+[hadoop@hadoop001 sbin]$ ./start-thriftserver.sh  \
+> --master local[2] \
+> --jars ~/software/mysql-connector-java-5.1.27-bin.jar  \
+> --hiveconf hive.server2.thrift.port=14000 
+
+[hadoop@hadoop001 sbin]$ jps -m #查看服务是否启动
+7812 SecondaryNameNode
+9075 SparkSubmit --master local[2] --class org.apache.spark.sql.hive.thriftserver.HiveThriftServer2 --name Thrift JDBC/ODBC Server --jars /home/hadoop/software/mysql-connector-java-5.1.27-bin.jar spark-internal --hiveconf hive.server2.thrift.port=14000
+
+代码
+package com.peng.spark
+
+import java.sql.DriverManager
+
+/**
+  * 通过JDBC的方式访问
+  */
+object SparkSQLThriftServerApp {
+  def main(args: Array[String]): Unit = {
+    Class.forName("org.apache.hive.jdbc.HiveDriver");
+
+    val conn = DriverManager.getConnection("jdbc:hive2://192.168.17.128:14000", "hadoop", "")
+    val pstml = conn.prepareStatement("select empno, ename, sal from emp")
+    val rs = pstml.executeQuery()
+    while (rs.next()) {
+      println("empno:" + rs.getInt("empno") +
+      ", ename:" + rs.getString("ename") +
+        ", sal:" + rs.getDouble("sal"))
+    }
+
+
+    rs.close()
+    pstml.close()
+    conn.close()
+  }
+}
+
+run SparkSQLThriftServerApp #运行服务
+D:\files\JDK8\bin\java "-javaagent:D:\files\IntelliJ IDEA Community Edition 2017.3.1\lib\idea_rt.jar=51643:D:\files\IntelliJ IDEA Community Edition 2017.3.1\bin" -Dfile.encoding=UTF-8 -classpath D:\files\JDK8\jre\lib\charsets.jar;D:\files\JDK8\jre\lib\deploy.jar;D:\files\JDK8\jre\lib\ext\access-bridge-64.jar;D:\files\JDK8\jre\lib\ext\cldrdata.jar;D:\files\JDK8\jre\lib\ext\dnsns.jar;D:\files\JDK8\jre\lib\ext\jaccess.jar;D:\files\JDK8\jre\lib\ext\jfxrt.jar;D:\files\JDK8\jre\lib\ext\localedata.jar;D:\files\JDK8\jre\lib\ext\nashorn.jar;D:\files\JDK8\jre\lib\ext\sunec.jar;D:\files\JDK8\jre\lib\ext\sunjce_provider.jar;D:\files\JDK8\jre\lib\ext\sunmscapi.jar;D:\files\JDK8\jre\lib\ext\sunpkcs11.jar;D:\files\JDK8\jre\lib\ext\zipfs.jar;D:\files\JDK8\jre\lib\javaws.jar;D:\files\JDK8\jre\lib\jce.jar;D:\files\JDK8\jre\lib\jfr.jar;D:\files\JDK8\jre\lib\jfxswt.jar;D:\files\JDK8\jre\lib\jsse.jar;D:\files\JDK8\jre\lib\management-agent.jar;D:\files\JDK8\jre\lib\plugin.jar;D:\files\JDK8\jre\lib\resources.jar;D:\files\JDK8\jre\lib\rt.jar;C:\Users\caopeng\IdeaProjects\sql\target\classes;C:\Users\caopeng\.ivy2\cache\org.scala-lang\scala-library\jars\scala-library-2.12.4.jar;C:\Users\caopeng\.ivy2\cache\org.scala-lang\scala-reflect\jars\scala-reflect-2.12.4.jar;C:\Users\caopeng\.ivy2\cache\org.scala-lang\scala-library\srcs\scala-library-2.12.4-sources.jar;C:\Users\caopeng\.ivy2\cache\org.scala-lang\scala-reflect\srcs\scala-reflect-2.12.4-sources.jar;C:\Users\caopeng\.m2\repository\org\scala-lang\scala-library\2.11.0\scala-library-2.11.0.jar;C:\Users\caopeng\.m2\repository\org\apache\spark\spark-sql_2.11\2.1.0\spark-sql_2.11-2.1.0.jar;C:\Users\caopeng\.m2\repository\com\univocity\univocity-parsers\2.2.1\univocity-parsers-2.2.1.jar;C:\Users\caopeng\.m2\repository\org\apache\spark\spark-sketch_2.11\2.1.0\spark-sketch_2.11-2.1.0.jar;C:\Users\caopeng\.m2\repository\org\apache\spark\spark-core_2.11\2.1.0\spark-core_2.11-2.1.0.jar;C:\Users\caopeng\.m2\repository\com\twitter\chill_2.11\0.8.0\chill_2.11-0.8.0.jar;C:\Users\caopeng\.m2\repository\com\esotericsoftware\kryo-shaded\3.0.3\kryo-shaded-3.0.3.jar;C:\Users\caopeng\.m2\repository\com\esotericsoftware\minlog\1.3.0\minlog-1.3.0.jar;C:\Users\caopeng\.m2\repository\org\objenesis\objenesis\2.1\objenesis-2.1.jar;C:\Users\caopeng\.m2\repository\com\twitter\chill-java\0.8.0\chill-java-0.8.0.jar;C:\Users\caopeng\.m2\repository\org\apache\xbean\xbean-asm5-shaded\4.4\xbean-asm5-shaded-4.4.jar;C:\Users\caopeng\.m2\repository\org\apache\hadoop\hadoop-client\2.2.0\hadoop-client-2.2.0.jar;C:\Users\caopeng\.m2\repository\org\apache\hadoop\hadoop-common\2.2.0\hadoop-common-2.2.0.jar;C:\Users\caopeng\.m2\repository\org\apache\commons\commons-math\2.1\commons-math-2.1.jar;C:\Users\caopeng\.m2\repository\xmlenc\xmlenc\0.52\xmlenc-0.52.jar;C:\Users\caopeng\.m2\repository\commons-configuration\commons-configuration\1.6\commons-configuration-1.6.jar;C:\Users\caopeng\.m2\repository\commons-collections\commons-collections\3.2.1\commons-collections-3.2.1.jar;C:\Users\caopeng\.m2\repository\commons-digester\commons-digester\1.8\commons-digester-1.8.jar;C:\Users\caopeng\.m2\repository\commons-beanutils\commons-beanutils\1.7.0\commons-beanutils-1.7.0.jar;C:\Users\caopeng\.m2\repository\commons-beanutils\commons-beanutils-core\1.8.0\commons-beanutils-core-1.8.0.jar;C:\Users\caopeng\.m2\repository\com\google\protobuf\protobuf-java\2.5.0\protobuf-java-2.5.0.jar;C:\Users\caopeng\.m2\repository\org\apache\hadoop\hadoop-auth\2.2.0\hadoop-auth-2.2.0.jar;C:\Users\caopeng\.m2\repository\org\apache\hadoop\hadoop-hdfs\2.2.0\hadoop-hdfs-2.2.0.jar;C:\Users\caopeng\.m2\repository\org\mortbay\jetty\jetty-util\6.1.26\jetty-util-6.1.26.jar;C:\Users\caopeng\.m2\repository\org\apache\hadoop\hadoop-mapreduce-client-app\2.2.0\hadoop-mapreduce-client-app-2.2.0.jar;C:\Users\caopeng\.m2\repository\org\apache\hadoop\hadoop-mapreduce-client-common\2.2.0\hadoop-mapreduce-client-common-2.2.0.jar;C:\Users\caopeng\.m2\repository\org\apache\hadoop\hadoop-yarn-client\2.2.0\hadoop-yarn-client-2.2.0.jar;C:\Users\caopeng\.m2\repository\org\apache\hadoop\hadoop-mapreduce-client-shuffle\2.2.0\hadoop-mapreduce-client-shuffle-2.2.0.jar;C:\Users\caopeng\.m2\repository\org\apache\hadoop\hadoop-yarn-api\2.2.0\hadoop-yarn-api-2.2.0.jar;C:\Users\caopeng\.m2\repository\org\apache\hadoop\hadoop-mapreduce-client-core\2.2.0\hadoop-mapreduce-client-core-2.2.0.jar;C:\Users\caopeng\.m2\repository\org\apache\hadoop\hadoop-yarn-common\2.2.0\hadoop-yarn-common-2.2.0.jar;C:\Users\caopeng\.m2\repository\org\apache\hadoop\hadoop-mapreduce-client-jobclient\2.2.0\hadoop-mapreduce-client-jobclient-2.2.0.jar;C:\Users\caopeng\.m2\repository\org\apache\hadoop\hadoop-annotations\2.2.0\hadoop-annotations-2.2.0.jar;C:\Users\caopeng\.m2\repository\org\apache\spark\spark-launcher_2.11\2.1.0\spark-launcher_2.11-2.1.0.jar;C:\Users\caopeng\.m2\repository\org\apache\spark\spark-network-common_2.11\2.1.0\spark-network-common_2.11-2.1.0.jar;C:\Users\caopeng\.m2\repository\org\fusesource\leveldbjni\leveldbjni-all\1.8\leveldbjni-all-1.8.jar;C:\Users\caopeng\.m2\repository\org\apache\spark\spark-network-shuffle_2.11\2.1.0\spark-network-shuffle_2.11-2.1.0.jar;C:\Users\caopeng\.m2\repository\org\apache\spark\spark-unsafe_2.11\2.1.0\spark-unsafe_2.11-2.1.0.jar;C:\Users\caopeng\.m2\repository\net\java\dev\jets3t\jets3t\0.7.1\jets3t-0.7.1.jar;C:\Users\caopeng\.m2\repository\org\apache\curator\curator-recipes\2.4.0\curator-recipes-2.4.0.jar;C:\Users\caopeng\.m2\repository\javax\servlet\javax.servlet-api\3.1.0\javax.servlet-api-3.1.0.jar;C:\Users\caopeng\.m2\repository\org\apache\commons\commons-lang3\3.5\commons-lang3-3.5.jar;C:\Users\caopeng\.m2\repository\org\apache\commons\commons-math3\3.4.1\commons-math3-3.4.1.jar;C:\Users\caopeng\.m2\repository\org\slf4j\jul-to-slf4j\1.7.16\jul-to-slf4j-1.7.16.jar;C:\Users\caopeng\.m2\repository\org\slf4j\jcl-over-slf4j\1.7.16\jcl-over-slf4j-1.7.16.jar;C:\Users\caopeng\.m2\repository\log4j\log4j\1.2.17\log4j-1.2.17.jar;C:\Users\caopeng\.m2\repository\com\ning\compress-lzf\1.0.3\compress-lzf-1.0.3.jar;C:\Users\caopeng\.m2\repository\org\xerial\snappy\snappy-java\1.1.2.6\snappy-java-1.1.2.6.jar;C:\Users\caopeng\.m2\repository\net\jpountz\lz4\lz4\1.3.0\lz4-1.3.0.jar;C:\Users\caopeng\.m2\repository\org\roaringbitmap\RoaringBitmap\0.5.11\RoaringBitmap-0.5.11.jar;C:\Users\caopeng\.m2\repository\commons-net\commons-net\2.2\commons-net-2.2.jar;C:\Users\caopeng\.m2\repository\org\json4s\json4s-jackson_2.11\3.2.11\json4s-jackson_2.11-3.2.11.jar;C:\Users\caopeng\.m2\repository\org\json4s\json4s-core_2.11\3.2.11\json4s-core_2.11-3.2.11.jar;C:\Users\caopeng\.m2\repository\org\json4s\json4s-ast_2.11\3.2.11\json4s-ast_2.11-3.2.11.jar;C:\Users\caopeng\.m2\repository\org\scala-lang\scalap\2.11.0\scalap-2.11.0.jar;C:\Users\caopeng\.m2\repository\org\scala-lang\scala-compiler\2.11.0\scala-compiler-2.11.0.jar;C:\Users\caopeng\.m2\repository\org\scala-lang\modules\scala-parser-combinators_2.11\1.0.1\scala-parser-combinators_2.11-1.0.1.jar;C:\Users\caopeng\.m2\repository\org\glassfish\jersey\core\jersey-client\2.22.2\jersey-client-2.22.2.jar;C:\Users\caopeng\.m2\repository\javax\ws\rs\javax.ws.rs-api\2.0.1\javax.ws.rs-api-2.0.1.jar;C:\Users\caopeng\.m2\repository\org\glassfish\hk2\hk2-api\2.4.0-b34\hk2-api-2.4.0-b34.jar;C:\Users\caopeng\.m2\repository\org\glassfish\hk2\hk2-utils\2.4.0-b34\hk2-utils-2.4.0-b34.jar;C:\Users\caopeng\.m2\repository\org\glassfish\hk2\external\aopalliance-repackaged\2.4.0-b34\aopalliance-repackaged-2.4.0-b34.jar;C:\Users\caopeng\.m2\repository\org\glassfish\hk2\external\javax.inject\2.4.0-b34\javax.inject-2.4.0-b34.jar;C:\Users\caopeng\.m2\repository\org\glassfish\hk2\hk2-locator\2.4.0-b34\hk2-locator-2.4.0-b34.jar;C:\Users\caopeng\.m2\repository\org\javassist\javassist\3.18.1-GA\javassist-3.18.1-GA.jar;C:\Users\caopeng\.m2\repository\org\glassfish\jersey\core\jersey-common\2.22.2\jersey-common-2.22.2.jar;C:\Users\caopeng\.m2\repository\javax\annotation\javax.annotation-api\1.2\javax.annotation-api-1.2.jar;C:\Users\caopeng\.m2\repository\org\glassfish\jersey\bundles\repackaged\jersey-guava\2.22.2\jersey-guava-2.22.2.jar;C:\Users\caopeng\.m2\repository\org\glassfish\hk2\osgi-resource-locator\1.0.1\osgi-resource-locator-1.0.1.jar;C:\Users\caopeng\.m2\repository\org\glassfish\jersey\core\jersey-server\2.22.2\jersey-server-2.22.2.jar;C:\Users\caopeng\.m2\repository\org\glassfish\jersey\media\jersey-media-jaxb\2.22.2\jersey-media-jaxb-2.22.2.jar;C:\Users\caopeng\.m2\repository\javax\validation\validation-api\1.1.0.Final\validation-api-1.1.0.Final.jar;C:\Users\caopeng\.m2\repository\org\glassfish\jersey\containers\jersey-container-servlet\2.22.2\jersey-container-servlet-2.22.2.jar;C:\Users\caopeng\.m2\repository\org\glassfish\jersey\containers\jersey-container-servlet-core\2.22.2\jersey-container-servlet-core-2.22.2.jar;C:\Users\caopeng\.m2\repository\io\netty\netty-all\4.0.42.Final\netty-all-4.0.42.Final.jar;C:\Users\caopeng\.m2\repository\io\netty\netty\3.8.0.Final\netty-3.8.0.Final.jar;C:\Users\caopeng\.m2\repository\com\clearspring\analytics\stream\2.7.0\stream-2.7.0.jar;C:\Users\caopeng\.m2\repository\io\dropwizard\metrics\metrics-core\3.1.2\metrics-core-3.1.2.jar;C:\Users\caopeng\.m2\repository\io\dropwizard\metrics\metrics-jvm\3.1.2\metrics-jvm-3.1.2.jar;C:\Users\caopeng\.m2\repository\io\dropwizard\metrics\metrics-json\3.1.2\metrics-json-3.1.2.jar;C:\Users\caopeng\.m2\repository\io\dropwizard\metrics\metrics-graphite\3.1.2\metrics-graphite-3.1.2.jar;C:\Users\caopeng\.m2\repository\com\fasterxml\jackson\module\jackson-module-scala_2.11\2.6.5\jackson-module-scala_2.11-2.6.5.jar;C:\Users\caopeng\.m2\repository\com\fasterxml\jackson\module\jackson-module-paranamer\2.6.5\jackson-module-paranamer-2.6.5.jar;C:\Users\caopeng\.m2\repository\org\apache\ivy\ivy\2.4.0\ivy-2.4.0.jar;C:\Users\caopeng\.m2\repository\oro\oro\2.0.8\oro-2.0.8.jar;C:\Users\caopeng\.m2\repository\net\razorvine\pyrolite\4.13\pyrolite-4.13.jar;C:\Users\caopeng\.m2\repository\net\sf\py4j\py4j\0.10.4\py4j-0.10.4.jar;C:\Users\caopeng\.m2\repository\org\apache\commons\commons-crypto\1.0.0\commons-crypto-1.0.0.jar;C:\Users\caopeng\.m2\repository\org\apache\spark\spark-catalyst_2.11\2.1.0\spark-catalyst_2.11-2.1.0.jar;C:\Users\caopeng\.m2\repository\org\scala-lang\scala-reflect\2.11.8\scala-reflect-2.11.8.jar;C:\Users\caopeng\.m2\repository\org\codehaus\janino\janino\3.0.0\janino-3.0.0.jar;C:\Users\caopeng\.m2\repository\org\codehaus\janino\commons-compiler\3.0.0\commons-compiler-3.0.0.jar;C:\Users\caopeng\.m2\repository\org\antlr\antlr4-runtime\4.5.3\antlr4-runtime-4.5.3.jar;C:\Users\caopeng\.m2\repository\org\apache\spark\spark-tags_2.11\2.1.0\spark-tags_2.11-2.1.0.jar;C:\Users\caopeng\.m2\repository\org\scalatest\scalatest_2.11\2.2.6\scalatest_2.11-2.2.6.jar;C:\Users\caopeng\.m2\repository\org\scala-lang\modules\scala-xml_2.11\1.0.2\scala-xml_2.11-1.0.2.jar;C:\Users\caopeng\.m2\repository\org\apache\parquet\parquet-column\1.8.1\parquet-column-1.8.1.jar;C:\Users\caopeng\.m2\repository\org\apache\parquet\parquet-common\1.8.1\parquet-common-1.8.1.jar;C:\Users\caopeng\.m2\repository\org\apache\parquet\parquet-encoding\1.8.1\parquet-encoding-1.8.1.jar;C:\Users\caopeng\.m2\repository\org\apache\parquet\parquet-hadoop\1.8.1\parquet-hadoop-1.8.1.jar;C:\Users\caopeng\.m2\repository\org\apache\parquet\parquet-format\2.3.0-incubating\parquet-format-2.3.0-incubating.jar;C:\Users\caopeng\.m2\repository\org\apache\parquet\parquet-jackson\1.8.1\parquet-jackson-1.8.1.jar;C:\Users\caopeng\.m2\repository\org\codehaus\jackson\jackson-core-asl\1.9.11\jackson-core-asl-1.9.11.jar;C:\Users\caopeng\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.6.5\jackson-databind-2.6.5.jar;C:\Users\caopeng\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.6.0\jackson-annotations-2.6.0.jar;C:\Users\caopeng\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.6.5\jackson-core-2.6.5.jar;C:\Users\caopeng\.m2\repository\org\spark-project\spark\unused\1.0.0\unused-1.0.0.jar;C:\Users\caopeng\.m2\repository\org\apache\spark\spark-hive_2.11\2.1.0\spark-hive_2.11-2.1.0.jar;C:\Users\caopeng\.m2\repository\com\twitter\parquet-hadoop-bundle\1.6.0\parquet-hadoop-bundle-1.6.0.jar;C:\Users\caopeng\.m2\repository\org\spark-project\hive\hive-exec\1.2.1.spark2\hive-exec-1.2.1.spark2.jar;C:\Users\caopeng\.m2\repository\commons-io\commons-io\2.4\commons-io-2.4.jar;C:\Users\caopeng\.m2\repository\commons-lang\commons-lang\2.6\commons-lang-2.6.jar;C:\Users\caopeng\.m2\repository\javolution\javolution\5.5.1\javolution-5.5.1.jar;C:\Users\caopeng\.m2\repository\log4j\apache-log4j-extras\1.2.17\apache-log4j-extras-1.2.17.jar;C:\Users\caopeng\.m2\repository\org\antlr\antlr-runtime\3.4\antlr-runtime-3.4.jar;C:\Users\caopeng\.m2\repository\org\antlr\stringtemplate\3.2.1\stringtemplate-3.2.1.jar;C:\Users\caopeng\.m2\repository\antlr\antlr\2.7.7\antlr-2.7.7.jar;C:\Users\caopeng\.m2\repository\org\antlr\ST4\4.0.4\ST4-4.0.4.jar;C:\Users\caopeng\.m2\repository\org\apache\commons\commons-compress\1.4.1\commons-compress-1.4.1.jar;C:\Users\caopeng\.m2\repository\org\tukaani\xz\1.0\xz-1.0.jar;C:\Users\caopeng\.m2\repository\com\googlecode\javaewah\JavaEWAH\0.3.2\JavaEWAH-0.3.2.jar;C:\Users\caopeng\.m2\repository\org\iq80\snappy\snappy\0.2\snappy-0.2.jar;C:\Users\caopeng\.m2\repository\stax\stax-api\1.0.1\stax-api-1.0.1.jar;C:\Users\caopeng\.m2\repository\net\sf\opencsv\opencsv\2.3\opencsv-2.3.jar;C:\Users\caopeng\.m2\repository\org\spark-project\hive\hive-metastore\1.2.1.spark2\hive-metastore-1.2.1.spark2.jar;C:\Users\caopeng\.m2\repository\com\jolbox\bonecp\0.8.0.RELEASE\bonecp-0.8.0.RELEASE.jar;C:\Users\caopeng\.m2\repository\commons-cli\commons-cli\1.2\commons-cli-1.2.jar;C:\Users\caopeng\.m2\repository\org\apache\derby\derby\10.10.2.0\derby-10.10.2.0.jar;C:\Users\caopeng\.m2\repository\org\datanucleus\datanucleus-api-jdo\3.2.6\datanucleus-api-jdo-3.2.6.jar;C:\Users\caopeng\.m2\repository\org\datanucleus\datanucleus-rdbms\3.2.9\datanucleus-rdbms-3.2.9.jar;C:\Users\caopeng\.m2\repository\commons-pool\commons-pool\1.5.4\commons-pool-1.5.4.jar;C:\Users\caopeng\.m2\repository\commons-dbcp\commons-dbcp\1.4\commons-dbcp-1.4.jar;C:\Users\caopeng\.m2\repository\javax\jdo\jdo-api\3.0.1\jdo-api-3.0.1.jar;C:\Users\caopeng\.m2\repository\javax\transaction\jta\1.1\jta-1.1.jar;C:\Users\caopeng\.m2\repository\org\apache\avro\avro\1.7.7\avro-1.7.7.jar;C:\Users\caopeng\.m2\repository\com\thoughtworks\paranamer\paranamer\2.3\paranamer-2.3.jar;C:\Users\caopeng\.m2\repository\org\apache\avro\avro-mapred\1.7.7\avro-mapred-1.7.7-hadoop2.jar;C:\Users\caopeng\.m2\repository\org\apache\avro\avro-ipc\1.7.7\avro-ipc-1.7.7.jar;C:\Users\caopeng\.m2\repository\org\apache\avro\avro-ipc\1.7.7\avro-ipc-1.7.7-tests.jar;C:\Users\caopeng\.m2\repository\commons-httpclient\commons-httpclient\3.1\commons-httpclient-3.1.jar;C:\Users\caopeng\.m2\repository\org\apache\calcite\calcite-avatica\1.2.0-incubating\calcite-avatica-1.2.0-incubating.jar;C:\Users\caopeng\.m2\repository\org\apache\calcite\calcite-core\1.2.0-incubating\calcite-core-1.2.0-incubating.jar;C:\Users\caopeng\.m2\repository\org\apache\calcite\calcite-linq4j\1.2.0-incubating\calcite-linq4j-1.2.0-incubating.jar;C:\Users\caopeng\.m2\repository\net\hydromatic\eigenbase-properties\1.1.5\eigenbase-properties-1.1.5.jar;C:\Users\caopeng\.m2\repository\org\apache\httpcomponents\httpclient\4.5.2\httpclient-4.5.2.jar;C:\Users\caopeng\.m2\repository\org\codehaus\jackson\jackson-mapper-asl\1.9.13\jackson-mapper-asl-1.9.13.jar;C:\Users\caopeng\.m2\repository\commons-codec\commons-codec\1.10\commons-codec-1.10.jar;C:\Users\caopeng\.m2\repository\joda-time\joda-time\2.9.3\joda-time-2.9.3.jar;C:\Users\caopeng\.m2\repository\org\jodd\jodd-core\3.5.2\jodd-core-3.5.2.jar;C:\Users\caopeng\.m2\repository\com\google\code\findbugs\jsr305\1.3.9\jsr305-1.3.9.jar;C:\Users\caopeng\.m2\repository\org\datanucleus\datanucleus-core\3.2.10\datanucleus-core-3.2.10.jar;C:\Users\caopeng\.m2\repository\org\apache\thrift\libthrift\0.9.2\libthrift-0.9.2.jar;C:\Users\caopeng\.m2\repository\org\apache\thrift\libfb303\0.9.2\libfb303-0.9.2.jar;C:\Users\caopeng\.m2\repository\org\spark-project\hive\hive-jdbc\1.2.1.spark2\hive-jdbc-1.2.1.spark2.jar;C:\Users\caopeng\.m2\repository\org\spark-project\hive\hive-common\1.2.1.spark2\hive-common-1.2.1.spark2.jar;C:\Users\caopeng\.m2\repository\org\apache\ant\ant\1.9.1\ant-1.9.1.jar;C:\Users\caopeng\.m2\repository\org\apache\ant\ant-launcher\1.9.1\ant-launcher-1.9.1.jar;C:\Users\caopeng\.m2\repository\org\json\json\20090211\json-20090211.jar;C:\Users\caopeng\.m2\repository\org\spark-project\hive\hive-service\1.2.1.spark2\hive-service-1.2.1.spark2.jar;C:\Users\caopeng\.m2\repository\net\sf\jpam\jpam\1.1\jpam-1.1.jar;C:\Users\caopeng\.m2\repository\org\eclipse\jetty\aggregate\jetty-all\7.6.0.v20120127\jetty-all-7.6.0.v20120127.jar;C:\Users\caopeng\.m2\repository\javax\servlet\servlet-api\2.5\servlet-api-2.5.jar;C:\Users\caopeng\.m2\repository\org\apache\geronimo\specs\geronimo-jta_1.1_spec\1.1.1\geronimo-jta_1.1_spec-1.1.1.jar;C:\Users\caopeng\.m2\repository\javax\mail\mail\1.4.1\mail-1.4.1.jar;C:\Users\caopeng\.m2\repository\javax\activation\activation\1.1\activation-1.1.jar;C:\Users\caopeng\.m2\repository\org\apache\geronimo\specs\geronimo-jaspic_1.0_spec\1.0\geronimo-jaspic_1.0_spec-1.0.jar;C:\Users\caopeng\.m2\repository\org\apache\geronimo\specs\geronimo-annotation_1.0_spec\1.1.1\geronimo-annotation_1.0_spec-1.1.1.jar;C:\Users\caopeng\.m2\repository\asm\asm-commons\3.1\asm-commons-3.1.jar;C:\Users\caopeng\.m2\repository\asm\asm-tree\3.1\asm-tree-3.1.jar;C:\Users\caopeng\.m2\repository\asm\asm\3.1\asm-3.1.jar;C:\Users\caopeng\.m2\repository\org\spark-project\hive\hive-serde\1.2.1.spark2\hive-serde-1.2.1.spark2.jar;C:\Users\caopeng\.m2\repository\org\spark-project\hive\hive-shims\1.2.1.spark2\hive-shims-1.2.1.spark2.jar;C:\Users\caopeng\.m2\repository\org\spark-project\hive\shims\hive-shims-common\1.2.1.spark2\hive-shims-common-1.2.1.spark2.jar;C:\Users\caopeng\.m2\repository\org\spark-project\hive\shims\hive-shims-0.20S\1.2.1.spark2\hive-shims-0.20S-1.2.1.spark2.jar;C:\Users\caopeng\.m2\repository\org\spark-project\hive\shims\hive-shims-0.23\1.2.1.spark2\hive-shims-0.23-1.2.1.spark2.jar;C:\Users\caopeng\.m2\repository\org\apache\hadoop\hadoop-yarn-server-resourcemanager\2.6.0\hadoop-yarn-server-resourcemanager-2.6.0.jar;C:\Users\caopeng\.m2\repository\com\google\inject\extensions\guice-servlet\3.0\guice-servlet-3.0.jar;C:\Users\caopeng\.m2\repository\com\google\inject\guice\3.0\guice-3.0.jar;C:\Users\caopeng\.m2\repository\javax\inject\javax.inject\1\javax.inject-1.jar;C:\Users\caopeng\.m2\repository\aopalliance\aopalliance\1.0\aopalliance-1.0.jar;C:\Users\caopeng\.m2\repository\com\sun\jersey\jersey-json\1.9\jersey-json-1.9.jar;C:\Users\caopeng\.m2\repository\com\sun\xml\bind\jaxb-impl\2.2.3-1\jaxb-impl-2.2.3-1.jar;C:\Users\caopeng\.m2\repository\org\codehaus\jackson\jackson-jaxrs\1.8.3\jackson-jaxrs-1.8.3.jar;C:\Users\caopeng\.m2\repository\org\codehaus\jackson\jackson-xc\1.8.3\jackson-xc-1.8.3.jar;C:\Users\caopeng\.m2\repository\com\sun\jersey\contribs\jersey-guice\1.9\jersey-guice-1.9.jar;C:\Users\caopeng\.m2\repository\com\sun\jersey\jersey-server\1.9\jersey-server-1.9.jar;C:\Users\caopeng\.m2\repository\javax\xml\bind\jaxb-api\2.2.2\jaxb-api-2.2.2.jar;C:\Users\caopeng\.m2\repository\javax\xml\stream\stax-api\1.0-2\stax-api-1.0-2.jar;C:\Users\caopeng\.m2\repository\org\codehaus\jettison\jettison\1.1\jettison-1.1.jar;C:\Users\caopeng\.m2\repository\com\sun\jersey\jersey-core\1.9\jersey-core-1.9.jar;C:\Users\caopeng\.m2\repository\com\sun\jersey\jersey-client\1.9\jersey-client-1.9.jar;C:\Users\caopeng\.m2\repository\org\apache\hadoop\hadoop-yarn-server-common\2.6.0\hadoop-yarn-server-common-2.6.0.jar;C:\Users\caopeng\.m2\repository\org\apache\hadoop\hadoop-yarn-server-applicationhistoryservice\2.6.0\hadoop-yarn-server-applicationhistoryservice-2.6.0.jar;C:\Users\caopeng\.m2\repository\org\apache\hadoop\hadoop-yarn-server-web-proxy\2.6.0\hadoop-yarn-server-web-proxy-2.6.0.jar;C:\Users\caopeng\.m2\repository\org\mortbay\jetty\jetty\6.1.26\jetty-6.1.26.jar;C:\Users\caopeng\.m2\repository\org\spark-project\hive\shims\hive-shims-scheduler\1.2.1.spark2\hive-shims-scheduler-1.2.1.spark2.jar;C:\Users\caopeng\.m2\repository\commons-logging\commons-logging\1.1.3\commons-logging-1.1.3.jar;C:\Users\caopeng\.m2\repository\org\apache\httpcomponents\httpcore\4.4\httpcore-4.4.jar;C:\Users\caopeng\.m2\repository\org\apache\zookeeper\zookeeper\3.4.6\zookeeper-3.4.6.jar;C:\Users\caopeng\.m2\repository\jline\jline\0.9.94\jline-0.9.94.jar;C:\Users\caopeng\.m2\repository\junit\junit\3.8.1\junit-3.8.1.jar;C:\Users\caopeng\.m2\repository\org\apache\curator\curator-framework\2.6.0\curator-framework-2.6.0.jar;C:\Users\caopeng\.m2\repository\org\apache\curator\curator-client\2.6.0\curator-client-2.6.0.jar;C:\Users\caopeng\.m2\repository\com\google\guava\guava\16.0.1\guava-16.0.1.jar;C:\Users\caopeng\.m2\repository\org\slf4j\slf4j-api\1.7.5\slf4j-api-1.7.5.jar;C:\Users\caopeng\.m2\repository\org\slf4j\slf4j-log4j12\1.7.5\slf4j-log4j12-1.7.5.jar com.peng.spark.SparkSQLThriftServerApp
+log4j:WARN No appenders could be found for logger (org.apache.hive.jdbc.Utils).
+log4j:WARN Please initialize the log4j system properly.
+log4j:WARN See http://logging.apache.org/log4j/1.2/faq.html#noconfig for more info.
+empno:7369, ename:SMITH, sal:800.0
+empno:7499, ename:ALLEN, sal:1600.0
+empno:7521, ename:WARD, sal:1250.0
+empno:7566, ename:JONES, sal:2975.0
+empno:7654, ename:MARTIN, sal:1250.0
+empno:7698, ename:BLAKE, sal:2850.0
+empno:7782, ename:CLARK, sal:2450.0
+empno:7788, ename:SCOTT, sal:3000.0
+empno:7839, ename:KING, sal:5000.0
+empno:7844, ename:TURNER, sal:1500.0
+empno:7876, ename:ADAMS, sal:1100.0
+empno:7900, ename:JAMES, sal:950.0
+empno:7902, ename:FORD, sal:3000.0
+empno:7934, ename:MILLER, sal:1300.0
+empno:8888, ename:HIVE, sal:10300.0
+
+注意事项：在使用jdbc开发时，一定要先启动thriftserver
+Exception in thread "main" java.sql.SQLException: 
+Could not open client transport with JDBC Uri: jdbc:hive2://hadoop001:14000: 
+java.net.ConnectException: Connection refused
+

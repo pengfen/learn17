@@ -1,0 +1,14 @@
+开发第一个Spark程序
+
+配置ssh无密登录
+ssh-keygen
+.ssh目录下 cat id_rsa.pub > authorized_keys
+chmod 600 authorized_keys
+ssh localhost #实现无密登录
+
+WordCount
+创建一个Spark Context
+加载数据
+把每一行分割成单词
+转换成pairs并且计数
+
