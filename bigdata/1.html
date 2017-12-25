@@ -67,22 +67,127 @@ Spark版本 spark-2.1.0
 
 启动vm --- 文件 --- 打开 --- hadoop001 --- hadoop001.vmx
 运行之前设置内存为4G
+修改网络适配器方式 仅主机模式 (eth1)
 
-用户名/密码 hadoop:hadoop
+用户名/密码 hadoop:hadoop --- 右键 --- open in terminal
 ifconfig
 
 ls
-cd software #所有软件
-app # 所有应用
+software #所有软件
+app #所有应用
 data #所有测试数据
+source 所有源代码
 shell 所有脚本
+[hadoop@hadoop001 ~]$ cd software/
+[hadoop@hadoop001 software]$ ls
+apache-maven-3.3.9-bin.tar.gz  hive-1.1.0-cdh5.7.0.tar.gz  mysql-connector-java-5.1.27-bin.jar  zeppelin-0.7.1-bin-all.tgz
+hadoop-2.6.0-cdh5.7.0.tar.gz   jdk-7u51-linux-x64.tar.gz   scala-2.11.8.tgz
+[hadoop@hadoop001 software]$ cd ..
+[hadoop@hadoop001 ~]$ cd app/
+[hadoop@hadoop001 app]$ ls
+apache-maven-3.3.9           hadoop-2.6.0-cdh5.7.0  jdk1.7.0_51   spark-2.1.0-bin-2.6.0-cdh5.7.0  zeppelin-0.7.1-bin-all
+filebeat-5.0.0-linux-x86_64  hive-1.1.0-cdh5.7.0    scala-2.11.8  tmp
+[hadoop@hadoop001 app]$ cd ..
+[hadoop@hadoop001 ~]$ cd data/
+[hadoop@hadoop001 data]$ ls
+dept.txt  emp.txt  hello.txt  overwrite  overwrite_ignore  sales.csv  student.data  test2.json  test.json  wc.txt  zips.json
+[hadoop@hadoop001 data]$ cd ..
+[hadoop@hadoop001 ~]$ cd source/
+[hadoop@hadoop001 source]$ ls
+spark-2.1.0  spark-2.1.0.tgz
+[hadoop@hadoop001 source]$ cd ..
+[hadoop@hadoop001 ~]$ cd shell/
+[hadoop@hadoop001 shell]$ ls
+hivecontext.sh  spark-warehouse  sqlcontext.sh
 
-./start-dfs.sh
-hadoop fs -ls /
-./start-yarn.sh
-./hive
+sudo vi /etc/hosts
+192.168.17.128 hadoop001
 
-./spark-shell --master local[2] --jars ~/software/mysql-connector-java-5.1.27-bin.jar
+[hadoop@hadoop001 ~]$ cd app/
+[hadoop@hadoop001 app]$ cd hadoop-2.6.0-cdh5.7.0/
+[hadoop@hadoop001 hadoop-2.6.0-cdh5.7.0]$ cd sbin/
+[hadoop@hadoop001 sbin]$ ls
+distribute-exclude.sh  httpfs.sh                slaves.sh          start-dfs.sh         stop-all.sh         stop-yarn.cmd
+hadoop-daemon.sh       kms.sh                   start-all.cmd      start-secure-dns.sh  stop-balancer.sh    stop-yarn.sh
+hadoop-daemons.sh      Linux                    start-all.sh       start-yarn.cmd       stop-dfs.cmd        yarn-daemon.sh
+hdfs-config.cmd        mr-jobhistory-daemon.sh  start-balancer.sh  start-yarn.sh        stop-dfs.sh         yarn-daemons.sh
+hdfs-config.sh         refresh-namenodes.sh     start-dfs.cmd      stop-all.cmd         stop-secure-dns.sh
+[hadoop@hadoop001 sbin]$ ./start-dfs.sh #启动hdfs
+17/12/24 00:47:37 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Starting namenodes on [hadoop001]
+hadoop001: Warning: Permanently added the RSA host key for IP address '192.168.17.128' to the list of known hosts.
+hadoop001: starting namenode, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/hadoop-hadoop-namenode-hadoop001.out
+localhost: starting datanode, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/hadoop-hadoop-datanode-hadoop001.out
+Starting secondary namenodes [0.0.0.0]
+0.0.0.0: starting secondarynamenode, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/hadoop-hadoop-secondarynamenode-hadoop001.out
+17/12/24 00:48:44 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+[hadoop@hadoop001 sbin]$ jps #查看是否成功
+3369 SecondaryNameNode
+3480 Jps
+3155 DataNode
+3063 NameNode
+[hadoop@hadoop001 sbin]$ hadoop fs -ls / #查看fs目录
+17/12/24 00:49:01 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Found 4 items
+drwxr-xr-x   - hadoop supergroup          0 2017-05-24 07:42 /imooc
+drwxr-xr-x   - hadoop supergroup          0 2017-05-28 21:57 /input
+drwx-wx-wx   - hadoop supergroup          0 2017-04-02 09:08 /tmp
+drwxr-xr-x   - hadoop supergroup          0 2017-05-24 06:36 /user
+
+[hadoop@hadoop001 sbin]$ ./start-yarn.sh #启动yarn
+starting yarn daemons
+starting resourcemanager, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/yarn-hadoop-resourcemanager-hadoop001.out
+localhost: starting nodemanager, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/yarn-hadoop-nodemanager-hadoop001.out
+[hadoop@hadoop001 sbin]$ jps #查看相关进程
+3369 SecondaryNameNode
+3799 NodeManager
+3894 Jps
+3701 ResourceManager
+3155 DataNode
+3063 NameNode
+[hadoop@hadoop001 sbin]$ cd 
+[hadoop@hadoop001 ~]$ cd app/
+[hadoop@hadoop001 app]$ cd hive-1.1.0-cdh5.7.0/
+[hadoop@hadoop001 hive-1.1.0-cdh5.7.0]$ ./hive
+-bash: ./hive: No such file or directory
+[hadoop@hadoop001 hive-1.1.0-cdh5.7.0]$ cd bin/
+[hadoop@hadoop001 bin]$ ./hive #启动hive
+ls: cannot access /home/hadoop/app/spark-2.1.0-bin-2.6.0-cdh5.7.0/lib/spark-assembly-*.jar: No such file or directory
+which: no hbase in (/home/hadoop/app/spark-2.1.0-bin-2.6.0-cdh5.7.0/bin:/home/hadoop/app/scala-2.11.8/bin:/home/hadoop/app/hive-1.1.0-cdh5.7.0/bin:/home/hadoop/app/hadoop-2.6.0-cdh5.7.0/bin:/home/hadoop/app/apache-maven-3.3.9/bin:/home/hadoop/app/jdk1.7.0_51/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin)
+
+Logging initialized using configuration in jar:file:/home/hadoop/app/hive-1.1.0-cdh5.7.0/lib/hive-common-1.1.0-cdh5.7.0.jar!/hive-log4j.properties
+WARNING: Hive CLI is deprecated and migration to Beeline is recommended.
+hive> show tables;
+OK
+dept
+emp
+hive_wordcount
+Time taken: 1.048 seconds, Fetched: 3 row(s)
+
+[hadoop@hadoop001 ~]$ cd app/spark-2.1.0-bin-2.6.0-cdh5.7.0/
+[hadoop@hadoop001 spark-2.1.0-bin-2.6.0-cdh5.7.0]$ cd bin/
+[hadoop@hadoop001 bin]$ ./spark-shell --master local[2] --jars ~/software/mysql-connector-java-5.1.27-bin.jar 
+Setting default log level to "WARN".
+To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).
+17/12/24 01:01:50 WARN SparkContext: Support for Java 7 is deprecated as of Spark 2.0.0
+17/12/24 01:01:51 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+17/12/24 01:01:59 ERROR ObjectStore: Version information found in metastore differs 1.1.0 from expected schema version 1.2.0. Schema verififcation is disabled hive.metastore.schema.verification so setting version.
+17/12/24 01:02:00 WARN ObjectStore: Failed to get database global_temp, returning NoSuchObjectException
+Spark context Web UI available at http://192.168.17.128:4040
+Spark context available as 'sc' (master = local[2], app id = local-1514106113853).
+Spark session available as 'spark'.
+Welcome to
+      ____              __
+     / __/__  ___ _____/ /__
+    _\ \/ _ \/ _ `/ __/  '_/
+   /___/ .__/\_,_/_/ /_/\_\   version 2.1.0
+      /_/
+         
+Using Scala version 2.11.8 (Java HotSpot(TM) 64-Bit Server VM, Java 1.7.0_51)
+Type in expressions to have them evaluated.
+Type :help for more information.
+
+scala> 
 
 大数据概述
 什么是大数据 关于大数据的定义 不同行业有不同的声音
@@ -133,4 +238,665 @@ Hadoop实现了一个分布式文件系统(Hadoop Distributed File System) 简�
 HDFS的设计目标 非常巨大的分布式文件系统
 运行在普通廉价的硬件上
 易扩展 为用户提供性能不错的文件存储服务
+HDFS架构
+Master(NameNode/NN) 带N个Slaves(DataNode/DN)
+HDFS/YARN/HBase
+
+1个文件会被拆分成多个Block
+blocksize: 128M
+130M ==> 2个Block 128M和2M
+
+NN
+1.负责客户端请求的响应
+2.负责元数据(文件的名称 副本系数 Block存放的DN)的管理
+
+DN
+1.存储用户的文件对应的数据块(Block)
+2.要定期向NN发送心跳信息 汇报本身及其所有的block信息 健康状况
+
+NameNode + N个DataNode
+建议 NN和DN是部署在不同的节点上
+
+
+本课程软件存放目录
+hadoop/hadoop
+/home/hadoop
+    software 存放的是安装的软件包
+	app 存放的是所有软件的安装目录
+	data 存放的是课程中所有使用的测试
+	
+Hadoop环境搭建立
+下载Hadoop http://archive.cloudera.com/cdh5/cdh/5 2.6.0-cdh5.7.0
+wget http://archive.cloudera.com/cdh5/cdh/5/hadoop-2.6.0-cdh5.7.0.tar.gz
+
+安装JDK 下载
+解压到app目录 tar -zxvf jdk-7u51-linux-x64.tar.gz -C ~/app/
+验证安装是否成功 ~/app/jdk1.7.0_51/bin ./java -version
+建议把bin目录配置到系统环境变量(~/.bash_profile)中
+export JAVA_HOME=/home/hadoop/app/jdk1.7.0_51
+export PATH=$JAVA_HOME/bin:$PATH
+
+机器参数设置
+[hadoop@hadoop001 bin]$ hostname
+hadoop001
+hostname: hadoop001
+修改机器名 
+[hadoop@hadoop001 bin]$ sudo vi /etc/sysconfig/network
+NETWORKING=yes
+HOSTNAME=hadoop001
+
+设置IP和HOSTNAME的映射关系 /etc/hosts
+192.168.17.128 hadoop001
+127.0.0.1 localhost
+
+ssh免密码登录(本步骤可以省略 但是后面你重启hadoop进程时是需要手工输入密码才行)
+ssh-keygen -t rsa
+[hadoop@hadoop001 ~]$ ssh-keygen -t rsa
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/hadoop/.ssh/id_rsa): 
+/home/hadoop/.ssh/id_rsa already exists.
+Overwrite (y/n)? y
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /home/hadoop/.ssh/id_rsa.
+Your public key has been saved in /home/hadoop/.ssh/id_rsa.pub.
+The key fingerprint is:
+a9:6e:b7:17:fb:a3:c9:01:69:96:25:15:f0:97:fb:79 hadoop@hadoop001
+The key's randomart image is:
++--[ RSA 2048]----+
+|        ..o.     |
+|         o   .   |
+|        . o o    |
+|         * . .   |
+|        S   .    |
+|       + ..  . . |
+|      .   .o  o E|
+|     .. ..oo.  . |
+|     ....o+o..   |
++-----------------+
+[hadoop@hadoop001 ~]$ cd .ssh/
+[hadoop@hadoop001 .ssh]$ ls
+authorized_keys  id_rsa  id_rsa.pub  known_hosts
+
+cp ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys
+
+分布式文件系统HDFS
+HDFS环境搭建
+使用版本 hadoop-2.6.0-cdh5.7.0
+jdk环境搭建
+Linux机器常用参数设置
+hadoop-env.sh
+core-site.xml
+hdfs-site.xml
+
+解压到指定目录 -C
+cd software
+tar -zxvf hadoop-2.6.0-cdh5.7.0.tar.gz -C ~/app
+Hadoop配置文件修改 ~/app/hadoop-2.6.0-cdh5.7.0/etc/hadoop
+[hadoop@hadoop001 ~]$ cd app/hadoop-2.6.0-cdh5.7.0/etc/hadoop
+[hadoop@hadoop001 hadoop]$ echo $JAVA_HOME
+/home/hadoop/app/jdk1.7.0_51
+[hadoop@hadoop001 hadoop]$ vi hadoop-env.sh 
+export JAVA_HOME=/home/hadoop/app/jdk1.7.0_51 #修改JAVA_HOME
+
+http://hadoop.apache.org/docs/current/ 查看hadoop当前文档
+core-site.xml
+<property>
+    <name>fs.defaultFS</name>
+	<value>hdfs://hadoop001:8020</value>
+</property>
+
+<property>
+    <name>hadoop.tmp.dir</name>
+	<value>/home/hadoop/app/tmp</value>
+</property>
+
+hdfs-site.xml
+<property>
+    <name>dfs.replication</name>
+	<value>1</value>
+</property>
+
+格式化HDFS
+注意 这一步操作 只是在第一次时执行 每次如果都有格式化的话 那么HDFS上的数据就会被清空
+hdfs namenode -format
+
+启停HDFS
+sbin/start-dfs.sh
+
+验证是否启动成功
+jps
+DataNode
+SecondaryNameNode
+NameNode
+
+HDFS shell常用命令的使用
+ls mkdir put get rm
+[hadoop@hadoop001 bin]$ hadoop fs
+Usage: hadoop fs [generic options]
+	[-appendToFile <localsrc> ... <dst>]
+	[-cat [-ignoreCrc] <src> ...]
+	[-checksum <src> ...]
+	[-chgrp [-R] GROUP PATH...]
+	[-chmod [-R] <MODE[,MODE]... | OCTALMODE> PATH...]
+	[-chown [-R] [OWNER][:[GROUP]] PATH...]
+	[-copyFromLocal [-f] [-p] [-l] <localsrc> ... <dst>]
+	[-copyToLocal [-p] [-ignoreCrc] [-crc] <src> ... <localdst>]
+	[-count [-q] [-h] [-v] <path> ...]
+	[-cp [-f] [-p | -p[topax]] <src> ... <dst>]
+	[-createSnapshot <snapshotDir> [<snapshotName>]]
+	[-deleteSnapshot <snapshotDir> <snapshotName>]
+	[-df [-h] [<path> ...]]
+	[-du [-s] [-h] <path> ...]
+	[-expunge]
+	[-find <path> ... <expression> ...]
+	[-get [-p] [-ignoreCrc] [-crc] <src> ... <localdst>]
+	[-getfacl [-R] <path>]
+	[-getfattr [-R] {-n name | -d} [-e en] <path>]
+	[-getmerge [-nl] <src> <localdst>]
+	[-help [cmd ...]]
+	[-ls [-d] [-h] [-R] [<path> ...]]
+	[-mkdir [-p] <path> ...]
+	[-moveFromLocal <localsrc> ... <dst>]
+	[-moveToLocal <src> <localdst>]
+	[-mv <src> ... <dst>]
+	[-put [-f] [-p] [-l] <localsrc> ... <dst>]
+	[-renameSnapshot <snapshotDir> <oldName> <newName>]
+	[-rm [-f] [-r|-R] [-skipTrash] <src> ...]
+	[-rmdir [--ignore-fail-on-non-empty] <dir> ...]
+	[-setfacl [-R] [{-b|-k} {-m|-x <acl_spec>} <path>]|[--set <acl_spec> <path>]]
+	[-setfattr {-n name [-v value] | -x name} <path>]
+	[-setrep [-R] [-w] <rep> <path> ...]
+	[-stat [format] <path> ...]
+	[-tail [-f] <file>]
+	[-test -[defsz] <path>]
+	[-text [-ignoreCrc] <src> ...]
+	[-touchz <path> ...]
+	[-usage [cmd ...]]
+
+[hadoop@hadoop001 bin]$ hadoop fs -ls /
+17/12/24 01:46:37 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Found 4 items
+drwxr-xr-x   - hadoop supergroup          0 2017-05-24 07:42 /imooc
+drwxr-xr-x   - hadoop supergroup          0 2017-05-28 21:57 /input
+drwx-wx-wx   - hadoop supergroup          0 2017-04-02 09:08 /tmp
+drwxr-xr-x   - hadoop supergroup          0 2017-05-24 06:36 /user
+[hadoop@hadoop001 bin]$ hadoop fs -mkdir /test/
+17/12/24 01:46:55 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+[hadoop@hadoop001 bin]$ hadoop fs -ls /
+17/12/24 01:47:04 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Found 5 items
+drwxr-xr-x   - hadoop supergroup          0 2017-05-24 07:42 /imooc
+drwxr-xr-x   - hadoop supergroup          0 2017-05-28 21:57 /input
+drwxr-xr-x   - hadoop supergroup          0 2017-12-24 01:46 /test
+drwx-wx-wx   - hadoop supergroup          0 2017-04-02 09:08 /tmp
+drwxr-xr-x   - hadoop supergroup          0 2017-05-24 06:36 /user
+
+[hadoop@hadoop001 bin]$ hadoop fs -put hdfs.cmd /test/
+17/12/24 01:51:19 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+[hadoop@hadoop001 bin]$ hadoop fs -ls /test
+17/12/24 01:51:31 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Found 1 items
+-rw-r--r--   1 hadoop supergroup       6915 2017-12-24 01:51 /test/hdfs.cmd
+http://192.168.17.128:50070/explorer.html#// 查看fs目录
+
+[hadoop@hadoop001 bin]$ hadoop fs -get /test/hdfs.cmd a_tmp
+17/12/24 02:00:40 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+[hadoop@hadoop001 bin]$ ls
+a_tmp  hadoop  hadoop.cmd  hdfs  hdfs.cmd  mapred  mapred.cmd  rcc  yarn  yarn.cmd
+[hadoop@hadoop001 bin]$ hadoop fs -rm /test/hdfs.cmd
+17/12/24 02:01:01 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Deleted /test/hdfs.cmd
+[hadoop@hadoop001 bin]$ hadoop fs -rm -r /test
+17/12/24 02:01:50 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Deleted /test
+
+
+HDFS优点 高容错 适合批处理 适合大数据处理 可构建在廉价机器上
+HDFS缺点 低延迟的数据访问 小文件存储 
+
+分布式计算框架MapReduce
+MapReduce特点 易于编程 良好的扩展性 高容错性 海量数据的离线处理
+MapReduce不擅长的场景 实时计算 流式计算 DAG计算
+
+MapReduce编程模型 input map&reduce output
+
+YARN架构
+RM(ResourceManager) + N NM(NodeManager)
+ResourceManager的职责 一个集群active状态的RM只有一个 负责整个集群的资源管理和调度
+启动/监控ApplicationMaster(一个作业对应一个AM)
+监控NM
+系统的资源分配及调度
+
+NodeManager 整个集群中有N个 负责单个节点的资源管理和使用以及task的运行情况
+定期向RM汇报本节点的资源使用请求和各个Container的运行状态
+接收并处理RM的container启停的各种命令
+单个节点的资源管理和任务管理
+
+ApplicationMaster 每个应用/作业对应一个 负责应用程序的管理
+数据切分
+为应用程序向RM申请资源(container) 并分配给内部任务
+与NM通信以启停task task是运行在container中的
+task的监控和容错
+
+Container
+对任务运行情况的描述cpu memory 环境变量
+
+YARN执行流程
+用户向YARN提交作业
+RM为该作业分配第一个container(AM)
+RM会与对应的NM通信 要求实NM在这个container上启动应用程序的AM
+AM首先向RM注册 然后AM将各个任务申请资源 并监控运行情况
+AM采用轮询的方式通过RPC协议向RM申请和领取资源
+AM申请到资源以后 便和相应的NM通信 要求NM启动任务
+NM启动我们作业对应的task
+
+YARN环境搭建
+使用版本 hadoop-2.6.0-cdh5.7.0
+yarn-site.xml
+mapred-site.xml
+
+cp mapred-site.xml.template mapred-site.xml
+vi mapred-site.xml
+<property>
+    <name>mapreduce.framework.name</name>
+	<value>yarn</value>
+</property>
+
+yarn-site.xml
+<property>
+    <name>yarn.nodemanager.aux-services</name>
+	<value>mapreduce_shuffle</value>
+</property>
+启停YARN
+
+启动yarn sbin/start-yarn.sh
+验证是否启动成功 
+jps
+ResourceManager
+NodeManager
+
+http://192.168.17.128:8088/cluster
+
+停止yarn sbin/stop-yarn.sh
+
+MapReduce作业提交到YARN上运行
+hadoop jar的使用
+
+cd data
+hadoop fs -ls /
+hadoop fs -mkdir -p /input/wc
+hadoop fs -put hello.txt /input/wc/
+hadoop fs -text /input/wc/hello.txt
+
+提交mr作业到yarn上运行 wc
+hadoop jar /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/share/hadoop/mapreduce/hodoop
+
+再次执行该作业时 会报错
+FileAlreadyExistsException:
+Output directory hdfs://hadoop001:8020/output/wc already exists
+
+大数据数据仓库Hive
+Hive产生背景
+MapReduce编程的不便性
+HDFS上的文件缺少Schema
+
+Hive是什么
+由Facebook开源 最初用于解决少量结构化的日志数据统计问题
+构建在Hadoop之上的数据仓库
+Hive定义了一种类SQL查询语言 HQL(类似SQL但不完全相同)
+通常用于进行离线数据处理(采用MapReduce)
+底层支持多种不同的执行引擎
+支持多种不同的压缩格式 存储格式以及自定义函数
+
+Hive底层的执行引擎有 MapReduce Tez Spark
+Hive on MapReduce
+Hive on Tez
+Hive on Spark
+
+压缩 GZIP LZO Snappy BZIP2 ...
+存储 TextFile SequenceFile RCFile QRC Parquet
+UDF 自定义函数
+
+为什么要使用Hive
+简单 容易上手(提供了类似SQL查询语言HQL)
+为超大数据集设计的计算/存储扩展能力(MR计算,HDFS存储)
+统一的元数据管理(可与Presto/Impala/SparkSQL等共享数据)
+
+Hive环境搭建
+1.Hive下载 http://archive.cloudera.com/cdh5/cdh/5/
+wget http://archive.cloudera.com/cdh5/cdh/5/hive-1.1.0-cdh5.7.0.tar.gz
+2.解压
+tar -zxvf hive-1.1.0-cdh5.7.0.tar.gz -C ~/app/
+3.配置
+系统环境变量(~/.bash_profile)
+export HIVE_HOME=/home/hadoop/app/hive-1.1.0-cdh5.7.0
+export PATH=$HIVE_HOME/bin:$PATH
+实现安装一个mysql yum install mysqld
+
+vi hive-site.xml
+<property>
+    <name>javax.jdo.option.ConnectionURL</name>
+	<value>jdbc:mysql://localhost:3306/sparksql?createDatabaseIfNotExist=true</value>
+</property>
+
+<property>
+    <name>javax.jdo.option.ConnectionDriverName</name>
+	<value>com.mysql.jdbc.Driver</value>
+</property>
+
+<property>
+    <name>javax.jdo.option.ConnectionUserName</name>
+	<value>root</value>
+</property>
+
+<property>
+    <name>javax.jdo.option.ConnectionPassword</name>
+	<value>123456</value>
+</property>
+
+4.复制mysql驱动包到$HIVE_HOME/lib/
+5.启动hive $HIVE_HOME/bin/hive
+
+Hive基本使用
+创建表
+CREATE TABLE table_name [(col_name data_type [COMMENT col_comment])]
+使用Hive完成wordcount统计 (对比MapReduce实现的易用性)
+
+create table hive_wordcount(context string);
+
+加载数据到hive表
+LOAD DATA LOCAL INPATH 'filepath' INTO TABLE tablename
+
+load data local input '/home/hadoop/data/hello.txt' into table hive_wordcount
+
+select word, count(1) from hive_wordcount lateral view explode(split(context,'\t')) wc as word group by word;
+
+lateral view explode(): 是把每行记录按照指定分隔符进行拆解
+
+hive sql 提交执行以后会生成mr作业 并在yarn上运行
+
+案例 员工表和部门表操作
+create table emp(
+empno int,
+ename string,
+job string,
+mgr int,
+hiredate string,
+sal double,
+comm double,
+deptno int
+) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t';
+
+create table dept(
+deptno int,
+dname string,
+location string
+) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t';
+
+load data local inpath '/home/hadoop/data/emp.txt' into table emp;
+load data local inpath '/home/hadoop/data/dept.txt' into table dept;
+
+求每个部门的人数
+select deptno, count(1) from emp group by deptno;
+
+spark及生态圈概述
+spark产生背景
+spark概述及特点
+spark发展历史
+spark survey
+spark对比hadoop
+spark和Hadoop的协作性
+spark开发语言
+spark运行模式
+
+spark.apache.org
+spark概述及特点
+speed速度快 generality通用 ease of user易用 runs everywhere 可以运行任何地方
+
+spark产生背景
+mapreduce局限性
+1.代码繁琐
+2.只能够支持map和reduce方法
+3.执行效率低下
+4.不适合迭代多次 交互式 流式的处理
+框架多样多
+1.批处理(离线) MapReduce Hive Pig
+2.流式处理(实时) Storm JStorm
+3.交互式计算 Impala
+
+学习 运维成本无形中都提高了很多
+
+BDAS:Berkeley Data 
+spark对比Hadoop:Hadoop生态圈对比spark BDAS
+使用场景         Hadoop                    Spark
+批处理           MapReduce(Java,Pig,Hive)  Spark RDDs(Java/scala/python)
+SQL查询          Hive                      Spark SQL
+流处理/实时处理  Storm + Kafka             Spark Streaming
+机器学习         Mahout                    Spark MLLib
+实时数据库       NoSQL(Hbase ...)          没有相关组件,但可查询Hbase等NoSQL库
+
+实战环境搭建
+spark源码编译
+spark环境搭建
+spark简单使用
+
+
+下载 spark.apache.org
+前置要求
+1.maven 3.3.9 版本  jdk 7版本
+2.export MAVEN_OPTS="-Xmx2g -Xx:ReservedCodeCacheSize=512m"
+
+mvn编译命令
+./build/mvn -Pyarn -Phadoop-2.4 -Dhadoop.version=2.4.0 -DskipTests clean package
+前提 需要对maven有一定的了解(pom.xml)
+<properties>
+    <hadoop.version>2.2.0</hadoop.version>
+    <protobuf.version>2.5.0</protobuf.version>
+    <yarn.version>${hadoop.version}</yarn.version>
+</properties>
+
+<profile>
+  <id>hadoop-2.6</id>
+  <properties>
+    <hadoop.version>2.6.4</hadoop.version>
+    <jets3t.version>0.9.3</jets3t.version>
+    <zookeeper.version>3.4.6</zookeeper.version>
+    <curator.version>2.6.0</curator.version>
+  </properties>
+</profile>
+
+./build/mvn -Pyarn -Phadoop-2.6 -Phive -Phive-thriftserver -Dhadoop.version=2.6.0-cdh5.7.0 -DskipTests clean package
+
+#推荐使用
+./dev/make-distribution.sh --name 2.6.0-cdh5.7.0 --tgz  -Pyarn -Phadoop-2.6 -Phive -Phive-thriftserver -Dhadoop.version=2.6.0-cdh5.7.0
+
+编译完成后：
+spark-$VERSION-bin-$NAME.tgz
+
+spark-2.1.0-bin-2.6.0-cdh5.7.0.tgz
+
+编译相关问题
+./dev/make-distribution.sh \
+--name 2.6.0-cdh5.7.0 \
+--tgz \
+-Pyarn -Phadoop-2.6 \
+-Phive -Phive-thriftserver \
+-Dhadoop.version=2.6.0-cdh-5.7.0
+
+如果在编译过程中 你看到的异常信息不能太明显/看不太懂
+编译命令后 -X, 就能看到更详细的编译信息
+问题一 Failed to execute goal on project spark-launcher_2.11:
+Could not resolve dependencies for project org.apache.spark:spark-launcher_2.11:
+could not find artifact org.apache.hadoop:hadoop-client:jar:2.6.0-cdh-5.7.0
+in central (https://repo1.maven.org/maven2) -> [Help 1]
+解决
+pom.xml添加
+<repository>
+    <id>cloudera</id>
+	<url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+</repository>
+
+问题二 内存不足
+MAVEN_OPTS="-Xmx2g -XX:ReservedCodeCacheSize=512M -Xx:MaxPermSize=512M"
+注意点 阿里云的机器 内存可能不够 至少2-4G
+
+问题三
+如果编译的是Scala版本是2.10
+./dev/change-scala-version.sh 2.10
+./dev/change-scala-version.sh 2.11
+
+问题四
+was cached in the local repository,
+resolution will not be reattempted until the update interval of nexus has 
+1.去仓库把 xxx.lastUpdated文件全部删除 重新执行maven命令
+2.编译命令后面 -U
+
+进入spark安装目录
+cd bin
+rm -rf *.cmd
+
+vi ~/.bash_profile
+export SPARK_HOME=/home/hadoop/app/spark-2.1.0-bin-2.6.8-cdh-5.7.0-cdh-5
+export PATH=$SPARK_HOME/bin:$PATH;
+source ~/.bash_profile
+spark-shell --master local[2]
+
+Spark Standalone模式的架构和Hadoop HDFS/YARN很类似的
+cd conf
+cp spark-env.sh.template spark-env.sh
+
+1 master + n worker
+
+spark-env.sh
+SPARK_MASTER_HOST=hadoop001
+SPARK_WORKER_CORES=2
+SPARK_WORKER_MEMORY=2g #内存
+SPARK_WORKER_INSTANCES=1 #worker实例
+
+cp slaves.template slaves
+vi slaves
+
+hadoop1 : master
+hadoop2 : worker
+hadoop3 : worker
+hadoop4 : worker
+...
+hadoop10 : worker
+
+slaves:
+hadoop2
+hadoop3
+hadoop4
+....
+hadoop10
+
+==> start-all.sh   会在 hadoop1机器上启动master进程，在slaves文件配置的所有hostname的机器上启动worker进程
+spark-shell --master spark://hadoop001:7077
+
+Spark WordCount统计
+val file = spark.sparkContext.textFile("file:///home/hadoop/data/wc.txt")
+val wordCounts = file.flatMap(line => line.split(",")).map((word => (word, 1))).reduceByKey(_ + _)
+wordCounts.collect
+
+spark SQL概述
+Spark SQL前世今生
+SQL on Hadoop 常用框架
+Spark SQL概述
+Spark SQL愿景
+Spark SQL架构
+
+Spark SQL前世今生
+为什么需要SQL
+1.事实上的标准
+2.易学易用
+3.受众面大
+
+文本文件进行统计分析：
+id, name, age, city
+1001,zhangsan,45,beijing
+1002,lisi,35,shanghai
+1003,wangwu,29,tianjin
+.......
+
+table定义：person
+column定义：
+	id：int
+	name：string
+	age： int
+	city：string
+hive：load data
+
+
+sql: query....
+
+
+
+Hive: 类似于sql的Hive QL语言， sql==>mapreduce
+	特点：mapreduce
+	改进：hive on tez、hive on spark、hive on mapreduce
+
+Spark: hive on spark ==> shark(hive on spark)
+	shark推出：欢迎， 基于spark、基于内存的列式存储、与hive能够兼容
+	缺点：hive ql的解析、逻辑执行计划生成、执行计划的优化是依赖于hive的
+		仅仅只是把物理执行计划从mr作业替换成spark作业
+
+
+Shark终止以后，产生了2个分支：
+1）hive on spark
+	Hive社区，源码是在Hive中
+2）Spark SQL
+	Spark社区，源码是在Spark中
+	支持多种数据源，多种优化技术，扩展性好很多
+
+
+
+SQL on Hadoop
+1）Hive 
+	sql ==> mapreduce
+	metastore ： 元数据 
+	sql：database、table、view
+	facebook
+
+2）impala
+	cloudera ： cdh（建议大家在生产上使用的hadoop系列版本）、cm
+	sql：自己的守护进程执行的，非mr
+	metastore
+
+3）presto
+	facebook
+	京东
+	sql
+
+4）drill
+	sql
+	访问：hdfs、rdbms、json、hbase、mongodb、s3、hive
+
+5）Spark SQL
+	sql
+	dataframe/dataset api
+	metastore
+	访问：hdfs、rdbms、json、hbase、mongodb、s3、hive  ==> 外部数据源
+
+
+
+Spark SQL is Apache Spark's module for working with structured data. 
+
+Spark SQL愿景
+write less code 写更少的代码
+read less data 读更少的数据
+let the optimizer do the hard work 让底层的优化器去优化
+
+有见到SQL字样吗？
+Spark SQL它不仅仅有访问或者操作SQL的功能，还提供了其他的非常丰富的操作：外部数据源、优化
+
+Spark SQL概述小结：
+1）Spark SQL的应用并不局限于SQL；
+2）访问hive、json、parquet等文件的数据；
+3）SQL只是Spark SQL的一个功能而已；
+===> Spark SQL这个名字起的并不恰当
+4）Spark SQL提供了SQL的api、DataFrame和Dataset的API；
+
+
+
 

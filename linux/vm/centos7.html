@@ -17,7 +17,7 @@ swap #交换分区 一般设置为内存的2倍
 
 df -h #查看硬盘情况
 free -m #查看内存
-cd /etc/sysconfig/newwork-scripts/ #进入网络配置文件目录
+cd /etc/sysconfig/network-scripts/ #进入网络配置文件目录
 vi ifcfg-eno #编辑配置文件 添加修改以下内容
 ONBOOT=yes #开启自动启用网络连接
 // 以下可以不设置 让系统自动分配
