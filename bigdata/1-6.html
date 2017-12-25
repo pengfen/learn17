@@ -8,6 +8,10 @@ DataFrame与RDD互操作之一
 DataFrame与RDD互操作之二
 Dataset概述
 
+DataFrame产生背景
+Spark RDD API vs MapReduce API
+R/Pandas (One machine 单机)
+
 DataFrame它不是Spark SQL提出的，而是早起在R、Pandas语言就已经有了的。
 
 
@@ -21,19 +25,72 @@ id:int
 name:string
 city:string
 
-
 It is conceptually equivalent to a table in a relational database 
 or a data frame in R/Python
 
-
+DataFrame对比RDD
 RDD： 
 	java/scala  ==> jvm
 	python ==> python runtime
 
 
 DataFrame:
-	java/scala/python ==> Logic Plan
+	java/scala/python ==> Logic Plan 逻辑执行计划
 
+DataFrame基本API常用操作
+Create DataFrame
+printSchema
+show
+select
+filter
+
+代码
+package com.peng.spark
+
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.SparkConf
+
+/**
+  * DataFrame API基本操作
+  */
+object DataFrameApp {
+
+  def main(args: Array[String]) {
+
+    val spark = SparkSession.builder().appName("DataFrameApp").master("local[2]").getOrCreate()
+
+    // 将json文件加载成一个dataframe 
+	// file:///G:/spark_json/people.json 读取本地文件(windows)
+    val peopleDF = spark.read.format("json").load("file:///G:/spark_json/people.json")
+
+    // 输出dataframe对应的schema信息
+    peopleDF.printSchema()
+
+    // 输出数据集的前20条记录
+    peopleDF.show()
+
+    //查询某列所有的数据： select name from table
+    peopleDF.select("name").show()
+
+    // 查询某几列所有的数据，并对列进行计算： select name, age+10 as age2 from table
+    peopleDF.select(peopleDF.col("name"), (peopleDF.col("age") + 10).as("age2")).show()
+
+    //根据某一列的值进行过滤： select * from table where age>19
+    peopleDF.filter(peopleDF.col("age") > 19).show()
+
+    //根据某一列进行分组，然后再进行聚合操作： select age,count(1) from table group by age
+    peopleDF.groupBy("age").count().show()
+
+    spark.stop()
+  }
+
+}
+
+g:/spark_json/people.json
+{"name":"zhangsan","age":30}
+{"name":"Michael"}
+{"name":"Andy","age":30}
+{"name":"Justin","age":19}
 
 DataFrame和RDD互操作的两种方式：
 1）反射：case class   前提：事先需要知道你的字段、字段类型    
