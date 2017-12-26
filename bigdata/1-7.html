@@ -1,7 +1,31 @@
+External Data Source API
+产生背景
+概述
+目标
+操作Parquet文件数据
+操作Hive表数据
+操作MySQL表数据
+综合使用
+
 用户：
 	方便快速从不同的数据源（json、parquet、rdbms），经过混合处理（json join parquet），
 	再将处理结果以特定的格式（json、parquet）写回到指定的系统（HDFS、S3）上去
 
+	产生背景
+	Loading and Saving Data is not easy 加载和保存数据不容易
+	Parse raw data: text/json/parquet 解析数据
+	Convert data format transformation 转换格式数据
+	Datasets stored in various Formats/Systems 数据集存储在系统
+	
+	概述
+	An extension way to integrate a various of external data sources into Spark SQL
+	Can read and write DataFrames using a variety of formats and storage systems
+	Data Sources API can automatically prune columns and push filters to the source: Parquet/JDBC
+	New API introduced in 1.2
+	
+	目标
+	Developer: build libraries for various data sources
+	
 
 Spark SQL 1.2 ==> 外部数据源API
 
