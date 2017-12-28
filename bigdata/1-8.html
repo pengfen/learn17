@@ -37,3 +37,14 @@ select name,avg(age) from people group by name
 Using DataFrames
 sqlCtx.table("people").groupBy("name").agg("name", avg("age")).collect()
 
+写更少的代码(统一访问操作接口)
+df = sqlContext.read.format("json").option("samplingRatio","0.1").load("/home/michael/data.json")
+
+df.write.format("parquet").mode("append").partitionBy("year").saveAsTable("fasterData")
+
+events = sqlCtx.load("/data/events","parquet")
+training_data = events.where("city='New York' and year=2015").select("timestamp").collect()
+
+joined = users.join(events, users.id == events.uid)
+filtered = joined.filter(events.date >= "2015-01-01")
+

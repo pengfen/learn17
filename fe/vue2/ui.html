@@ -1,0 +1,28 @@
+mint ui 的使用
+
+https://mint-ui.github.io/docs/#/zh-cn2
+
+cnpm install mint-ui -S #安装
+
+main.js 文件中引入
+import MintUI from 'mint-ui'
+import 'mint-ui/lib/style.css'
+import router from './router'
+
+Vue.config.productionTip = false
+Vue.use(MintUI)
+
+/* eslint-disable no-new */
+new Vue({
+  el: '#app',
+  //router,
+  //template: '<App/>',
+  components: { App }
+})
+
+components/Index.vue文件中使用
+<script>
+import  {Toast} from 'mint-ui';
+
+Toast('提示信息');
+</script>
