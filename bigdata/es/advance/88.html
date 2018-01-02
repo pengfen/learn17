@@ -1,1 +1,146 @@
+PUT /car_shop/cars/5
+{
+        "brand": "华晨宝马",
+        "name": "宝马318",
+        "price": 270000,
+        "produce_date": "2017-01-20"
+}
 
+{
+  "_index": "car_shop",
+  "_type": "cars",
+  "_id": "5",
+  "_version": 1,
+  "result": "created",
+  "_shards": {
+    "total": 2,
+    "successful": 1,
+    "failed": 0
+  },
+  "created": true
+}
+
+SearchResponse response = client.prepareSearch("car_shop")
+        .setTypes("cars")
+        .setQuery(QueryBuilders.matchQuery("brand", "宝马"))                
+        .get();
+
+SearchResponse response = client.prepareSearch("car_shop")
+        .setTypes("cars")
+        .setQuery(QueryBuilders.multiMatchQuery("宝马", "brand", "name"))                
+        .get();
+
+SearchResponse response = client.prepareSearch("car_shop")
+        .setTypes("cars")
+        .setQuery(QueryBuilders.commonTermsQuery("name", "宝马320"))                
+        .get();
+
+SearchResponse response = client.prepareSearch("car_shop")
+        .setTypes("cars")
+        .setQuery(QueryBuilders.prefixQuery("name", "宝"))                
+        .get();
+
+package com.peng.es.senior;
+
+import java.net.InetAddress;
+
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
+
+public class FullTextSearchByBrand {
+	
+	@SuppressWarnings({ "resource", "unchecked" })
+	public static void main(String[] args) throws Exception {
+		Settings settings = Settings.builder()
+				.put("cluster.name", "elasticsearch")
+				.build();
+		
+		TransportClient client = new PreBuiltTransportClient(settings)
+				.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), 9300));  
+	
+		SearchResponse searchResponse = client.prepareSearch("car_shop")
+				.setTypes("cars")
+				.setQuery(QueryBuilders.matchQuery("brand", "宝马"))
+				.get();
+		
+		for(SearchHit searchHit : searchResponse.getHits().getHits()) {
+			System.out.println(searchHit.getSourceAsString());  
+		}
+		
+		System.out.println("====================================================");
+		
+		searchResponse = client.prepareSearch("car_shop")
+				.setTypes("cars")
+				.setQuery(QueryBuilders.multiMatchQuery("宝马", "brand", "name"))  
+				.get();
+		
+		for(SearchHit searchHit : searchResponse.getHits().getHits()) {
+			System.out.println(searchHit.getSourceAsString());  
+		}
+		
+		System.out.println("====================================================");
+		
+		searchResponse = client.prepareSearch("car_shop")
+				.setTypes("cars")
+				.setQuery(QueryBuilders.termQuery("name.raw", "宝马318"))    
+				.get();
+		
+		for(SearchHit searchHit : searchResponse.getHits().getHits()) {
+			System.out.println(searchHit.getSourceAsString());  
+		}
+		
+		System.out.println("====================================================");
+		
+		searchResponse = client.prepareSearch("car_shop")
+				.setTypes("cars")
+				.setQuery(QueryBuilders.prefixQuery("name", "宝"))      
+				.get();
+		
+		for(SearchHit searchHit : searchResponse.getHits().getHits()) {
+			System.out.println(searchHit.getSourceAsString());  
+		}
+		
+		client.close();
+	}
+	
+}
+
+{
+        "brand": "华晨宝马",
+        "name": "宝马318",
+        "price": 270000,
+        "produce_date": "2017-01-20"
+}
+
+{"brand":"宝马","name":"宝马320","price":300000,"produce_date":"2017-01-01"}
+====================================================
+{
+        "brand": "华晨宝马",
+        "name": "宝马318",
+        "price": 270000,
+        "produce_date": "2017-01-20"
+}
+
+{"brand":"宝马","name":"宝马320","price":300000,"produce_date":"2017-01-01"}
+====================================================
+{
+        "brand": "华晨宝马",
+        "name": "宝马318",
+        "price": 270000,
+        "produce_date": "2017-01-20"
+}
+
+====================================================
+{
+        "brand": "华晨宝马",
+        "name": "宝马318",
+        "price": 270000,
+        "produce_date": "2017-01-20"
+}
+
+{"brand":"宝马","name":"宝马320","price":300000,"produce_date":"2017-01-01"}
