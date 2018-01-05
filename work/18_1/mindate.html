@@ -1,0 +1,11 @@
+设置minDate日期
+minDate：0 //今天
+
+设置明天
+$min_date = date('Y-m-d', strtotime('1day'));
+传递参数
+'min_date' => $min_date,
+
+var min_date = '<?php echo $min_date;?>';
+
+minDate: min_date
