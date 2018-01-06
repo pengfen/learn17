@@ -1,0 +1,12 @@
+// 导入组件
+import slideShow from '../components/slideShow'
+
+// 注册组件
+export default {
+components: {
+slideShow
+},
+}
+
+// 使用组件(模块<template></template>中)
+<slide-show :slides="slides" :inv="invTime" @onchange="doSomethingOnSlideChange"></slide-show>
