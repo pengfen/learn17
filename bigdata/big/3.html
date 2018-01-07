@@ -1,1 +1,12 @@
+zk启动脚本
+#!/bin/bash
+echo "start zkServer ..."
+
+for i in 1 2 3
+do
+ssh hdp-node-0$i "source /etc/profile;/home/hadoop/apps/zookeeper/bin/zkServer.sh start"
+done
+
+ssh mini2 "source /etc/profile;/home/hadoop/apps/zookeeper/bin/zkServer.sh start"
+ssh mini3 "source /etc/profile;/home/hadoop/apps/zookeeper/bin/zkServer.sh start"
 
