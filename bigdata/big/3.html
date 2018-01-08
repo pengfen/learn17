@@ -1,3 +1,7 @@
+export A=1 定义的变量 会对自己所在的shell进程及其子进程生效
+B=1 定义的变量 只对自己所在的shell进程生效
+在script.sh中定义的变量 在当前登录的shell进程中source script.sh时 脚本中定义的变量也会进入当前登录的进程
+
 zk启动脚本
 #!/bin/bash
 echo "start zkServer ..."
@@ -10,3 +14,10 @@ done
 ssh mini2 "source /etc/profile;/home/hadoop/apps/zookeeper/bin/zkServer.sh start"
 ssh mini3 "source /etc/profile;/home/hadoop/apps/zookeeper/bin/zkServer.sh start"
 
+创建java项目 --- lib下加载以下包
+jline-0.9.94.jar
+log4j-1.2.15.jar
+netty-3.2.2.Final.jar
+slf4j-api-1.6.1.jar
+slf4j-log4j12-1.6.1.jar
+zookeeper-3.4.5.jar
