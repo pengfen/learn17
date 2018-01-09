@@ -1,0 +1,8 @@
+// 跨域访问
+
+nnginx.conf中配置
+location ~* ^/AdminLTE.*$ {
+root /var/www/admin.yb1v1.com/public/;
+add_header 'Access-Control-Allow-Origin' "*";
+add_header 'Access-Control-Allow-Credentials' "true";
+}
