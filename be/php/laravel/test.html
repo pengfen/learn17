@@ -59,7 +59,11 @@ $data = "
 file_put_contents($filename, $data);
 
 $dist = '/home/ak/admin_yb1v1/resources/views/'.$argv[1];
-exec('mkdir '.$dist);
+if (!is_dir($dist)) { // 目录不存在创建目录
+  exec('mkdir '.$dist);
+ }
+
+//exec('mkdir '.$dist);
 $dist .= '/';
 exec('mv '.$filename.' '.$dist);
 
