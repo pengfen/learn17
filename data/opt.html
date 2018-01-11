@@ -1,0 +1,9 @@
+查询某个时间段的数据
+
+每个月第一个记录id 添加到配置表 (百万级的表)
+
+查询时添加id来查
+
+select id,name,add_time from t_call_record where add_time > unix_timestamp('2017-12-1') and add_time < unix_timestamp('2018-1-1') and id > 1000000
+
+
