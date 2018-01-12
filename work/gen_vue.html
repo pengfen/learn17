@@ -1,0 +1,36 @@
+#!/usr/bin/env php
+<?php
+
+// gen vue view template
+// $argv[1] ---> controller  $argv[2] ---> action
+// file name ---> $argv[2]
+if (!isset($argv[2])) {
+    echo 'exec ./test controller action';
+    exit;
+}
+$filename = $argv[2].'.html';
+
+exec('touch '.$filename);
+
+$data = "
+<section class='content'>
+    <div id=\"id_header_query_info\"> <!-- search ... -->
+    </div>
+    <hr/>
+    <!-- <table class=\"common-table\">
+    </table> -->
+    <admin-table :table_data=\"table_data\" :table_config=\"table_config\" />
+</section>
+";
+
+file_put_contents($filename, $data);
+
+$user = exec('who | cut -d\' \' -f1'); // 获取当前用户
+$home = '/home/'.$user;
+$dist = $home.'/admin_yb1v1/vue/src/views/'.$argv[1];
+//$dist = '/home/leo/admin_yb1v1/vue/src/views/'.$argv[1];
+if (!is_dir($dist)) { // 目录不存在创建目录
+exec('mkdir '.$dist);
+}
+$dist .= '/';
+exec('mv '.$filename.' '.$dist);
