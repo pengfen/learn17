@@ -1,0 +1,25 @@
+Hadoop 编程
+
+MapReduce - 编程
+在线练习
+
+http://cloudcomputing.ruc.edu.cn
+处理
+
+    select：直接分析输入数据，取出需要的字段数据即可
+    where: 也是对输入数据处理的过程中进行处理，判断是否需要该数据
+    aggregation:min, max, sum
+    group by: 通过Reducer实现
+    sort
+    join: map join, reduce join
+
+Third-Party Libraries
+
+export LIBJARS=$MYLIB/commons-lang-2.3.jar, hadoop jar prohadoop-0.0.1-SNAPSHOT.jar org.aspress.prohadoop.c3. WordCountUsingToolRunner -libjars $LIBJARS
+
+hadoop jar prohadoop-0.0.1-SNAPSHOT-jar-with-dependencies.jar org.aspress.prohadoop.c3. WordCountUsingToolRunner The dependent libraries are now included inside the application JAR file
+
+一般还是上面的好，指定依赖可以利用Public Cache，如果是包含依赖，则每次都需要拷贝
+参考书籍
+
+MapReduce Design Patterns
