@@ -6,6 +6,8 @@
  mysql-backup.html  mysql备份
  mysql-grant.html   mysql权限操作
  mysql-quest.html   mysql问题
+ 
+ mysqldump.html     备份
 
 
  目录

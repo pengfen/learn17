@@ -1,0 +1,14 @@
+vi dump.sh
+
+#!/bin/bash
+
+#备份resource库
+mysqldump -uroot -p123456 resource > res.sql
+
+
+vi dump_table.sh
+
+#!/bin/bash
+
+#备份单个表
+mysqldump -uroot -p123456 resource --tables resource_techn_article > res.sql
