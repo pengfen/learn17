@@ -12,3 +12,7 @@ vi dump_table.sh
 
 #备份单个表
 mysqldump -uroot -p123456 resource --tables resource_techn_article > res.sql
+#mysqldump -uroot -p123456 resource resource_techn_article > res.sql
+
+#备份单表部分数据
+mysqldump -uroot -p123456 resource resource_techn_article --where="id>100" > res.sql
