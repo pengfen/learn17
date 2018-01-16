@@ -1,0 +1,29 @@
+var mysql      = require('mysql');
+var connection = mysql.createConnection({
+    host     : 'localhost',
+    user     : 'root',
+    password : 'ta0mee',
+    database : 'resource'
+});
+
+connection.connect(); //连接mysql
+
+// 添加数据
+var sql = "insert into resource_techn_article(uid,title,content,pid,addtime) values(?,?,?,?,?)";
+
+var current = new Date().getTime();
+var add_time = parseInt(current/1000);
+var params = [1,'测试','测试一',1,add_time];
+
+connection.query(sql, params, function(err, result) {
+
+    if (err) {
+        console.log("错误 : ", err.message);
+        return;
+    }
+
+    console.log(result);
+    console.log(' id : ' + result.insertId) //获取添加数据id
+});
+
+connection.end();
