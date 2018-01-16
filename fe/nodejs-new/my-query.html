@@ -1,0 +1,23 @@
+var mysql      = require('mysql');
+var connection = mysql.createConnection({
+    host     : 'localhost',
+    user     : 'root',
+    password : 'ta0mee',
+    database : 'resource'
+});
+
+connection.connect(); //连接mysql
+
+// 查询
+var sql = "select * from resource_techn_article where id < 10";
+connection.query(sql, function(err, result) {
+
+    if (err) {
+        console.log('错误: '.err.message);
+        return;
+    }
+
+    console.log(result);
+});
+
+connection.end(); //关闭mysql
