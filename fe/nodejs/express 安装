@@ -1,5 +1,17 @@
 express 安装
 
+localhost:~/peng$ sudo npm install -g express-generator                                                                                                  
+[sudo] leo 的密码： 
+/opt/node/node-v8.9.4-linux-x64/bin/express -> /opt/node/node-v8.9.4-linux-x64/lib/node_modules/express-generator/bin/express-cli.js
++ express-generator@4.15.5
+added 6 packages in 3.365s
+localhost:~/peng$ sudo ln -s /opt/node/node-v8.9.4-linux-x64/bin/express /usr/local/bin/express
+localhost:~/peng$ cd blog/
+localhost:~/peng/blog$ npm install
+localhost:~/peng/blog$ DEBUG=blog ./bin/www #启动
+localhost:3000
+
+
 npm install express -g # 安装express模块
 npm install -g express-generator (4.0及以后版本都得使用)
 npm -V # 查看express版本号 
