@@ -14,7 +14,9 @@ dir.html     文件,目录相关操作命令
 
 chown.html   文件权限操作命令(chown chomd)
 
-user.html    用户
+user.html    用户操作(adduser,passwd)
+
+system.html  系统操作(hostname,ifconfig.mount,umount,du,df)
 
 search.html  搜索命令(find grep)
 
