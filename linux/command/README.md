@@ -1,16 +1,12 @@
 intro.html   日常操作命令 (pwd,date,who)
 
-alias.html   别名的使用
+alias.html   别名的使用 (alias)
 
 history.html history命令
 
-ls.html      ls命令
-
-cd.html      cd命令
-
 help.html    帮助命令(whatis help man)
 
-dir.html     文件,目录相关操作命令
+dir.html     文件,目录相关操作命令 (cd,ls)
 
 chown.html   文件权限操作命令(chown chomd)
 
