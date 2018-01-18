@@ -1,0 +1,29 @@
+	  源码包与 RPM 的区别
+
+    安装之前的区别 概念上的区别
+    安装之后的区别 安装位置不同
+
+    RPM 包安装位置
+    是安装在默认位置中
+    RPM 包默认安装路径
+    /etc/ 配置文件安装目录
+    /usr/bin/ 可执行的命令安装目录
+    /usr/lib/ 程序所使用的函数库保存位置
+    /usr/share/doc/ 基本的软件使用手册保存位置
+    /usr/share/man/ 帮助文件保存位置
+
+    源码包安装过程
+    rpm --help | grep prefix
+    rpm 安装可以指定安装位置 (--prefix=<div>)
+
+    安装位置不同带来的影响
+    RPM 包安装的服务可以使用系统服务管理命令 (service) 来管理 例如 RPM 包安装的 apache 的启动方法是
+    /etc/rc.d/init.d/httpd start
+    service httpd start
+
+    源码包安装位置
+    安装在指定位置当中 一般是 /usr/local/软件名/ #源码包没有卸载命令
+
+    而源码包安装的服务则不能被服务管理命令管理 因为没有安装到默认路径中 所以只能用绝对路径进行服务的管理
+    /usr/local/apache2/bin/apachectl start
+    (只要把安装目录删除掉, 就卸载了对应的软件)
