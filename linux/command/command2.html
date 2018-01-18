@@ -1,0 +1,70 @@
+1.进入到用户根目录
+cd ~ 或者 cd
+cd ~hadoop
+回到原来路径
+cd -
+
+2.查看文件详情
+stat a.txt
+
+3.移动
+mv a.txt /ect/
+改名
+mv b.txt a.txt
+移动并改名
+mv a.txt ../b.txt
+
+4拷贝并改名
+cp a.txt /etc/b.txt
+
+5.vi撤销修改
+ctrl + u (undo)
+恢复
+ctrl + r (redo)
+
+6.名令设置别名(重启后无效)
+alias ll="ls -l"
+取消
+unalias ll
+
+7.如果想让别名重启后仍然有效需要修改
+vi ~/.bashrc
+
+8.添加用户
+useradd hadoop
+passwd hadoop
+
+9创建多个文件
+touch a.txt b.txt
+touch /home/{a.txt,b.txt}
+
+10.将一个文件的内容复制到里另一个文件中
+cat a.txt > b.txt
+追加内容
+cat a.txt >> b.txt 
+
+
+11.将a.txt 与b.txt设为其拥有者和其所属同一个组者可写入，但其他以外的人则不可写入:
+chmod ug+w,o-w a.txt b.txt
+
+chmod a=wx c.txt
+
+12.将当前目录下的所有文件与子目录皆设为任何人可读取:
+chmod -R a+r *
+
+13.将a.txt的用户拥有者设为users,组的拥有者设为jessie:
+chown users:jessie a.txt
+
+14.将当前目录下的所有文件与子目录的用户的使用者为lamport,组拥有者皆设为users，
+chown -R lamport:users *
+
+15.将所有的java语言程式拷贝至finished子目录中:
+cp *.java finished
+
+16.将目前目录及其子目录下所有扩展名是java的文件列出来。
+find -name "*.java"
+查找当前目录下扩展名是java 的文件
+find -name *.java
+
+17.删除当前目录下扩展名是java的文件
+rm -f *.java
