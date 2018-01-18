@@ -1,0 +1,12 @@
+4 基本的用户管理
+
+添加用户useradd hadoop
+要修改密码才能登陆 passwd hadoop 按提示输入密码即可
+
+为用户配置sudo权限用root编辑 
+vi /etc/sudoers
+在文件的如下位置，为hadoop添加一行即可
+root    ALL=(ALL)       ALL     
+hadoop  ALL=(ALL)       ALL
+然后，hadoop用户就可以用sudo来执行系统级别的指令
+[hadoop@shizhan ~]$ sudo useradd huangxiaomi

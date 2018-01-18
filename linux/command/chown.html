@@ -1,0 +1,17 @@
+修改文件权限
+chmod g-rw haha.dat 表示将haha.dat对所属组的rw权限取消
+
+chmod o-rw haha.dat 表示将haha.dat对其他人的rw权限取消
+
+chmod u+x haha.dat 表示将haha.dat对所属用户的权限增加
+x也可以用数字的方式来修改权限
+
+chmod 664 haha.dat 就会修改成 rw-rw-r--
+
+如果要将一个文件夹的所有内容权限统一修改，则可以-R参数
+chmod -R 770 aaa/
+
+chown angela:angela aaa/    <只有root能执行>
+目录没有执行权限的时候普通用户不能进入
+文件只有读写权限的时候普通用户是可以删除的
+(删除文件不是修改它,是操作父及目录),只要父级目录有执行和修改的权限
