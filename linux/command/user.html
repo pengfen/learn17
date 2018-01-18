@@ -10,3 +10,19 @@ root    ALL=(ALL)       ALL
 hadoop  ALL=(ALL)       ALL
 然后，hadoop用户就可以用sudo来执行系统级别的指令
 [hadoop@shizhan ~]$ sudo useradd huangxiaomi
+
+useradd –u（UID号）
+useradd –p（口令）
+useradd –g（分组）
+useradd –s（SHELL）
+useradd –d（用户目录）
+usermod –u（新UID）
+usermod –d（用户目录）
+usermod –g（组名）
+usermod –s（SHELL）
+usermod –p（新口令）
+usermod –l（新登录名）
+usermod –L 锁定用户账号密码
+usermod –U 解锁用户账号
+userdel 用户名  删除用户账号
+userdel –r 删除账号时同时删除目录
