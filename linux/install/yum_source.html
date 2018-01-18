@@ -1,0 +1,70 @@
+制作本地YUM源
+YUM源虽然可以简化我们在Linux上安装软件的过程，但是生成环境通常无法上网，不能连接外网的YUM源，说以接就无法使用yum命令安装软件了。为了在内网中也可以使用yum安装相关的软件，就要配置yum源。
+YUM源的原理
+YUM源其实就是一个保存了多个RPM包的服务器，可以通过http的方式来检索、下载并安装相关的RPM包
+
+制作本地YUM源
+1. 准备一台Linux服务器，用最简单的版本CentOS-6.7-x86_64-minimal.iso
+
+2. 配置好这台服务器的IP地址
+
+3. 上传CentOS-6.7-x86_64-bin-DVD1.iso到服务器
+
+4. 将CentOS-6.7-x86_64-bin-DVD1.iso镜像挂载到某个目录
+mkdir /var/iso
+mount -o loop CentOS-6.7-x86_64-bin-DVD1.iso /var/iso
+
+5. 修改本机上的YUM源配置文件，将源指向自己
+备份原有的YUM源的配置文件
+cd /etc/yum.repos.d/
+rename .repo .repo.bak *
+vi CentOS-Local.repo
+[base]
+name=CentOS-Local
+baseurl=file:///var/iso
+gpgcheck=1
+enabled=1   #很重要，1才启用
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+添加上面内容保存退出
+
+6. 清除YUM缓冲
+yum clean all
+
+7. 列出可用的YUM源
+yum repolist
+
+8. 安装相应的软件
+yum install -y httpd
+
+9.开启httpd使用浏览器访问http://192.168.0.100:80（如果访问不通，检查防火墙是否开启了80端口或关闭防火墙）
+service httpd start
+
+10.将YUM源配置到httpd（Apache Server）中，其他的服务器即可通过网络访问这个内网中的YUM源了
+cp -r /var/iso/ /var/www/html/CentOS-6.7
+
+11.取消先前挂载的镜像
+umount /var/iso
+
+12.在浏览器中访问http://192.168.0.100/CentOS-6.7/
+
+13. 让其他需要安装RPM包的服务器指向这个YUM源，准备一台新的服务器，备份或删除原有的YUM源配置文件
+cd /etc/yum.repos.d/
+rename .repo .repo.bak *
+vi CentOS-Local.repo
+[base]
+name=CentOS-Local
+baseurl=http://192.168.0.100/CentOS-6.7
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+添加上面内容保存退出
+
+14. 在这台新的服务器上执行YUM的命令
+yum clean all
+yum repolist
+
+15. 安装相应的软件
+yum install -y gcc
+
+16、 加入依赖包到私有yum的repository
+进入到repo目录
+执行命令：  createrepo  .
