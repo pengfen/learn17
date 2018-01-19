@@ -22,6 +22,8 @@ ln.html      链接命令
 
 mount.html   挂载命令
 
+string.html  字符串处理 (awk sed)
+
 command.html 其它相关命令
 
 command1.html 测试一   

@@ -1,37 +1,43 @@
-    iptables 
+iptables 
 
-    如何用 iptables 搭建一套强大的安全防护盾
-    什么是 iptables
-    常见于 linux 系统下的应用层防火墙工具
+如何用 iptables 搭建一套强大的安全防护盾
+什么是 iptables
+常见于 linux 系统下的应用层防火墙工具
 
-    常用人员 系统管理人员 网络工程人员 安全人员等等
+常用人员 系统管理人员 网络工程人员 安全人员等等
 
-    场景 模拟用 iptables 控制并发的 http 访问
-    目标机器 [IP2]10.10.163.233 客户端机器 [IP1]10.10.163.232
+场景 模拟用 iptables 控制并发的 http 访问
+目标机器 [IP2]10.10.163.233 客户端机器 [IP1]10.10.163.232
 
-    场景描述 IP1(通过 ab 命令) -> IP2(http服务)
+场景描述 IP1(通过 ab 命令) -> IP2(http服务)
 
-    如何用 iptables 搭建一套如何企业实际使用的防火墙规则
-    如何用 iptables 进行防攻击
-    如何利用 iptables 进行数据包转发
-    明白 iptables 的强大及实际使用意义
+如何用 iptables 搭建一套如何企业实际使用的防火墙规则
+如何用 iptables 进行防攻击
+如何利用 iptables 进行数据包转发
+明白 iptables 的强大及实际使用意义
 
-    netfilter
-    什么是 netfilter
-    netfilter 是 linux 操作系统核心层内部的一个数据包处理模块
+netfilter
+什么是 netfilter
+netfilter 是 linux 操作系统核心层内部的一个数据包处理模块
 
-    什么是 hook point
-    数据包在 netfilter 中的挂载点 (PRE_ROUTING INPUT OUTPUT FORWARD POST_ROUTING)
+什么是 hook point
+数据包在 netfilter 中的挂载点 (PRE_ROUTING INPUT OUTPUT FORWARD POST_ROUTING)
 
-    iptables 规则组成
-    组成部分 四张表 + 五条链 (Hook point) + 规则
-    四张表 filter 表 nat 表 mangle 表 raw 表
-    五条链 INPUT OUTPUT FORWARD PREROUTING POSTROUTING
+iptables 规则组成
+组成部分 四张表 + 五条链 (Hook point) + 规则
+四张表 filter 表 nat 表 mangle 表 raw 表
+五条链 INPUT OUTPUT FORWARD PREROUTING POSTROUTING
 
-    filter 表 访问控制 规则匹配
-    nat    表 地址转发
-    mangle 表 修改数据包 改变包头中内容 (TTL TOS MARK)
-    raw    表 数据包的跟踪和分析
+filter 表 访问控制 规则匹配
+nat    表 地址转发
+mangle 表 修改数据包 改变包头中内容 (TTL TOS MARK)
+raw    表 数据包的跟踪和分析
+
+filter表：
+filter是iptables默认使用的表，负责对流入、流出本机的数据包进行过滤，该表中定义了3个链：
+INPOUT 	负责过滤所有目标地址是本机地址的数据包，就是过滤进入主机的数据包。
+FORWARD	负责转发流经本机但不进入本机的数据包，起到转发的作用。
+OUTPUT	负责处理所有源地址是本机地址的数据包，就是处理从主机发出去的数据包。
 
     数据包访问控制 ACCEPT DROP REJECT
     数据包改写 SNAT DNAT
