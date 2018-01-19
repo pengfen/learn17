@@ -1,0 +1,51 @@
+配置nginx
+
+配置反向代理
+============================================================
+1. 修改nginx配置文件
+server {
+listen       80;
+server_name  nginx-01.itcast.cn;    #nginx所在服务器的主机名
+#反向代理的配置
+location / {             #拦截所有请求
+root html;
+proxy_pass http://192.168.0.21:8080;   #这里是代理走向的目标服务器：tomcat
+}
+}
+2. 启动tomcat-01上的tomcat
+
+3.启动nginx-01上的nginx
+./nginx
+
+重启:
+kill -HUP `cat /usr/local/nginx/logs/nginx.pid `
+参考网址:http://www.cnblogs.com/jianxie/p/3990377.html
+
+
+动静分离
+============================================================
+#动态资源 index.jsp
+location ~ .*\.(jsp|do|action)$ {
+proxy_pass http://tomcat-01.itcast.cn:8080;
+}
+
+#静态资源
+location ~ .*\.(html|js|css|gif|jpg|jpeg|png)$ {
+expires 3d;
+}
+
+负载均衡
+============================================================
+在http这个节下面配置一个叫upstream的，后面的名字可以随意取，但是要和location下的proxy_pass http://后的保持一致。
+http {
+    是在http里面的, 已有http, 不是在server里,在server外面
+    upstream tomcats { 
+        server shizhan02:8080 weight=1;#weight表示多少个
+        server shizhan03:8080 weight=1;
+        server shizhan04:8080 weight=1;
+}
+#卸载server里
+location ~ .*\.(jsp|do|action) {
+    proxy_pass http://tomcats;        #tomcats是后面的tomcat服务器组的逻辑组号
+}
+}

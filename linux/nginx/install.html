@@ -1,0 +1,25 @@
+下载nginx
+官网：http://nginx.org/
+
+上传并解压nginx
+tar -zxvf nginx-1.8.1.tar.gz -C /usr/local/src
+
+编译nginx
+#进入到nginx源码目录
+cd /usr/local/src/nginx-1.8.1
+
+#检查安装环境,并指定将来要安装的路径
+./configure --prefix=/usr/local/nginx
+
+#缺包报错 ./configure: error: C compiler cc is not found
+
+#使用YUM安装缺少的包
+yum -y install gcc pcre-devel openssl openssl-devel
+
+#编译安装
+make && make install
+
+安装完后测试是否正常：
+/usr/loca/nginx/sbin/nginx
+查看端口是否有ngnix进程监听
+netstat -ntlp | grep 80
