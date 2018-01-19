@@ -1,0 +1,136 @@
+Redis3集群安装
+
+1. 什么是Redis
+Redis是目前一个非常优秀的key-value存储系统。和Memcached类似，它支持存储的value类型相对更多，包括string(字符串)、list(链表)、set(集合)、zset(sorted set有序集合)和hash（哈希类型）。
+
+2. 为什么要安装Redis3集群
+Redis3.x支持集群模式，更加可靠！
+
+3. 安装Redis3集群（6台Linux）
+参考文章：http://blog.csdn.net/myrainblues/article/details/25881535
+
+1. 下载redis3的稳定版本，下载地址http://download.redis.io/releases/redis-3.0.7.tar.gz
+
+2. 上传redis-3.0.7.tar.gz到服务器
+
+3. 解压redis源码包
+tar -zxvf redis-3.0.7.tar.gz -C /usr/local/src/
+
+4. 进入到源码包中，编译并安装redis
+cd /usr/local/src/redis-3.0.7/
+make && make install
+
+5. 报错，缺少依赖的包
+gcc Command not found
+
+6. 配置本地YUM源并安装redis依赖的rpm包
+yum -y install gcc
+
+7. 编译并安装
+make && make install
+
+8. 报错，原因是没有安装jemalloc内存分配器，可以安装jemalloc或直接输入
+make MALLOC=libc && make install
+
+9. 重新编译安装
+make MALLOC=libc && make install
+
+10. 用同样的方式在其他的机器上编译安装redis
+
+11. 在所有机器的/usr/local/下创建一个redis目录，然后拷贝redis自带的配置文件redis.conf到/usr/local/redis
+mkdir /usr/local/redis
+cp /usr/local/src/redis-3.0.7/redis.conf /usr/local/redis
+
+12. 修改所有机器的配置文件redis.conf
+daemonize yes  #redis后台运行
+cluster-enabled yes  #开启集群把注释去掉
+appendonly yes  #开启aof日志，它会每次写操作都记录一条日志
+sed -i 's/daemonize no/daemonize yes/' /usr/local/redis/redis.conf
+sed -i 's/# cluster-enabled yes/cluster-enabled yes/' /usr/local/redis/redis.conf
+sed -i 's/appendonly no/appendonly yes/' /usr/local/redis/redis.conf
+sed -i 's/# cluster-node-timeout 15000/cluster-node-timeout 5000/' /usr/local/redis/redis.conf
+
+13. 启动所有的redis节点
+cd /usr/local/redis
+redis-server redis.conf
+
+14. 查看redis进程状态
+ps -ef | grep redis
+
+15. 配置集群：安装ruby和ruby gem工具（redis3集群配置需要ruby的gem工具，类似yum）
+yum -y install ruby rubygems
+(centos6.5的光盘可能缺失rubygems包，需要这样处理：
+先安装yum -y install ruby，
+再安装rubygems的依赖：
+yum install -y ruby-irb
+yum install -y ruby-rdoc
+再用rpm命令安装rubygems包
+rpm -ivh /root/rubygems-1.3.7-5.el6.noarch.rpm
+)
+
+16. 使用gem下载redis集群的配置脚本
+gem install redis
+
+17. gem需要上网才能下载，由于安装redis的服务器可能无法访问外网，可以找一台可以上网的服务器执行下面的命令
+yum -y install ruby rubygems
+gem install redis
+将下载好的redis gem（/usr/lib/ruby/gems/1.8/cache/redis-3.2.2.gem）拷贝到其他服务器
+cd /usr/lib/ruby/gems/1.8/cache
+for n in {2..6}; do scp redis-3.2.2.gem 192.168.0.3$n:$PWD; done
+
+18. 使用gem本地模式安装redis-3.2.2.gem
+gem install --local /usr/lib/ruby/gems/1.8/cache/redis-3.2.2.gem
+
+19. 使用脚本配置redis集群（在一台机器上执行即可，想要把哪些节点配置成Master节点就放在后面）
+cd /usr/local/src/redis-3.0.7/src/
+service iptables stop
+./redis-trib.rb create --replicas 1 192.168.0.34:6379 192.168.0.35:6379 192.168.0.36:6379 192.168.0.31:6379 192.168.0.32:6379 192.168.0.33:6379
+
+20. 测试
+redis-cli -c -p 6379
+
+
+
+4. Redis3伪分布式安装（1台Linux）
+
+1. 下载redis3的稳定版本，下载地址http://download.redis.io/releases/redis-3.0.7.tar.gz
+
+2. 上传redis-3.0.7.tar.gz到服务器
+
+3.解压redis源码包
+tar -zxvf redis-3.0.7.tar.gz -C /usr/local/src/
+
+4.进入到源码包中，编译并安装redis
+cd /usr/local/src/redis-3.0.7/
+make && make install
+
+5.在/usr/local/下创建一个redis目录，然后分别在/usr/local/redis目录创建6个文件夹7000,7001,7002,7003,7004,7005然后拷贝redis自带的配置文件redis.conf到这六个目录中
+mkdir /usr/local/redis
+mkdir /usr/local/redis/{7000,7001,7002,7003,7004,7005}
+cp /usr/local/src/redis-3.0.7/redis.conf /usr/local/redis/7000
+cp /usr/local/src/redis-3.0.7/redis.conf /usr/local/redis/7001
+cp /usr/local/src/redis-3.0.7/redis.conf /usr/local/redis/7002
+cp /usr/local/src/redis-3.0.7/redis.conf /usr/local/redis/7003
+cp /usr/local/src/redis-3.0.7/redis.conf /usr/local/redis/7004
+cp /usr/local/src/redis-3.0.7/redis.conf /usr/local/redis/7005
+
+6.分别修改这六个目录中的配置文件
+port 7000 #端口要与其所在的文件名一致
+pidfile /var/run/redis-7000.pid  #pid要与其所在的文件名一致
+daemonize yes
+cluster-enabled yes
+appendonly yes
+
+7. 分别进入到这六个目录启动redis进程
+cd /usr/local/redis/7000
+redis-server redis.conf
+cd /usr/local/redis/7001
+redis-server redis.conf
+cd /usr/local/redis/7002
+redis-server redis.conf
+cd /usr/local/redis/7003
+redis-server redis.conf
+cd /usr/local/redis/7004
+redis-server redis.conf
+cd /usr/local/redis/7005
+redis-server redis.conf
