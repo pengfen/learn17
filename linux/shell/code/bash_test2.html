@@ -1,0 +1,50 @@
+sed
+#将 /etc/passwd 的内容列出并且列印行号，同时，请将第 2~5 行删除！注意一下，原本应该是要下达 sed -e 才对，没有 -e 也行！
+nl /etc/passwd | sed '2,5d'
+
+#要删除第 3 到最后一行
+nl /etc/passwd | sed '3,$d' 
+
+#在第二行后(亦即是加在第三行)加上itcast
+nl /etc/passwd | sed '2a itcast'
+
+#如果是在第二行前面
+nl /etc/passwd | sed '2i itcast'
+
+#仅列出 /etc/passwd 文件内的第 5-7 行
+nl /etc/passwd | sed -n '5,7p'
+
+#获取当前eth0网卡的IP地址
+ifconfig eth0 | grep 'inet addr' | sed 's/^.*addr://g' | sed 's/Bcast.*$//g'
+ifconfig eth0 | grep 'inet addr' | cut -d : -f2 | cut -d ' '  -f1
+#练习
+cat /etc/passwd > passwd.bak
+#在第2行后面插入itcast字符
+sed -i '3a itcast' passwd.bak
+
+#删除文件中的第2行到第5行
+sed -i '2,5d' passwd.bak
+
+#使用\来进行转义或使用#
+sed -i 's/\/bin\/bash/\/itcast/g' passwd.bak
+sed -i 's#/bin/bash#/itcast#g' passwd.bak
+
+#删除一个文件已#开头的行和空行
+sed -i -e '/^#/d' -e '/^$/d' abc.txt
+
+awk
+cat /etc/passwd | awk -F ':' '{print $0}'
+awk -F ':' '{print $2}' /etc/passwd
+
+awk -F ':' '1>0 {print $1} 2>1 {print $2}' /etc/passwd
+
+awk 'BEGIN {print "this file is /etc/passwd"} {print $0}' /etc/passwd
+
+awk -F ':' 'BEGIN {print "this file is /etc/passwd"} {print $1}' /etc/passwd
+
+awk '{FS=":"} {print $1}' /etc/passwd
+awk 'BEGIN {FS=":"} {print $1}' /etc/passwd
+
+awk 'END {print "end of file"} {print $1}' /etc/passwd
+
+ifconfig eth0 | grep 'inet addr' | awk -F ":" '{print $2}' | awk '{print $1}'
