@@ -24,6 +24,8 @@ mount.html   挂载命令
 
 string.html  字符串处理 (awk sed)
 
+sort.html    排序命令
+
 command.html 其它相关命令
 
 command1.html 测试一   
