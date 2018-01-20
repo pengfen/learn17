@@ -1,0 +1,119 @@
+1. 安装lvs应用模块
+1、安装依赖包：
+yum -y install ipvs*
+2、验证本机ip_vs模块是否加载
+[root@client lvs]# grep -i 'ip_vs' /boot/config-2.6.32-431.el6.x86_64 
+CONFIG_IP_VS=m 
+CONFIG_IP_VS_IPV6=y 
+# CONFIG_IP_VS_DEBUG is not set 
+CONFIG_IP_VS_TAB_BITS=12 
+CONFIG_IP_VS_PROTO_TCP=y 
+CONFIG_IP_VS_PROTO_UDP=y 
+CONFIG_IP_VS_PROTO_AH_ESP=y 
+CONFIG_IP_VS_PROTO_ESP=y 
+CONFIG_IP_VS_PROTO_AH=y 
+CONFIG_IP_VS_PROTO_SCTP=y 
+CONFIG_IP_VS_RR=m 
+CONFIG_IP_VS_WRR=m 
+CONFIG_IP_VS_LC=m 
+CONFIG_IP_VS_WLC=m 
+CONFIG_IP_VS_LBLC=m 
+CONFIG_IP_VS_LBLCR=m 
+CONFIG_IP_VS_DH=m 
+CONFIG_IP_VS_SH=m 
+CONFIG_IP_VS_SED=m 
+CONFIG_IP_VS_NQ=m 
+CONFIG_IP_VS_FTP=m 
+CONFIG_IP_VS_PE_SIP=m
+2. 安装lvs
+2.1. 编写lvs drsrever脚本：
+2.1.1. 修改functions权限：
+（functions这个脚本是给/etc/init.d里边的文件使用的（可理解为全局文件）。）
+chmod 755 /etc/rc.d/init.d/functions
+2.1.2. 创建lvs文件夹
+cd /usr/local 
+mkdir –m 755 lvs
+cd /lvs
+2.1.3. 编写脚本
+vi  lvs_dr.sh
+#!/bin/bash
+#description:start lvs server
+echo "1" >/proc/sys/net/ipv4/ip_forward  		#开启ip转发
+WEB1=192.168.56.200						#真实的webip
+WEB2=192.168.56.201						#真实的webip
+VIP1=192.168.56.80						#虚拟lvs的ip
+/etc/rc.d/init.d/functions 					#初始化function
+case "$1" in								#第一个参数
+start)									#第一个参数是start
+echo "start LVS of directorServer"				#打印
+/sbin/ifconfig eth0:0 $VIP1 broadcast $VIP1 netmask 255.255.255.255 up		#设置虚拟网络
+/sbin/ipvsadm –C					#清除内核虚拟服务器表中的所有记录，清除lvs设置
+/sbin/ipvsadm -A -t $VIP1:8080 -s rr	#设置rr模式，轮询模式
+/sbin/ipvsadm -a -t $VIP1:8080 -r $WEB1:8080 –g		#轮询的机器，-g采用DR模式
+/sbin/ipvsadm -a -t $VIP1:8080 -r $WEB2:8080 –g
+/sbin/ipvsadm								#启动lvs
+;;
+stop)							#如果第一个参数是stop
+echo "close LVS directorserver"		#打印
+echo "0" >/proc/sys/net/ipv4/ip_forward	#关闭ip转发
+/sbin/ipvsadm –C					#清除内核虚拟服务器表中的所有记录
+/sbin/ipvsadm –Z					#虚拟服务表计数器清零（清空当前的连接数量等）
+;;
+*)								#如果第一个参数是其他任何值
+echo "usage:$0 {start|stop}"			#打印：提示输入start或者stop
+exit 1							#退出
+esac								#循环结束
+2.1.4. 执行脚本
+chmod 755 lvs_dr.sh
+./lvs-dr.sh  start
+
+2.1.5. 查看：
+ipvsadm –ln
+ 
+看到上面信息说明ipvsadm启动成功。
+2.2.  编写lvs realserver脚本
+2.2.1. 在web1 和web2机器上修改functions权限：
+（functions这个脚本是给/etc/init.d里边的文件使用的（可理解为全局文件）。）
+chmod 755 /etc/rc.d/init.d/functions
+
+2.2.2. 在分别在web1 和web2服务器上创建lvs文件夹： 
+cd /usr/local
+mkdir –m 755 lvs
+cd lvs
+rz –y
+2.2.3. 编写监本
+
+vi  lvs-rs.sh
+#!/bin/sh
+VIP1=192.168.56.80					#虚拟ip
+/etc/rc.d/init.d/functions				#初始化function
+case "$1" in							#第一个参数
+start)								#如果第一个参数是start
+echo "start LVS of realserver"				#打印
+/sbin/ifconfig lo:0 $VIP1 broadcast $VIP1 netmask 255.255.255.255 up	#设置虚拟网络
+echo "1" >/proc/sys/net/ipv4/conf/lo/arp_ignore		#定义接收到ARP请求时的响应级别
+echo "2" >/proc/sys/net/ipv4/conf/lo/arp_announce	#定义将自己的地址向外通告时的级别
+echo "1" >/proc/sys/net/ipv4/conf/all/arp_ignore
+echo "2" >/proc/sys/net/ipv4/conf/all/arp_announce
+;;
+stop)								#如果第一个参数是stop
+/sbin/ifconfig lo:0 down					#停止网卡
+echo "close lvs dirctorserver"				#打印
+echo "0" >/proc/sys/net/ipv4/conf/lo/arp_ignore		#定义接收到ARP请求时的响应级别
+echo "0" >/proc/sys/net/ipv4/conf/lo/arp_announce	#定义将自己的地址向外通告时的级别
+echo "0" >/proc/sys/net/ipv4/conf/all/arp_ignore
+echo "0" >/proc/sys/net/ipv4/conf/all/arp_announce
+;;
+*)
+echo "usage:$0{start|stop}"
+exit 1
+esac
+2.2.4. 启动在web1 和web2机器上lvs：
+chmod 755 lvs-rs.sh
+./lvs-rs.sh start 
+ 
+3. 设置dr机器上设置连接超时值(秒) 
+ipvsadm --set 1 1 1
+4. 关闭
+./lvs-rs.sh stop
+./lvs-dr.sh stop

@@ -1,0 +1,12 @@
+安装备机器
+注意：备的配置文件不相同。
+
+4. 两台机器启动keepalived：
+service keepalived start
+
+5. 验证
+ip a
+6. 监控
+因为keepalive只能监控机器的死活，所以当软件死掉后，keepalived仍然不会切换；
+所以需要写一个脚本，监控软件的死活。
+运行wangsf.sh，监控软件

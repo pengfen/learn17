@@ -1,0 +1,33 @@
+1. 安装依赖
+su - root
+yum -y install kernel-devel*
+yum -y install openssl-*
+yum -y install popt-devel
+yum -y install lrzsz
+yum -y install openssh-clients
+
+2. 安装keepalived
+2.1. 上传
+1、cd /usr/local
+2、rz –y
+3、选择keepalived安装文件
+2.2. 解压
+tar –zxvf keepalived-1.2.2.tar.gz
+2.3. 重命名
+mv keepalived-1.2.2 keepalived
+2.4. 安装keepalived
+1、cd keepalived
+2、执行命令
+./configure --prefix=/usr/local/keepalived -enable-lvs-syncd --enable-lvs --with-kernel-dir=/lib/modules/2.6.32-431.el6.x86_64/build
+3、编译
+make
+4、安装
+make install
+
+配置服务和加入开机启动
+cp /usr/local/keepalived/etc/rc.d/init.d/keepalived /etc/init.d/ 
+cp /usr/local/keepalived/etc/sysconfig/keepalived /etc/sysconfig/
+mkdir -p /etc/keepalived
+cp /usr/local/keepalived/etc/keepalived/keepalived.conf /etc/keepalived/
+ln -s /usr/local/keepalived/sbin/keepalived /sbin/
+chkconfig keepalived on
