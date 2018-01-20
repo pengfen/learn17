@@ -1,6 +1,36 @@
 目录相关命令
-建立目录
-mkdir -p [目录名]
+
+ls [选项][文件或目录]
+=====================================================================
+选项
+-a 显示所有文件 包括隐藏文件
+-l 显示详细信息
+-d 查看目录属性
+-h 人性化显示文件大小
+-i 显示 inode
+
+[root@apeng ~]# ls -l #同 ll 一样
+total 12
+drwxr-xr-x 6 root root 4096 Feb 23 22:13 hadoop
+drwxr-xr-x 4 root root 4096 Feb 20 16:35 jee
+drwxr-xr-x 4 root root 4096 Feb 20 11:31 lnmp
+[root@apeng ~]# ll
+total 12
+[root@apeng ~]# ls -d
+.
+[root@apeng ~]# ls -n
+total 12
+
+ls -lh 查看文件大小
+ll -h  查看文件大小
+
+
+
+
+
+
+
+建立目录 mkdir -p [目录名]
 -p 递归创建
 命令英文原意 make directories
 mkdir -p apeng/peng (mkdir apeng cd ./apeng mkdir peng)
@@ -193,38 +223,50 @@ $ 普通用户的提示符
 注意 个别命令使用不遵循此格式
 	 当有多个选项时 可以写在一起
 	 简化选项与完整选项
-	 -a 等于 -all
+-a 等于 -all
 
-ls [选项][文件或目录]
-选项
-	 -a 显示所有文件 包括隐藏文件
-	 -l 显示详细信息
-	 -d 查看目录属性
-	 -h 人性化显示文件大小
-	 -i 显示 inode
 
-	[root@apeng ~]# ls -l #同 ll 一样
-	total 12
-	drwxr-xr-x 6 root root 4096 Feb 23 22:13 hadoop
-	drwxr-xr-x 4 root root 4096 Feb 20 16:35 jee
-	drwxr-xr-x 4 root root 4096 Feb 20 11:31 lnmp
-	[root@apeng ~]# ll
-	total 12
-	drwxr-xr-x 6 root root 4096 Feb 23 22:13 hadoop
-	drwxr-xr-x 4 root root 4096 Feb 20 16:35 jee
-	drwxr-xr-x 4 root root 4096 Feb 20 11:31 lnmp
-	[root@apeng ~]# ls -d
-	.
-	[root@apeng ~]#
-	[root@apeng ~]# ls -n
-	total 12
-	drwxr-xr-x 6 0 0 4096 Feb 23 22:13 hadoop
-	drwxr-xr-x 4 0 0 4096 Feb 20 16:35 jee
-	drwxr-xr-x 4 0 0 4096 Feb 20 11:31 lnmp
-	[root@apeng ~]# ls -i
-	1051755 hadoop  1190540 jee  1188194 lnmp
-	[root@apeng ~]# ls
-	hadoop  jee  lnmp
+1：cat
+语　　法：cat [选项列表] [文件列表]...
+功能说明：连接文件并在标准输出上输出 
 
-	ls -lh 查看文件大小
-	ll -h  查看文件大小
+2：head / tail
+语　　法：head/tail [OPTION]... [FILE]...
+功能说明：输出文件的开始/结尾部分
+3：more / less 
+在显示器上阅读文件的过滤器，less比more功能要强大。
+4：cp
+语　　法：cp [-abdfilpPrRsuvx][-S <备份字尾字符串>][-V <备份方式>][--help][--spares=<使用时机>][--version][源文件或目录][目标文件或目录] [目的目录] 
+说明：复制文件或目录。cp指令用在复制文件或目录，如同时指定两个以上的文件或目录，且最后的目的地是一个已经存在的目录，则它会把前面指定的所有文件或目录复制到该目录中。若同时指定多个文件或目录，而最后的目的地并非是一个已存在的目录，则会出现错误信息。
+参　　数：
+　-a或--archive  此参数的效果和同时指定"-dpR"参数相同。 
+　-b或--backup 删除，覆盖目标文件之前作备份，备份文件会在字尾加上一个备份字符串。
+　-d或--no-dereference  复制符号链接作为符号链接而不是复制它指向的文件, 并且保护在副本中原文件之间的硬链接.
+　-f或--force  强行复制文件或目录，不论目标文件或目录是否已存在。 
+　-i或--interactive  覆盖既有文件之前先询问用户。 
+　-l或--link 　对源文件建立硬连接，而非复制文件。 
+　-p或--preserve 　保留源文件或目录的属性。 
+　-P或--parents 　保留源文件或目录的路径。 
+　-r 　递归处理，将指定目录下的文件与子目录一并处理。 
+　-R或--recursive 　递归处理，将指定目录下的所有文件与子目录一并处理。 
+　-s或--symbolic-link 　对源文件建立符号连接，而非复制文件。 
+　-S<备份字尾字符串>或--suffix=<备份字尾字符串> 　用"-b"参数备份目标文件后，备份文件的字尾会被加上一个备份字符串，预设的备份字尾字符串是符号"~"。 
+　-u或--update 　使用这项参数后只会在源文件的更改时间较目标文件更新时或是　名称相互对应的目标文件并不存在，才复制文件。 
+　-v或--verbose 　显示指令执行过程。 
+　-V<备份方式>或--version-control=<备份方式> 　用"-b"参数备份目标文件后，备份文件的字尾会被加上一个备份字符串，这字符串不仅可用"-S"参数变更，当使用"-V"参数指定不同备份方式时，也会产生不同字尾的备份字串。  
+　-x或--one-file-system 　复制的文件或目录存放的文件系统，必须与cp指令执行时所处的文件系统相同，否则不予复制。 
+　--help 　在线帮助。 
+　--sparse=<使用时机> 　设置保存稀疏文件的时机。 
+　--version 　显示版本信息。
+5：rm 
+语　　法：rm [-dfirv][--help][--version][文件或目录...]
+说明：删除文件或目录。执行rm指令可删除文件或目录，如欲删除目录必须加上参数"-r"，否则预设仅会删除文件。 
+参　　数：
+　-d或--directory 　直接把欲删除的目录的硬连接数据删成0，删除该目录。 
+　-f或--force 　强制删除文件或目录。 
+　-i或--interactive 　删除既有文件或目录之前先询问用户。 
+　-r或-R或--recursive 　递归处理，将指定目录下的所有文件及子目录一并处理。 
+　-v或--verbose 　显示指令执行过程。 
+　--help 　在线帮助。 
+    　--version 　显示版本信息。
+

@@ -6,7 +6,7 @@ history.html history命令
 
 help.html    帮助命令(whatis help man)
 
-dir.html     文件,目录相关操作命令 (cd,ls)
+dir.html     文件,目录相关操作命令 (ls,)
 
 chown.html   文件权限操作命令(chown chomd)
 
