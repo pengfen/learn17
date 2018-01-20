@@ -23,3 +23,63 @@ make && make install
 /usr/loca/nginx/sbin/nginx
 查看端口是否有ngnix进程监听
 netstat -ntlp | grep 80
+
+
+1、掌握nginx、keepalived、lvs的使用
+1. nginx
+1.1.  nginx简介
+Nginx是一个自由、开源、高性能及轻量级的HTTP服务器及反转代理服务器。Nginx以其高性能、稳定、功能丰富、配置简单及占用系统资源少而著称。
+Nginx 超越 Apache 的高性能和稳定性，使得国内使用 Nginx 作为 Web 服务器的网站也越来越多.
+ 
+
+1.2. 基础功能 
+反向代理加速，简单的负载均衡和容错； 
+1.3. 优势
+1、Nginx专为性能优化而开发，性能是其最重要的考量, 实现上非常注重效率 。有报告表明能支持高达 50,000 个并发连接数。 
+2、Nginx具有很高的稳定性。其它HTTP服务器，当遇到访问的峰值，或者有人恶意发起慢速连接时，也很可能会导致服务器物理内存耗尽频繁交换，失去响应，只能重启服务器。
+例如当前apache一旦上到200个以上进程，web响应速度就明显非常缓慢了。而Nginx采取了分阶段资源分配技术，使得它的CPU与内存占用率非常低。
+3、nginx官方表示保持10,000个没有活动的连接，它只占2.5M内存，就稳定性而言, nginx比其他代理服务器更胜一筹。 
+4、Nginx支持热部署。它的启动特别容易, 并且几乎可以做到7*24不间断运行，即使运行数个月也不需要重新启动。你还能够在不间断服务的情况下，对软件版本进行进行升级。 
+5、Nginx采用C进行编写, 不论是系统资源开销还是CPU使用效率都高很多。
+ 
+1.4. 安装
+见文档
+2. keepalived
+2.1. 简介
+Keepalived的作用是检测web服务器的状态，如果有一台web服务器死机，或工作出现故障，Keepalived将检测到，并将有故障的web服务器从系统中剔除，当web服务器工作正常后Keepalived自动将web服务器加入到服务器群中，这些工作全部自动完成，不需要人工干涉，需要人工做的只是修复故障的web服务器。
+
+2.2. 作用
+主要用作RealServer的健康状态检查以及LoadBalance主机和BackUP主机之间failover的实现。
+
+3. lvs
+3.1. LVS是什么
+1、LVS的英文全称是Linux Virtual Server，即Linux虚拟服务器。
+2、它是我们国家的章文嵩博士的一个开源项目。
+3.2. LVS能干什么
+1、 LVS主要用于多服务器的负载均衡。
+2、 它工作在网络层，可以实现高性能，高可用的服务器集群技术。
+3、 它可把许多低性能的服务器组合在一起形成一个超级服务器。
+4、 它配置非常简单，且有多种负载均衡的方法。
+5、 它稳定可靠，即使在集群的服务器中某台服务器无法正常工作，也不影响整体效果。
+6、 可扩展性也非常好。
+
+3.3. nginx和lvs作对比的结果：
+1、nginx工作在网络的应用层，主要做反向代理；lvs工作在网络层，主要做负载均衡。nginx也同样能承受很高负载且稳定，但负载度和稳定度不及lvs。  
+2、nginx对网络的依赖较小，lvs就比较依赖于网络环境。
+3、在使用上，一般最前端所采取的策略应是lvs。 nginx可作为lvs节点机器使用。
+
+3.4. 负载均衡机制
+前面我们说了LVS是工作在网络层。相对于其它负载均衡的解决办法，它的效率是非常高的。LVS的通过控制IP来实现负载均衡。IPVS是其具体的实现模块。IPVS的主要作用：安装在Director Server上面，在Director Server虚拟一个对外访问的IP（VIP）。用户访问VIP，到达Director Server，Director Server根据一定的规则选择一个Real Server，处理完成后然后返回给客户端数据。这些步骤产生了一些具体的问题，比如如何选择具体的Real Server，Real Server如果返回给客户端数据等等。IPVS为此有三种机制：
+
+1.	VS/NAT(Virtual Server via Network Address Translation)，即网络地址翻转技术实现虚拟服务器。
+当请求来到时，Diretor server上处理的程序将数据报文中的目标地址（即虚拟IP地址）改成具体的某台Real Server,端口也改成Real Server的端口，然后把报文发给Real Server。Real Server处理完数据后，需要返回给Diretor Server，然后Diretor server将数据包中的源地址和源端口改成VIP的地址和端口，最后把数据发送出去。由此可以看出，用户的请求和返回都要经过Diretor Server，如果数据过多，Diretor Server肯定会不堪重负。
+ 
+
+2.	VS/TUN（Virtual Server via IP Tunneling）,即IP隧道技术实现虚拟服务器。
+IP隧道（IP tunneling）是将一个IP报文封装在另一个IP报文的技术，这可以使得目标为一个IP地址的数据报文能被封装和转发到另一个IP地址。IP隧道技术亦称为IP封装技术（IP encapsulation）。它跟VS/NAT基本一样，但是Real server是直接返回数据给客户端，不需要经过Diretor server,这大大降低了Diretor server的压力。
+
+3.	VS/DR（Virtual Server via Direct Routing），即用直接路由技术实现虚拟服务器。
+跟前面两种方式，它的报文转发方法有所不同，VS/DR通过改写请求报文的MAC地址，将请求发送到Real Server，而Real Server将响应直接返回给客户，免去了VS/TUN中的IP隧道开销。这种方式是三种负载调度机制中性能最高最好的，但是必须要求Director Server与Real Server都有一块网卡连在同一物理网段上。
+
+
+

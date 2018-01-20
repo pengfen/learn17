@@ -1,49 +1,49 @@
-linux ��װmysql
-centos 6.3 ��װmysql yum -y install mysqld
-centos 6.5 ��װmysql yum -y install mysql mysql-server
+linux 安装mysql
+centos 6.3 安装mysql yum -y install mysqld
+centos 6.5 安装mysql yum -y install mysql mysql-server
 service mysqld start
 mysql -uroot -p
 
-ɾ��һ����ͨ�û�
+删除一个普通用户
 -----------------------------------------------
-ʹ��root����mysql������ mysql -u root -p password
-���� 'mysql' ���ݿ�  use mysql;
-ɾ��user���еļ�¼(ɾ�����û����root�û�)  delete from user where User = ''; (delete from from user where user != 'root') 
-ˢ��Ȩ��  flush privileges;
+使用root进入mysql服务器 mysql -u root -p password
+进入 'mysql' 数据库  use mysql;
+删除user表中的记录(删除空用户或非root用户)  delete from user where User = ''; (delete from from user where user != 'root') 
+刷新权限  flush privileges;
 
-�޸�root ������
+修改root 的密码
 -----------------------------------------------
-ʹ��root ����mysql������ mysql -u root -p password
-���� 'mysql' ���ݿ�  use mysql;
-�޸�user���� root ������  update user set Password=password(123456) where User='root';
-ˢ��Ȩ�� flush privileges
+使用root 进入mysql服务器 mysql -u root -p password
+进入 'mysql' 数据库  use mysql;
+修改user表中 root 的密码  update user set Password=password(123456) where User='root';
+刷新权限 flush privileges
 
-����root�����ʱ��
+忘记root密码的时候
 -----------------------------------------------
-�ر�mysql���� (linuxʹ�� service mysqld stop)
-��ȫģʽ ����mysql���� mysqld --skip-grant-tables
-root�û���¼mysql������  mysql -u root
-�޸� mysql���ݿ� ��user��
-����Ȩ�ޱ� FLUSH PRIVILEGES
-�˳�mysql��ȫģʽ mysqladmin -u root -p shutdown
+关闭mysql服务 (linux使用 service mysqld stop)
+安全模式 开启mysql服务 mysqld --skip-grant-tables
+root用户登录mysql服务器  mysql -u root
+修改 mysql数据库 下user表
+加载权限表 FLUSH PRIVILEGES
+退出mysql安全模式 mysqladmin -u root -p shutdown
 	
-�����������������ݿ����Ȩ��
+给本地主机分配数据库访问权限
 -----------------------------------------------
 mysql -uroot -p
 show databases;
 use mysql
 select * from user \G;
-��������¼
+共五条记录
 Host: localhost  User: root
 Host: peng3      User: root
 Host: 127.0.0.1  User: root
 Host: localhost  User:
 Host: peng3      User:
 
-delete from user where User = ''; ���� delete from user where user != 'root';
+delete from user where User = ''; 或者 delete from user where user != 'root';
 
 select * from user \G;
-��������¼
+共三条记录
 Host: localhost  User: root
 Host: peng3      User: root
 Host: 127.0.0.1  User: root
@@ -55,5 +55,70 @@ grant all on *.* to caopeng@'%' identified by '1234560.';
 flush privileges;
 
 
+
+安装MySql
+MySql是一个开源的免费数据库系统，安装步骤如下：
+·1、从www.mysql.com网站下载mysql的安装包，该安装包应该是rpm格式的安装文件，对于该文件而言，有两个文件一个是Server，一个是Client
+·2、将该文件通过ftp上传到Linux中
+
+·3、对于Linux而言，安装mysql需要安装相应的perl支持包，该支持包在相应的安装光盘中，在安装光盘的Server目录中有一个文件夹叫做Perl-DBI-1.52-1.fc6.i386.rpm,把该文件拷贝到相应的mysql的安装路径中，先安装该文件。Rpm –ivh Perl-DBI-1.52-1.fc6.i386.rpm.
+·4、安装Mysql的服务器端，直接使用rpm –ivh Mysql-serverxxx.rpm,安装完成之后通过rpm –qa | grep MySQL可以查询是否安装成功（注意大小写）；可以通过ps –ef|grep mysql
+·5、Mysql在Linux中的设置和windows中完全不一样，安装完成之后，mysql会分别放置到/usr/share,/usr/bin,/usr/lib目录中，主要的配置文件放置在/usr/share/mysql中，可以将my-medium.cnf文件拷贝一份到/etc中并且命名为my.cnf,（注意:mysql在linux中配置文件就放置在这个目录中，但是注意和windows不一样，linux的配置文件的名称不是ini而是cnf），在该文件中client部分增加默认记录集的设置操作，增加:default-character-set=utf8，这个记录集的名称可以去相应的/usr/share/mysql/Index.html中寻找。
+·6、对于mysql而言，安装之后会自动添加到chk中。而且默认是启动的。
+
+
+
+Mysql linux安装日志
+1.Add a login user and group for `mysqld' to run as:为‘mysqld’增添一个登陆用户和组
+ shell> groupadd mysql
+ shell> useradd -g mysql mysql
+2.解压
+ shell> gunzip < mysql-5.0.15.tar.gz | tar -xvf -
+ shell> cd mysql-5.0.15
+3.Configure the release and compile everything:配置和编译给configure分配可执行文件
+ shell> chmod +x configure
+改变字符集为 GBK [默认字符集为ISO-8859-1(Latin1)]
+ shell> ./configure --prefix=/usr/local/mysql --with-charset=gbk
+ shell> make
+(字符集还有big5、cp1251、cp1257、czech、danish、dec8、dos、euc_kr、gb2312 gbk、german1、hebrew、 hp8、hungarian、koi8_ru、koi8_ukr、latin1、latin2、sjis、swe7、tis620、ujis、usa7、win1251或win1251ukr)
+4.安装所有东西
+ shell> make install
+5.如果你想安装选项文件，使用当前存在的‘support-files’ 文件夹下的作为模板，例如：
+ shell> cp support-files/my-medium.cnf /etc/my.cnf
+6.如果想mysqld每次开机自动启动的话。cp -r support-files/mysql.server /etc/init.d/就行了
+ shell> cp -r support-files/mysql.server /etc/init.d/mysql
+ shell> cd /etc/rc.d/init.d
+ shell> chmod +x mysql
+ shell> /sbin/chkconfig --del mysql
+ shell> /sbin/chkconfig --add mysql
+7.进入安装目录
+ shell> cd /usr/local/mysql
+8.如果你以前没有安装过MySQL，你必须创建一个MySQL准许的表
+ shell> bin/mysql_install_db --user=mysql
+9.将程序的所有权限给‘root’ ，并且把数据目录的所有权给可以运行‘mysqld’的用户。假设MySQL的安装目录是（‘/usr/local/mysql’），命令如下所示：
+把文件拥有权给‘root’
+ shell> chown -R root  .
+把数据目录拥护权给‘mysql’用户
+ shell> chown -R mysql var
+把组的权限给'mysql'组
+ shell> chgrp -R mysql .
+10.万事具备后，你就可以按照下面的命令测试并运行你的MySQL了：
+ shell> /usr/local/mysql/bin/mysqld_safe --user=mysql &
+ shell> service mysql start
+11.在一切正常后，要做的第一件事情是更改管理员的密码。你可以运行mysqladmin （请注意，此命令不一定在你的path中，所以最好是转到此命令的目录中直接执行）：
+ shell> cd bin
+ shell> ./mysqladmin -u root password *********
+12.运行其他用户访问本机：
+ shell> ./mysql -u root -p mysql
+ --------------------这里输入你刚才修改的管理员密码
+ mysql> update user set host='' where host='localhost' and user='root';
+ mysql> exit
+ Bye
+13.修改mysql数据库端口号
+ shell> vi /etc/my.cnf
+ --------------------修改里面的 port=**** 为你需要的端口号
+14.重启应用
+ shell> service mysql restart
+
 -----------------------------------------------
-windows ��װmysql
+windows 安装mysql

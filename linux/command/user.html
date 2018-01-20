@@ -68,3 +68,672 @@ groups imooc 显示 imooc 用户所在的所有组
 chfn imooc 设置用户资料 依次输入用户资料
 
 finger imooc 显示用户详细资料
+
+
+linux用户管理常用命令 
+=====================================================
+1）管理用户（user）的工具或命令； 
+useradd 注：添加用户 
+adduser 注：添加用户 
+passwd 注：为用户设置密码 
+usermod 注：修改用户命令，可以通过usermod 来修改登录名、用户的家目录等等； 
+pwcov 注：同步用户从/etc/passwd 到/etc/shadow 
+pwck 注：pwck是校验用户配置文件/etc/passwd 和/etc/shadow 文件内容是否合法或完整； 
+pwunconv 注：是pwcov 的立逆向操作，是从/etc/shadow和 /etc/passwd 创建/etc/passwd ，然后会删除 /etc/shadow 文件； 
+finger 注：查看用户信息工具 
+id 注：查看用户的UID、GID及所归属的用户组 
+chfn 注：更改用户信息工具 
+su 注：用户切换工具 
+sudo 注：sudo 是通过另一个用户来执行命令（execute a command as another user），su 是用来切换用户，然后通过切换到的用户来完成相应的任务，但sudo 能后面直接执行命令，比如sudo 不需要root 密码就可以执行root 赋与的执行只有root才能执行相应的命令；但得通过visudo 来编辑/etc/sudoers来实现； 
+visudo 注：visodo 是编辑 /etc/sudoers 的命令；也可以不用这个命令，直接用vi 来编辑 /etc/sudoers 的效果是一样的； 
+sudoedit 注：和sudo 功能差不多； 
+
+2）管理用户组（group）的工具或命令； 
+groupadd 注：添加用户组； 
+groupdel 注：删除用户组； 
+groupmod 注：修改用户组信息 
+groups 注：显示用户所属的用户组 
+grpck 
+grpconv 注：通过/etc/group和/etc/gshadow 的文件内容来同步或创建/etc/gshadow ，如果/etc/gshadow 不存在则创建； 
+grpunconv 注：通过/etc/group 和/etc/gshadow 文件内容来同步或创建/etc/group ，然后删除gshadow文件； 
+/////////// 
+建立一个新用户 
+
+建立一个新的用户包括两个步骤，第一步是使用useradd命令完成一个新用户的初始化设置工作；第二步是用passwd为这个新用户设置密码。例如，我们要给系统添加一个用户叫floatboat，密码为fan2001z，那相关的操作是： 
+useradd floatboat <回车> 
+    这时候系统没有任何显示。接着： 
+    passwd floatboat <回车> 
+    系统显示： 
+    Changing password for user floatboat 
+    New UNIX password: 
+    你输入： 
+    fan2001z<回车> 
+    注意，由于linux并不采用类似windows的密码回显（显示为*号）——为避免你输入密码时被人注意到有多少位——所以，输入的这些字符你是看不见的。 
+    系统显示： 
+    Retype new UNIX password: 
+    你再重新输入一次密码，然后回车确认，这时系统会显示： 
+    passwd:all authentication tokens updated successfully 
+    表示你修改密码成功了。 
+    到这里，新用户的创建工作就算完成了。下面，我们再补充一些有关增加新用户的常识： 
+    1、 useradd所做的初始化操作已经包括在/home目录下为floatboat帐号建立一个名为floatboat的主目录。如果你不想使用这个缺省的目录，而希望把他的主目录放在/home/goal里（还放在/home下，只是一种良好的习惯，没有其他什么特别的要求），可以使用useradd的参数-d，命令如下： 
+    useradd -d /home/goal floatboat 
+    2、useradd的初始化操作还包括为用户单独建立一个与用户名同名的组（floatboat组）。这叫用户私有组的机制，与默认组机制相对应。对用户分组一是方便管理，二是可以明确权限。复杂的我们将在以后的深入内容中探讨。我们如果想让此用户加入一个已有的组的话，可以使用-g参数。例如我们想让floatboat加入webusers组，那么可以使用以下命令： 
+    useradd -g webusers floatboat 
+    同样的，我们还可以使用-G参数使他同时加入多个组，例如webusers和ftpusers： 
+    useradd -G ftpusers,webusers floatboat 
+    3、 passwd命令为一个用户设置密码，但它实质上是一个修改密码的程序。只有超级用户和用户自己可以修改密码，其它的普通用户没有给他修改密码的权利。用户密码的组成要尽量的复杂，最好包括字母、数字和特殊符号，而且最好设成6位以上。太短passwd程序不允许，只是单纯的字母或单纯的数字， passwd也会有意见。你都会看见passwd出现的提示的，不要害怕，仔细看看到底它是怎么说的：） 
+    4、你在增加一个新用户的时候，也可以设置用户登录的shell。缺省的，系统提供了/bin/bash。你如果非要指定的话，可以使用-s 参数就可以了。例如 
+    useradd -d /www -s /usr/bin/passwd floatboat 
+    注意，这些参数是可以一块使用的，如上例所示，它表示增加新用户，并把其主目录路径设置在/www，登录的shell为/usr/bin/passwd。关于shell的更详细的说明，请参考下面的修改用户的个人设置相关内容。 
+    5、删除一个用户可以使用userdel命令，直接带用户名做参数就可以了。 
+
+
+    修改用户的设置 
+
+    对现有用户的修改，比较常用的主要是修改密码（使用passwd就好了），修改用户的登录shell，修改用户所属的默认组，设置帐号有效期，修改用户的说明信息等等，偶尔也会用到修改用户主目录。 
+
+    修改用户的登录shell 
+    使用chsh命令可以修改自己的shell，只有超级用户才能用chsh username为其它用户修改shell设置。注意，指定的shell必须是列入/etc/shells文件中的shell，否则该用户将不能登陆。 
+    一般，比较常见的shells文件包括下面这些shell： 
+    /bin/bash2 
+    /bin/bash 
+    /bin/sh 
+    /bin/ash 
+    /bin/bsh 
+    /bin/tcsh 
+    /bin/csh 
+    而网管们还喜欢在里面加上/usr/bin/passwd，这是为了不然用户通过控制台或telnet登录系统，却可以使用修改帐户密码（比如在FTP里用）。以及/bin/false，也就是不让这个用户登录的意思喽^&^，连FTP也不能用。 
+    你也可以使用usermod命令修改shell信息，如下所示： 
+    usermod -s /bin/bash floatboat 
+    其中/bin/bash和floatboat应取相应的shell路径文件名及用户名。 
+    还有一种情况，就是你为用户设置了一个空的shell（就是""），也就是说，这个用户没有shell。呵呵，绝对没有在我还未曾见过，因为这种用户登录后，系统还是会给它一个shell用的。不信你试试： 
+    usermod -s "" floatboat 
+    这种用户根据系统的不同，会有一个sh或bash进行操作，我也没有看出功能上和其它普通用户登录有什么不同。 
+
+
+    修改用户所属的默认组 
+    这个功能也可以通过usermod命令来实现，使用-g参数，例如把floatboat的默认组改为nobody，可以使用如下命令： 
+    username -g nobody floatboat 
+    nobody在类UNIX系统中一般都意味着没有任何权限。 
+
+    设置帐号有效期 
+    如果使用了影子口令，则可以使用如下命令来修改一个帐号的有效期： 
+    usermod -e MM/DD/YY username 
+    例如把用户floatboat的有效期定为2001年12月31日： 
+    usermod -e 12/31/01 floatboat 
+    如果把该用户的有效期设为已经过去的时间，就可以暂时禁止该用户登录系统。 
+
+    修改用户的说明信息 
+    修改用户的说明信息，最简单的方法莫过于直接修改/etc/passwd文件，找到对应的用户记录行，例如下列行： 
+    floatboat:x:503:503::/home/floatboat:/bin/bash 
+    你可以直接在第四个冒号和第五个冒号之间插入该用户的说明就可以了。其实，很多用户设置都可以在这修改，比如该行最后一部分/bin/bash就是用户登录shell的设置。关于这个/etc/passwd文件，我们后面将进一步的深入探讨。 
+
+
+    修改用户主目录 
+    修改用户的主目录主要使用usermod命令的-d参数，例如： 
+    usermod -d /www floatboat 
+    这一行将floatboat的主目录改到/www。如果想将现有主目录的主要内容转移到新的目录，应该使用-m开关，如下所示： 
+    usermod -d -m /www floatboat
+
+
+
+    ====================================================================
+    linux下的用户管理详解
+    useradd 命令详解
+    添加用户
+    想要对linux下面的帐号了解的话首先必须要了解的4个配置文件
+    [root@localhost /]# cat /etc/passwd
+    首先我们需要了解的是用户帐号的配置信息/etc/passwd里面的内容每个字段都以:分割，下面我们详细的看看每个字段的意思
+    root:x:0:0:root:/root:/bin/bash
+    root	用户名
+    x	   用户密码
+    0		UID
+    0		GID
+    root	用户的详细信息
+    /root	用户的主目录
+    /bin/bash	登陆的shell
+    [root@localhost /]# cat /etc/shadow
+    root:$1$L1PKRf1f$GBudXgNO5Qv4LG9HMTLAi0:13746:0:99999:7:::
+    root	帐号用户名
+    $1$L1PKRf1f$GBudXgNO5Qv4LG9HMTLAi0 加密的密码
+    13746	最后一次修改时间
+    0	最短修改时间期限
+    99999	密码使用期限  永远不需要更改密码
+    7	警告天数   提前通知
+    空的	最大不活动天数  密码失效后帐号被禁用的等待天数
+    空的	失效时间
+    空的	保留标志
+    [root@localhost /]# cat /etc/group
+    root:x:0:root
+    root	组名
+    x	组密码
+    0	GID
+    root	该组的用户列表	
+    [root@localhost /]# cat /etc/gshadow
+    root:::root
+    root	组名
+    空的	组的密码
+    空的	组管理员列表
+    root	组的成员列表
+    ###########################################################
+    -c “comment”  提供关于一个新用户帐号的描述字段
+    [root@localhost ~]# useradd -c "Crazy linux" linux
+    [root@localhost ~]# vi /etc/passwd
+    linux:x:501:501:Crazy linux:/home/linux:/bin/bash
+    -d home_dir 设置帐号使用的主目录，默认在/home下面和新建的用户名一样
+    [root@localhost ~]# useradd -d /var/haha haha
+    [root@localhost ~]# vi /etc/passwd
+    haha:x:501:501::/var/haha:/bin/bash
+    -D 根改默认值（用的比较少修改/etc/login.defs）
+    [root@localhost /]# useradd -D  -s /bin/csh 
+    [root@localhost /]# useradd heihei
+    [root@localhost /]# cat /etc/passwd
+    heihei:x:502:502::/home/heihei:/bin/csh 默认的shell变成csh了
+    - e  修改密码过期时间（YYYY-MM-DD）
+    [root@localhost /]# useradd -e 2007-10-20 bb
+    [root@localhost /]# cat /etc/shadow
+    bb:!!:13805:0:99999:7::13806:
+    - f 指定密码失效之后等待天数，0为帐号在密码过期后立即失效，1忽视
+    [root@localhost /]# usermod -f 1 aa
+    [root@localhost /]# cat /etc/shadow
+    aa:!!:13805:0:99999:7:1::
+    - g 指定新建用户的初始化组 （组必须存在）
+    [root@localhost /]# useradd -g aa cc
+    [root@localhost /]# id cc
+    uid=505(cc) gid=504(aa) groups=504(aa)
+    -         G 指定新建用户的一个所属列表
+    [root@localhost /]# useradd -G aa dd
+    [root@localhost /]# cat /etc/group
+    aa:x:504:dd
+    - m 自动创建主目录 （找/etc/skel复制）
+    - M 不创建新用户主目录
+    [root@localhost ~]# useradd -M tt
+    [root@localhost home]# ls
+    aa  bb  cc  dd  feige  heihei
+    - n 关闭为新用户创建一个新组的缺省操作（默认情况下会创建一个与用户同名的组）
+    [root@localhost /]# useradd -n xx
+    -         o 与-u 一起配合使用，创建一个用户时指定它的UID
+    [root@localhost /]# useradd -u 508 -o hahaha
+    [root@localhost /]# cat /etc/passwd
+    xx:x:508:100::/home/xx:/bin/bash
+    hahaha:x:508:508::/home/hahaha:/bin/bash
+    - s 为新建的帐号指定shell
+    [root@localhost /]# useradd -s /bin/csh mm
+    [root@localhost /]# cat /etc/passwd
+    mm:x:510:510::/home/mm:/bin/csh
+    -         r 为新建的帐号指定一个系统UID（root 0 1~500伪用户 501~65535自定义用户）
+    [root@localhost /]# useradd -r gg
+    [root@localhost /]# cat /etc/passwd
+    gg:x:101:103::/home/gg:/bin/bash
+
+    usermod修改帐号（其参数与useradd基本一样）
+    -         l 修改帐号的用户名，
+    -         m -d 联合使用 可以把原来用户的主目录里的内容复制到新的用户目录下面
+    userdel 删除帐号
+    -r 把其主目录一起删除掉
+    总结：在我们创建用户的时候，系统会执行以下操作
+    1，          读取/etc/login.defs文件以获取创建帐号时的默认设定值
+    2，          在/etc/passwd和/etc/shadow文件中，基于默认创建一个新的用户条目
+    3，          在/etc/group文件中创建所相关新的条目
+    4，          在/home目录中基于用户名创建一个主目录
+    5，          将位于/etc/skel目录中的所有文件复制到新的主目录中
+    个人linux学习笔记实用技巧经验多则,每天更新
+
+     1.更改telnet登录慢的问题: 
+
+    cd /etc 
+
+    vi resolv.conf 
+
+    将里面内容清空 
+
+
+
+    2.更改root用户不能直接远程登录问题: 
+
+    cd /etc 
+
+    cd pam.d 
+
+    vi login 
+
+    注释掉这行 
+
+    #auth       required    pam_securetty.so   //该行注释掉 
+
+
+
+    3.挂接USB移动硬盘 
+
+    将移动硬盘挂上.  
+
+    #df  查看Linux下硬盘盘符 
+
+    mount /dev/sda1 /mnt/usb (举例) 
+
+
+
+    4.Linux时区同步问题(安装ntp软件过程) 
+
+    首先在http://www.meinberg.de/english/sw/index.htm 
+
+    下载了一个windows的NTP服务程序：ntp4171.zip 
+
+    windows 192.168.1.32 
+
+    1.安装是提示设置服务器地址，我设置的本机widows机器的IP 
+
+    2.ntpd的控制在： 
+
+       控制面板->;管理工具->;组件服务-NetworkTimeProtocol  
+
+    3.可以启动ntpd守护进程保持时间同步 
+
+    4.在C:WINNT目录下有个ntp的配置文件ntp.conf 
+
+      设置为： 
+
+      server  127.127.1.0  prefer 
+
+      fudge   127.127.1.0  stratum  10 
+
+    5.确定ntp是否工作: ntpq -p  
+
+    linux和Windows同步，我用的是RedHat 9.0 
+
+     执行命令：ntpdate 192.168.1.32 
+
+     你就会发现你的时间变化了，和192.168.1.32的时间一样 
+
+     如果执行命令出现一下错误 
+
+    1.提示：7 Dec 19:24:55 ntpdate[2120]: the NTP socket is in use, exiting 
+
+     这个是你linux机器上已经存在这个进程，输入：ps -ef | grep ntpd 
+
+     Kill掉ntp的进程 
+
+    2.提示：No Server suitable for synchronization found 
+
+      这个是最容易出现的问题，比较常见的是配置好服务器并启动服务器进程后，马上 
+
+      启动客户进程，那么客户进程就会报错。解决方法是，在大约3-5分钟以后启动进程就行 
+
+    我想每10分钟就和Windows服务同步时间 
+
+    1.创建自己的一个crontab文件，随便建立一个文件date.cron，首先可以使用任何文本 
+
+      编辑器建立一个新文件，然后向其中写入需要运行的命令和要定期执行的时间。 
+
+      vi date.cron加入下面要运行的命令和要定期执行的时间 
+
+      */10 * * * * /usr/sbin/ntpdate 192.168.1.32 
+
+      然后存盘退出 
+
+    2.使用crontab命令来安装这个文件，使之成为该用户的crontab文件。键入： 
+
+      crontab date.cron 
+
+      这个文件已经建立好了 
+
+    3.使用命令： 
+
+      crontab -l  (查看安排的作业序列）可以看到刚才的作业 
+
+      如： 
+
+      [root@NXD-TEST root]# crontab -l 
+
+      # DO NOT EDIT THIS FILE - edit the master and reinstall. 
+
+      # (date.cron installed on Tue Dec  7 18:22:42 2004) 
+
+      # (Cron version -- $Id: crontab.c,v 2.13 1994/01/17 03:20:37 vixie Exp $) 
+
+      */10 * * * * /usr/sbin/ntpdate 192.168.1.32 
+
+    现在就OK了，每10分钟Linux就和服务端同步一次。 
+
+
+
+    5.更改Linux启动时用图形界面还是字符界面 
+
+    cd /etc 
+
+    vi inittab 
+
+    将id:5:initdefault:  其中5表示默认图形界面 
+
+    改id:3: initdefault:  3表示字符界面 
+
+
+
+    6.重新启动xinetd) 
+
+    /etc/init.d/xinetd restart 
+
+
+
+    7.重启smb服务 
+
+    /etc/init.d/smb restart 
+
+
+
+    8.配置smb可以被哪些IP所用. 
+
+    cd /etc/samba 
+
+    Vi  smb.conf 
+
+    找到hosts allow = 192.168.1. 192.168.2. 127. 
+
+    修改其为哪些机器所用,注意IP之间用逗号分开 
+
+    举例: 
+
+      hosts allow =192.168.1.110,192.168.1.120 
+
+
+
+    9.禁止在后台使用CTRL-ALT-DELETE重起机器 
+
+      cd  /etc/inittab 
+
+      vi inittab 在文件找到下面一行 
+
+      # Trap CTRL-ALT-DELETE 
+
+    ca::ctrlaltdel:/sbin/shutdown -t3 -r now   （注释掉这一行） 
+
+     如：  # Trap CTRL-ALT-DELETE 
+
+    #ca::ctrlaltdel:/sbin/shutdown -t3 -r now   
+
+
+
+    10.修改主机名 
+
+      vi  /etc/sysconfig/network  
+
+    修改HOSTNAME一行为HOSTNAME=主机名 
+
+
+
+    11.重新启动FTP服务 
+
+       /sbin/service vsftpd restart 
+
+
+
+    12.查看开机检测的硬件 
+
+       dmesg | more 
+
+
+
+    13.查看硬盘使用情况 
+
+     df –m 
+
+
+
+    14.查看目录的大小 
+
+      du –sh  dirname 
+
+
+
+    15.解压小全 
+
+      tar  xvfj  lichuanhua.tar.bz2 
+
+      tar  xvfz  lichuanhua.tar.gz 
+
+      tar  xvfz  lichuanhua.tgz 
+
+      tar  xvf   lichuanhua.tar 
+
+      unzip     lichuanhua.zip 
+
+    .gz 
+
+    解压1：gunzip FileName.gz 
+
+    解压2：gzip -d FileName.gz 
+
+    压缩：gzip FileName 
+
+    .tar.gz 
+
+    解压：tar zxvf FileName.tar.gz 
+
+    压缩：tar zcvf FileName.tar.gz DirName 
+
+    --------------------------------------------- 
+
+    .bz2 
+
+    解压1：bzip2 -d FileName.bz2 
+
+    解压2：bunzip2 FileName.bz2 
+
+    压缩： bzip2 -z FileName 
+
+    .tar.bz2 
+
+    解压：tar jxvf FileName.tar.bz2 
+
+    压缩：tar jcvf FileName.tar.bz2 DirName 
+
+    --------------------------------------------- 
+
+    .bz 
+
+    解压1：bzip2 -d FileName.bz 
+
+    解压2：bunzip2 FileName.bz 
+
+    压缩：未知 
+
+    .tar.bz 
+
+    解压：tar jxvf FileName.tar.bz 
+
+    压缩：未知 
+
+    --------------------------------------------- 
+
+    .Z 
+
+    解压：uncompress FileName.Z 
+
+    压缩：compress FileName 
+
+    .tar.Z 
+
+    解压：tar Zxvf FileName.tar.Z 
+
+    压缩：tar Zcvf FileName.tar.Z DirName 
+
+    --------------------------------------------- 
+
+    .tgz 
+
+    解压：tar zxvf FileName.tgz 
+
+    压缩：未知 
+
+    .tar.tgz 
+
+    解压：tar zxvf FileName.tar.tgz 
+
+    压缩：tar zcvf FileName.tar.tgz FileName 
+
+    --------------------------------------------- 
+
+    .zip 
+
+    解压：unzip FileName.zip 
+
+    压缩：zip FileName.zip DirName 
+
+    --------------------------------------------- 
+
+    .rar 
+
+    解压：rar a FileName.rar 
+
+    压缩：rar e FileName.rar 
+
+
+
+
+
+    rar请到：http://www.rarsoft.com/download.htm 下载！ 
+
+    解压后请将rar_static拷贝到/usr/bin目录（其他由$PATH环境变量指定的目录也可以）： 
+
+    [root@www2 tmp]# cp rar_static /usr/bin/rar 
+
+    --------------------------------------------- 
+
+    .lha 
+
+    解压：lha -e FileName.lha 
+
+    压缩：lha -a FileName.lha FileName 
+
+
+
+    lha请到：http://www.infor.kanazawa-it.ac.jp/~ishii/lhaunix/下载！ 
+
+    解压后请将lha拷贝到/usr/bin目录（其他由$PATH环境变量指定的目录也可以）： 
+
+    [root@www2 tmp]# cp lha /usr/bin/ 
+
+    --------------------------------------------- 
+
+    .tar .tgz .tar.gz .tar.Z .tar.bz .tar.bz2 .zip .cpio .rpm .deb .slp .arj .rar .ace .lha .lzh .lzx .lzs .arc .sda .sfx .lnx .zoo .cab .kar .cpt .pit .sit .sea 
+
+    解压：sEx x FileName.* 
+
+    压缩：sEx a FileName.* FileName 
+
+    16.显示内存使用情况 
+
+      free –m 
+
+
+
+    17.忘记了root密码 
+
+    一. lilo 
+
+    1. 在出现lilo菜单的时候按“ctrl+x”或者“Tab"，然后输入：linux single 
+
+    或者用光盘 
+
+    在出现 lilo: 提示时键入 linux single 
+
+    画面显示 lilo: linux single 
+
+    2. 回车可直接进入linux命令行 
+
+    3. #vi /etc/shadow 
+
+    将第一行，即以root开头的一行中root:后和下一个:前的内容删除， 
+
+    第一行将类似于 
+
+    root::...... 
+
+    保存 
+
+    4. #reboot重启，root密码为空 
+
+
+
+    二.grub 
+
+    1.出现grub画面时，用上下键选启动Linux的哪一项，按e键 
+
+    2.上下键选择 kernel /boot/……… 然后按e键 
+
+    3.修改现在见到的命令好，加入single 结果： 
+
+    kernel /boot/vmlinuz-2.4.20-8 single ro root=LABEL= 
+
+    4.回车返回，按b键启动，直接进入linux命令行 
+
+    直接执行: passwd root 
+
+    修改密码，你的密码就搞定 
+
+    5.也可以修改/etc/shadow中 
+
+    将第一行，即以root开头的一行中root:后和下一个:前的内容删除， 
+
+    第一行将类似于 
+
+    root::...... 
+
+    保存 
+
+    reboot重启，root密码为空 
+
+
+
+    18.显示系统运行了多长时间 
+
+       uptime 
+
+
+
+    19.重新启动网络 
+
+      /etc/init.d/network restart 
+
+
+
+    20.显示开机自检的内容命令 
+
+      dmesg 
+
+
+
+    21.查看端口 
+
+      netstat –an 
+
+      netstat -anp 
+
+      
+
+    22..端口的详细列表 
+
+      /etc/services 
+
+
+
+    23.查看物理信息 
+
+     lspci  
+
+
+
+    24.安装图形界面不能出现，使用解析进行安装 
+
+     Linux lowres (使用的是640X480分辨率) 
+
+    如果要了解更多经验请访问:http://blog.chinaunix.net/u/25785/
+
+     
+
+     
+
+
+
+     
+
