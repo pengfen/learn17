@@ -93,9 +93,9 @@ mvn clean package -DskipTests
 C:\Users\caopeng\IdeaProjects\sql\target\sql-1.0.jar
 
 提交Spark Application到环境中运行
-spark-submit \
+bin/spark-submit \
 --name SQLContextApp \
---class com.imooc.spark.SQLContextApp \
+--class com.peng.SQLContextApp \
 --master local[2] \
 /home/hadoop/lib/sql-1.0.jar \
 /home/hadoop/app/spark-2.1.0-bin-2.6.0-cdh5.7.0/examples/src/main/resources/people.json
@@ -104,6 +104,13 @@ spark-submit \
 注意：
 1）To use a HiveContext, you do not need to have an existing Hive setup
 2）hive-site.xml
+
+添加依赖
+<dependency>
+    <groupId>org.apache.spark</groupId>
+	<artifactId>spark-hive_2.11</artifactId>
+	<version>${spark.version}</version>
+</dependency>
 
 代码
 import org.apache.spark.sql.hive.HiveContext
@@ -133,6 +140,13 @@ object HiveContextApp {
   }
 
 }
+
+spark-submit \
+--class com.peng.HiveContext \
+--master local[2] \
+--jars /home/hadoop/software/mysql-connector-java-5.1.27-bin.jar
+/home/hadoop/lib/sql-1.0.jar
+
 
 Spark2.x中Spark SQL的入口点 SparkSession
 val spark = SparkSession
@@ -382,3 +396,9 @@ Exception in thread "main" java.sql.SQLException:
 Could not open client transport with JDBC Uri: jdbc:hive2://hadoop001:14000: 
 java.net.ConnectException: Connection refused
 
+
+<dependency>
+    <groupId>org.spark-project.hive</groupId>
+	<artifactId>hive-jdbc</artifactId>
+	<version>1.2.1.spark2</version>
+</dependency>

@@ -481,3 +481,64 @@ hdfs://hadoop001:8020/imooc/clean 20170511
 --conf spark.sql.shuffle.partitions=100 \
 /home/hadoop/lib/sql-1.0-jar-with-dependencies.jar \
 hdfs://hadoop001:8020/imooc/clean 20170511
+
+
+val spark = SparkSession.builder().appName("SparkStat
+CleanJob").master("local[2]").getOrCreate()
+val accessRDD = spark.sparkContext.
+textFile("/home/hadoop/data/access.log")
+accessRDD.take(10).foreach(println)
+
+val accessDF = spark.createDataFrame(accessRDD.map(
+x => AccessConvertUtil.parseLog(x)
+
+accessDF.printSchema()
+
+accessDF.show(false)
+
+
+
+
+<dependency>
+    <groupId>org.apache.poi</groupId>
+	<artifactId>poi-ooxml</artifactId>
+	<version>3.14</version>
+</dependency>
+
+<dependency>
+    <groupId>org.apache.poi</groupId>
+	<artifactId>poi</artifactId>
+	<version>3.14</version>
+</dependency>
+
+def main(args: Array[String]): Unit = {
+    println(parseLog("2017-05-11 14:09:14\thttp://www.imooc.com/video/4500\t304\t218.75.35.226"))
+}
+
+MySQLUtils
+
+// MySQL操作工具类
+
+// 每天课程访问次数实体类
+case class DayVideoAccessStat(day: String, cmsId: Long, times: Long)
+
+// 各个维度统计的DAO操作
+// 批量保存DayVideoAccessStat到数据库
+// 设置手动提交
+// 执行批量处理
+// 手工提交
+
+按照地市进行统计TopN课程
+cityAccessTopNStat(spark, accessDF)
+
+
+可视化
+=======================================
+数据可视化 一副图片最伟大的价值莫过于它能够使得我们实际看到的比我们期望看到的内容更加丰富
+
+数据可视化展示概述
+什么是数据可视化
+使用SQL API完成统计分析为什么要可视化
+可视化常用框架介绍
+echarts
+highcharts
