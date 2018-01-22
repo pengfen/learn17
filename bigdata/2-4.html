@@ -1,1 +1,107 @@
+分布式消息队列Kafka
+kafka概述
+Kafka架构及核心概念
+Kafka部署及使用
+Kafka容错性测试
+Kafka API编程
+Kafka实战
+
+Kafka概述
+	和消息系统类似
+
+	消息中间件：生产者和消费者
+
+	妈妈：生产者
+	你：消费者
+	馒头：数据流、消息
+
+		正常情况下： 生产一个  消费一个
+		其他情况：  
+			一直生产，你吃到某一个馒头时，你卡主(机器故障)， 馒头就丢失了
+			一直生产，做馒头速度快，你吃来不及，馒头也就丢失了
+
+		拿个碗/篮子，馒头做好以后先放到篮子里，你要吃的时候去篮子里面取出来吃
+
+	篮子/框： Kafka
+		当篮子满了，馒头就装不下了，咋办？ 
+		多准备几个篮子 === Kafka的扩容
+
+
+
+Kafka架构
+	producer：生产者，就是生产馒头(老妈)
+	consumer：消费者，就是吃馒头的(你)
+	broker：篮子
+	topic：主题，给馒头带一个标签，topica的馒头是给你吃的，topicb的馒头是给你弟弟吃
+
+
+
+单节点单broker的部署及使用
+
+$KAFKA_HOME/config/server.properties
+broker.id=0
+listeners
+host.name
+log.dirs
+zookeeper.connect
+
+启动Kafka
+kafka-server-start.sh
+USAGE: /home/hadoop/app/kafka_2.11-0.9.0.0/bin/kafka-server-start.sh [-daemon] server.properties [--override property=value]*
+
+kafka-server-start.sh $KAFKA_HOME/config/server.properties
+
+创建topic: zk
+kafka-topics.sh --create --zookeeper hadoop000:2181 --replication-factor 1 --partitions 1 --topic hello_topic
+
+查看所有topic
+kafka-topics.sh --list --zookeeper hadoop000:2181
+
+发送消息: broker
+kafka-console-producer.sh --broker-list hadoop000:9092 --topic hello_topic
+
+消费消息: zk
+kafka-console-consumer.sh --zookeeper hadoop000:2181 --topic hello_topic --from-beginning
+
+
+--from-beginning的使用
+
+查看所有topic的详细信息：kafka-topics.sh --describe --zookeeper hadoop000:2181
+查看指定topic的详细信息：kafka-topics.sh --describe --zookeeper hadoop000:2181 --topic hello_topic
+
+
+
+单节点多broker
+server-1.properties
+	log.dirs=/home/hadoop/app/tmp/kafka-logs-1
+	listeners=PLAINTEXT://:9093
+	broker.id=1
+
+server-2.properties
+	log.dirs=/home/hadoop/app/tmp/kafka-logs-2
+	listeners=PLAINTEXT://:9094
+	broker.id=2
+
+server-3.properties
+	log.dirs=/home/hadoop/app/tmp/kafka-logs-3
+	listeners=PLAINTEXT://:9095
+	broker.id=3
+
+kafka-server-start.sh -daemon $KAFKA_HOME/config/server-1.properties &
+kafka-server-start.sh -daemon $KAFKA_HOME/config/server-2.properties &
+kafka-server-start.sh -daemon $KAFKA_HOME/config/server-3.properties &
+
+kafka-topics.sh --create --zookeeper hadoop000:2181 --replication-factor 3 --partitions 1 --topic my-replicated-topic
+
+kafka-console-producer.sh --broker-list hadoop000:9093,hadoop000:9094,hadoop000:9095 --topic my-replicated-topic
+kafka-console-consumer.sh --zookeeper hadoop000:2181 --topic my-replicated-topic
+
+
+
+kafka-topics.sh --describe --zookeeper hadoop000:2181 --topic my-replicated-topic
+
+
+
+
+
 
