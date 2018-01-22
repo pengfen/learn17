@@ -1,1 +1,74 @@
+分布式日志收集框架Flume
+业务现状分析
+Flume概述
+Flume架构及核心组件
+Flume环境部署
+Flume实战
 
+分布式日志收集框架Flume
+业务现状分析
+WebServer/ApplicationServer分散在各个机器上
+想大数据平台Hadoop进行统计分析
+日志如何收集到Hadoop平台上
+解决方案及存在的问题
+
+
+Flume架构及核心组件
+Source  收集
+channel 聚集
+sink 输出
+
+安装Flume
+下载
+解压到~/app
+将java配置系统环境变量: ~/.bash_profile
+export Flume_HOME=/home/hadoop/app/apache-flume-...
+export PATH=$FLUME_HOME/bin:$PATH
+source下让其配置生效
+flume-env.sh的配置 export JAVA_HOME=/home/hadoop/app/jdk1.8.0_144
+
+Flume实战一
+需求 从指定网络端口采集数据输出到控制台
+
+使用Flume的关键就是写配置文件
+配置Source
+配置Channel
+配置sink
+把以上三个组件串起来
+a1: agent名称
+r1 source的名称
+k1 sink的名称
+c1 channel的名称
+
+启动 agent
+flume-ng agent \
+--name a1 \
+--conf $FLUME_HOME/conf \
+--conf-file $FLUME_HOME/conf/example.conf \
+-Dflume.root.logger=INFO,console
+
+需求二 监控一个文件实时采集新增的数据输出到控制台
+Agent选型 exec source + memory channel + logger sink
+
+需求三 将A服务器上的日志实时采集到B服务器
+技术选型
+exec source + memory channel + avro sink
+avro source + memory channel + logger sink
+
+先启动avro-memory-logger
+flume-ng agent \
+--name avro-memory-logger \
+--conf $FLUME_HOME/conf \
+--conf-file $FLUME_HOME/conf/avro-memory-logger \
+-Dflume.root.logger=INFO,console
+
+flume-ng agent \
+--name exec-memory-avro \
+--conf $Flume_HOME/conf \
+--conf-file $FLUME_HOME/conf/exec-memory-avro.conf \
+-Dflume.root.logger=INFO,console
+
+日志收集过程
+1.机器A上监控一个文件 当我们访问主站时会有用户行为日志记录到access.log中
+2.avro sink把新产生的日志输出到对应的avro source指定的hostname和port上
+3.通过avro source对应的agent将我们的日志输出到控制台
