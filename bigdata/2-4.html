@@ -102,6 +102,33 @@ kafka-topics.sh --describe --zookeeper hadoop000:2181 --topic my-replicated-topi
 
 
 
+==============================
+File --- new --- project --- Maven
+org.scala-tools.archetypes:scala-archetype:simple
+GroupId com.peng
+Artifactid spark
+version 1.0
 
+vi setting.xml
+<localRepository>/Users/hadoop/maven_repos</localRepository>
 
+pom.xml 修改
+<kafka.version>0.9.0.0</kafka.version>
 
+<dependency>
+    <groupId>org.apache.kafka</groupId>
+	<artifactId>kafka_2.11</artifactId>
+	<version>${kafka.version}</version>
+</dependency>
+
+KafkaProperties.java
+package com.imooc.spark.kafka
+//kafka常用配置文件
+public class KafkaProperties {
+
+public static final String ZK = "192.168.199.111:2181";
+
+public static final String TOPIC = "hello_topic"
+
+public static final String BROKER_LIST = "192.168.199.111:9092";
+}
