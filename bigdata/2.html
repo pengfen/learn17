@@ -9,3 +9,81 @@
 需求分析 --- 数据产生 --- 数据采集 --- 数据清洗 --- 数据统计分析
 --- 统计结果入库 --- 数据可视化
 
+VMware Fusion
+	Mac上搭建：为了给大家演示如何使用我们的OOTB环境
+	Hadoop环境：虚拟机，我是远程登录
+	Mac
+		那么就不需要使用我们的OOTB环境
+		VMware Fusion+OOTB
+
+	Window：VMware
+
+hadoop/hadoop
+root用户的密码是什么？
+修改配置文件，是需要root权限的，怎么办？
+	sudo command
+
+只有一个地方需要修改：ip地址
+/etc/hosts
+	192.168.199.128 hadoop000
+	192.168.199.128 localhost
+	
+=======================
+初识实时流处理
+业务现状分析
+实时流处理产生背景
+实时流处理概述
+离线计算与实时计算对比
+实时流处理框架对比
+实时流处理架构与技术选型
+实时流处理在企业中的应用
+
+需求 统计主站每个(指定)课程访问的客户端 地域信息
+地域 ip转换
+客户端 useragent获取
+以上两个操作 采用离线(spark/MapReduce)的方式进行统计
+
+实现步骤
+课程编号 ip信息 useragent
+进行相应的统计分析操作 MapReduce/Spark
+
+项目架构
+日志收集 flume
+离线分析 MapReduce/Spark
+统计结果图形化展示
+
+问题
+    小时级别
+	10分钟
+	5分钟
+	
+实时流处理概述
+实时计算
+流式计算
+实时流式计算
+
+离线计算与实时计算对比
+数据来源 处理过程 处理速度
+
+数据来源
+离线 HDFS历史数据 数据量比较大
+实时 消息队列(Kafka) 实时新增/修改记录过来的某一批数据
+
+处理过程
+离线 MapReduce map + reduce
+实时 Spark(Dstream/SS)
+
+处理速度
+离线 慢
+实时 快速
+
+进程
+离线 启动 + 销毁
+实时 7*24
+
+实时流处理框架对比
+Apache Storm
+Apache Spark Streaming
+IBM Stream
+Yahoo! S4
+LinkedIn Kafka
