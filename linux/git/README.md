@@ -6,7 +6,7 @@ git_problom.html  git相关问题
 
 git_secret.html   git免密push
 
-git_use.html      git的使用
+git_use.png       git的使用(图片)
 
 github.html       github
 
