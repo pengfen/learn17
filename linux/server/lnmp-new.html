@@ -1,0 +1,54 @@
+wget -c http://soft.vpser.net/lnmp/lnmp1.4.tar.gz && tar zxf lnmp1.4.tar.gz && cd lnmp1.4 && ./install.sh lnmp
+
+// 使用sudo来安装 (相当于root用户)
+
+ricky@ricky-PC:~/Downloads/lnmp1.4$ sudo ./install.sh
+[sudo] ricky 的密码：
+
++------------------------------------------------------------------------+
+|          LNMP V1.4 for Deepin Linux Server, Written by Licess          |
++------------------------------------------------------------------------+
+|        A tool to auto-compile & install LNMP/LNMPA/LAMP on Linux       |
++------------------------------------------------------------------------+
+|           For more information please visit https://lnmp.org           |
++------------------------------------------------------------------------+
+You have 5 options for your DataBase install.
+1: Install MySQL 5.1.73
+2: Install MySQL 5.5.56 (Default)
+3: Install MySQL 5.6.36
+4: Install MySQL 5.7.18
+5: Install MariaDB 5.5.56
+6: Install MariaDB 10.0.30
+7: Install MariaDB 10.1.23
+0: DO NOT Install MySQL/MariaDB
+Enter your choice (1, 2, 3, 4, 5, 6, 7 or 0): 4
+You will install MySQL 5.7.18
+===========================
+Please setup root password of MySQL.(Default password: root)
+Please enter: 123456
+MySQL root password: 123456
+===========================
+Do you want to enable or disable the InnoDB Storage Engine?
+Default enable,Enter your choice [Y/n]: y
+You will enable the InnoDB Storage Engine
+===========================
+You have 6 options for your PHP install.
+1: Install PHP 5.2.17
+2: Install PHP 5.3.29
+3: Install PHP 5.4.45
+4: Install PHP 5.5.38 (Default)
+5: Install PHP 5.6.31
+6: Install PHP 7.0.21
+7: Install PHP 7.1.7
+Enter your choice (1, 2, 3, 4, 5, 6 or 7): 5
+You will install PHP 5.6.31
+===========================
+You have 3 options for your Memory Allocator install.
+1: Don't install Memory Allocator. (Default)
+2: Install Jemalloc
+3: Install TCMalloc
+Enter your choice (1, 2 or 3): 
+No input,You will not install Memory Allocator.
+
+Press any key to install...or Press Ctrl+c to cancel
+
