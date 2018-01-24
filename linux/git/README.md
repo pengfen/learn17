@@ -1,11 +1,14 @@
 git.html          git的使用
 
+git_install.html  git安装
+
+git_problom.html  git相关问题
+
 git_secret.html   git免密push
 
-git_project.html  git项目 
+git_use.html      git的使用
 
-git_install.html  git安装 
+github.html       github
 
-gitlub.html       gitlub 
+gitlub.html       gitlub
 
-git_problom.html  git相关问题 
