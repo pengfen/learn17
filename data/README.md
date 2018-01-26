@@ -23,3 +23,5 @@ e_commerce.html  电商
 7.html mysql性能管理   
 8.html mysql5.7 复制功能实战   
 9.html mysql5.7 新特性   
+
+mysql 安装参看server目录
