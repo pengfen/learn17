@@ -16,5 +16,7 @@ install       软件安装
 vm            vm安装 centos安装  
 shell         shell  
 server        相关服务(apache nginx)  
-ELK           ELK
-iptables      iptables
+ELK           ELK   
+iptables      iptables   
+
+注意 相关服务参看server目录

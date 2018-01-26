@@ -28,5 +28,6 @@ linux       系统
 bigdata     大数据(hadoop spark)  
 ai          人工智能  
 work        工作总结  
-oper        操作记录
+oper        操作记录  
+server      服务(lnmp docker ... 等服务)   
 index.html  学习总结
