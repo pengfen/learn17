@@ -185,3 +185,12 @@ put hello welcome
 运行完成之后 将服务器上的文件复制到包年的服务器上
 
 scp local_file remote_username@remote_ip:remote_folder
+
+ubuntu 安装ssh
+vi /etc/ssh/ssh_config
+Port 22
+
+apt-get install openssh-server
+apt-get install openssh-client
+
+root@192.168.178.128 或 -l root 192.168.178.128
