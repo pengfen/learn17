@@ -12,7 +12,7 @@ chown.html   文件权限操作命令(chown chomd)
 
 user.html    用户操作(adduser,passwd)
 
-system.html  系统操作(hostname,ifconfig.mount,umount,du,df)
+system.html  系统操作(hostname,ifconfig.mount,umount,du,df)___
 
 search.html  搜索命令(find grep)
 

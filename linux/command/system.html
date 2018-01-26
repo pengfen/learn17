@@ -27,6 +27,55 @@ umount /mnt/cdrom
 du -sh  /mnt/cdrom/Packages
 df -h  查看磁盘的空间
 
+df
+文件系统        容量  已用  可用 已用% 挂载点
+udev            1.9G     0  1.9G    0% /dev
+tmpfs           386M  6.3M  380M    2% /run
+/dev/sda1       455G   12G  421G    3% /
+tmpfs           1.9G   61M  1.9G    4% /dev/shm
+tmpfs           5.0M  4.0K  5.0M    1% /run/lock
+tmpfs           1.9G     0  1.9G    0% /sys/fs/cgroup
+tmpfs           386M   68K  386M    1% /run/user/1000
+
+文件系统        容量  已用  可用 已用% 挂载点
+udev            7.8G     0  7.8G    0% /dev
+tmpfs           1.6G  1.9M  1.6G    1% /run
+/dev/sda2        42G  9.5G   30G   25% /
+tmpfs           7.8G     0  7.8G    0% /dev/shm
+tmpfs           5.0M  4.0K  5.0M    1% /run/lock
+tmpfs           7.8G     0  7.8G    0% /sys/fs/cgroup
+/dev/sda1       300M  7.7M  292M    3% /boot/efi
+/dev/sda3       154G  377M  146G    1% /home
+tmpfs           1.6G   80K  1.6G    1% /run/user/1000
+/dev/sdb3       200G  145G   56G   73% /media/ricky/娱乐
+/dev/sdb4       332G  256G   76G   78% /media/ricky/资料
+/dev/sdb2       200G   52G  149G   26% /media/ricky/项目
+/dev/sdc1       466G  284G  183G   61% /media/ricky/my
+/dev/sdb1       200G   65G  136G   33% /media/ricky/软件
+
+/根目录
+/bin 命令保存目录 (普通用户就可以读取的命令)
+/boot 启动目录 启动相关文件
+/dev 设备文件保存目录
+/etc 配置文件保存目录
+/home 普通用户的家目录
+/lib 系统库保存目录
+/mnt 系统挂载目录
+/media 挂载目录
+
+/root 超级用户的家目录
+/tmp 临时目录
+/sbin 命令保存目录 (超级用户才能使用的目录)
+/proc 直接写入内存的
+/sys
+/usr 系统软件资源目录
+/usr/bin/系统命令 (普通用户)
+/usr/sbin/系统命令 (超级用户)
+/var 系统相关文档内容
+
+
+sda1 ... 固态硬盘(256G) sdb1 ... 机械硬盘(1TB) sdc1 ... 移动硬盘 (500G)
+
 关机halt
 
-重启reboot
+重启reboot (init 6 #deepin)
