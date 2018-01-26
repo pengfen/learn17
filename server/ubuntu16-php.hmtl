@@ -1,0 +1,29 @@
+ubuntu16 安装 php 环境
+sudo apt-get install nginx
+
+#sudo /etc/init.d/nginx start
+sudo service nginx start
+ps -ef | grep 80
+
+sudo apt-get install php7.1 php7.1-fpm
+sudo vi /etc/nginx/sites-available/default
+
+location ~ \.php$ {
+    include snippets/fastcgi-php.conf;
+    fastcgi_pass unix:/run/php/php7.1-fpm.sock;
+}
+
+sudo vi /etc/php/7.1/fpm/pool.d
+listen = /run/php/php7.1-fpm.sock
+
+sudo service nginx restart
+sudo /etc/init.d/php7.1-fpm restart
+
+sudo apt-get -y install mysql-server mysql-client php7.1-mysql
+ps -ef | grep 3306
+
+启动 nginx 服务时报错
+Job for nginx.service failed because the control process exited with error code.
+See "systemctl  status nginx.service" and "journalctl  -xe" for details.
+
+修改的地方少了;分号
