@@ -30,4 +30,4 @@ ai          人工智能
 work        工作总结  
 oper        操作记录  
 server      服务(lnmp docker ... 等服务)   
-index.html  学习总结
+res.sql     资料备份数据
