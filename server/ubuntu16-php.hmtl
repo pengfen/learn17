@@ -16,6 +16,10 @@ location ~ \.php$ {
 sudo vi /etc/php/7.1/fpm/pool.d
 listen = /run/php/php7.1-fpm.sock
 
+php.ini 文件
+/etc/php/7.1/cli/php.ini
+/etc/php/7.1/fpm/php.ini
+
 sudo service nginx restart
 sudo /etc/init.d/php7.1-fpm restart
 
