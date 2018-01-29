@@ -1,1 +1,18 @@
+pull整合
 
+simple-agent.sources = netcat-source
+simple-agent.sinks = spark-sink
+simple-agent.channels = memory-channel
+
+simple-agent.sources.netcat-source.type = netcat
+simple-agent.sources.netcat-source.bind = ricky
+simple-agent.sources.netcat-source.port = 44444
+
+simple-agent.sinks.spark-sink.type = org.apache.spark.streaming.flume.sink.SparkSink
+simple-agent.sinks.spark-sink.hostname = ricky
+simple-agent.sinks.spark-sink.port = 41414
+
+simple-agent.channels.memory-channel.type = memory
+
+simple-agent.sources.netcat-source.channels = memory-channel
+simple-agent.sinks.spark-sink.channel = memory-channel

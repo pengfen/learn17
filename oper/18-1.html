@@ -45,4 +45,30 @@ tmpfs           1.6G   80K  1.6G    1% /run/user/1000
 /dev/sdb1       200G   65G  136G   33% /media/ricky/软件
 Hosts: ok.
 
+配置项目
+sudo tar -xvf www.tar.gz 
 
+/var/www/resource/common/config
+
+sudo vi main-local.php 
+
+修改配置文件
+"dsn"="mysql:host=localhost;dbname=resource"
+"username"="root"
+"password"="123456"
+
+mysql -uroot -p123456
+create database resource
+mysql -uroot -p123456 resource < my.sql
+
+mb_string 模块没安装 会报错
+php -m 查看已安装模块
+/etc/php/7.1/ php.ini放置目录
+apt-get install php7.1-mbstring
+
+http://localhost/index.php?r=site/login
+用户名: admin
+密码: 123456
+
+curl 模块
+sudo apt-get install php7.1-curl
