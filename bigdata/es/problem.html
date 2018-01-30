@@ -1,0 +1,8 @@
+yii elasticsearch 406 问题
+
+-H 'Content-Type: application/json'
+
+curl -XPUT 'localhost:9200/customer/external/1?pretty' -H 'Content-Type: application/json' -d '
+　　{
+　　　　"name": "Jimmy Yankee"
+　　}
