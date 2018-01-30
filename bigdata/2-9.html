@@ -16,3 +16,17 @@ simple-agent.channels.memory-channel.type = memory
 
 simple-agent.sources.netcat-source.channels = memory-channel
 simple-agent.sinks.spark-sink.channel = memory-channel
+
+添加依赖
+groupId = org.apach.spark
+artifactId = spark-streaming-flume-sink_2.11
+version = 2.2.0
+
+groupId = org.scala-lang
+artifactId = scala-library
+version = 2.11.8
+
+groupId = org.apache.commons
+artifactId = commons-lang3
+version = 3.5
+

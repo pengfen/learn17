@@ -1,1 +1,23 @@
+Spark Receiver整合
+1. 启动zk ./zkServer.sh start
+2. 启动kafka ./kafka-server-start.sh -daemon /home/ricky/app/kafka_2.11-0.9.0.0/config/server.properties
+3. 创建topic
+./kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic kafka_streaming_topic
 
+./kafka-topics.sh --list --zookeeper localhost:2181
+
+4. 通过控制台测试本topic是否能够正常的生产和消费
+./kafka-console-producer.sh --borker-list localhost:9092 --topic kafka_streaming_topic
+
+./kafka-console-consumer.sh --zookeeper localhost:2181 --topic kafka_streaming_topic
+
+生产端输入
+welcome
+to
+kafka
+world
+
+添加依赖
+groupId = org.apache.spark
+artifactId = spark-streaming-kafka-0-8_2.11
+version = 2.2.0

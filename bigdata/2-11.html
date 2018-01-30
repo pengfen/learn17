@@ -1,1 +1,89 @@
+整合日志输出到Flume
 
+整合Flume到kafka
+
+整合kafka到aprk streaming
+
+spark streaming 对接收到的数据进行处理
+
+
+streaming.conf
+
+agent1.sources=avro-source
+agent1.channels=logger-channel
+agent1.sinks=log-sink
+
+#define source
+agent1.sources.avro-source.type=avro
+agent1.sources.avro-source.bind=0.0.0.0
+agent1.sources.avro-source.port=41414
+
+#define channel
+agent1.channels.logger-channel.type=memory
+
+#define sink
+agent1.sinks.log-sink.type=logger
+
+agent1.sources.avro-source.channels=logger-channel
+agent1.sinks.log-sink.channel=logger-channel
+
+
+flume-ng agent \
+--conf $FLUME_HOME/conf \
+--conf-file $FLUME_HOME/conf/streaming.conf \
+--name agent1 \
+-Dflume.root.logger=INFO,console
+
+添加依赖
+<dependency>
+	<groupId>org.apache.flume.flume-ng-clients</groupId>
+	<artifactId>flume-ng-log4jappender</artifactId>
+	<version>1.6.0</version>
+</dependency>
+
+将收集的日志输出到kafka
+
+1. 启动zookeeper
+bin/zkServer.sh start
+
+2. 启动kafka
+bin/kafka-server-start.sh -daemon /home/ricky/app/kafka_2.11-0.9.0.0/config/server.properties
+
+3. 查看topic
+bin/kafka-topics.sh --list --zookeeper ricky:2181
+
+4. 创建topic
+bin/kafka-topics.sh --create --zookeeper ricky:2181 --replication-factor 1 --partitions 1 --topic streamingtopic
+
+5. 编写配置
+streaming2.conf
+
+agent1.sources=avro-source
+agent1.channels=logger-channel
+agent1.sinks=kafka-sink
+
+#define source
+agent1.sources.avro-source.type=avro
+agent1.sources.avro-source.bind=0.0.0.0
+agent1.sources.avro-source.port=41414
+
+#define channel
+agent1.channels.logger-channel.type=memory
+
+#define sink
+agent1.sinks.kafka-sink.type=org.apache.flume.sink.kafka.KafkaSink
+agent1.sinks.kafka-sink.topic = streamingtopic
+agent1.sinks.kafka-sink.brokerList = ricky:9092
+agent1.sinks.kafka-sink.requiredAcks = 1
+agent1.sinks.kafka-sink.batchSize = 20
+
+agent1.sources.avro-source.channels=logger-channel
+agent1.sinks.kafka-sink.channel=logger-channel
+
+flume-ng agent \
+--conf $FLUME_HOME/conf \
+--conf-file $FLUME_HOME/conf/streaming2.conf \
+--name agent1 \
+-Dflume.root.logger=INFO,console
+
+bin/kafka-console-consumer.sh --zookeeper ricky:2181 --topic streamingtopic
