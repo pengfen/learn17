@@ -87,3 +87,15 @@ flume-ng agent \
 -Dflume.root.logger=INFO,console
 
 bin/kafka-console-consumer.sh --zookeeper ricky:2181 --topic streamingtopic
+
+
+我们现在是在本地进行测试的，在IDEA中运行LoggerGenerator，
+然后使用Flume、Kafka以及Spark Streaming进行处理操作。
+
+在生产上肯定不是这么干的，怎么干呢？
+1) 打包jar，执行LoggerGenerator类
+2) Flume、Kafka和我们的测试是一样的
+3) Spark Streaming的代码也是需要打成jar包，然后使用spark-submit的方式进行提交到环境上执行
+	可以根据你们的实际情况选择运行模式：local/yarn/standalone/mesos
+
+在生产上，整个流处理的流程都一样的，区别在于业务逻辑的复杂性
