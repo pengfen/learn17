@@ -1,1 +1,206 @@
+Spring Boot整合Echarts动态获取HBase的数据
+1） 动态的传递进去当天的时间
+	a) 在代码中写死
+	b) 让你查询昨天的、前天的咋办？
+		在页面中放一个时间插件(jQuery插件)，默认只取当天的数据
+2） 自动刷新展示图
+	每隔多久发送一个请求去刷新当前的数据供展示
+
+
+统计慕课网当天实战课程从搜索引擎过来的点击量
+	数据已经在HBase中有的
+	自己通过Echarts整合Spring Boot方式自己来实现
+
+
+
+
+DataV功能说明
+1）点击量分省排名/运营商访问占比
+	Spark SQL项目实战课程： 通过IP就能解析到省份、城市、运营商
+
+2）浏览器访问占比/操作系统占比
+	Hadoop项目：userAgent
+
+
+
+DataV访问的数据库(MySQL),需要能够在公网上访问
+
+
+
+
+DataV测试数据
+CREATE TABLE course_click_count
+(
+ID int(4) PRIMARY KEY,
+day VARCHAR(10),
+course_id VARCHAR(10),
+click_count long
+); 
+
+
+INSERT INTO course_click_count values (1,'20171111','112',8000);
+INSERT INTO course_click_count values (2,'20171111','128',9000);
+INSERT INTO course_click_count values (3,'20171111','145',10000);
+INSERT INTO course_click_count values (4,'20171111','146',4000);
+INSERT INTO course_click_count values (5,'20171111','131',3000);
+INSERT INTO course_click_count values (6,'20171111','130',2000);
+
+
+CREATE TABLE course_info
+(
+ID int(4) PRIMARY KEY,
+course_id VARCHAR(10),
+course_name VARCHAR(100)
+); 
+
+
+INSERT INTO course_info values (1,'112','Spark SQL');
+INSERT INTO course_info values (2,'128','10小时入门大数据');
+INSERT INTO course_info values (3,'145','深度学习');
+INSERT INTO course_info values (4,'146','Node.js');
+INSERT INTO course_info values (5,'131','Vue+Django实战');
+INSERT INTO course_info values (6,'130','Web前端性能优化');
+
+
+select b.course_name course_name, a.click_count click_count
+from (
+(select course_id, click_count from course_click_count where day='20171111' ) a
+join
+(select course_id, course_name from course_info) b
+on a.course_id = b.course_id
+)
+
+
+省份点击量排名
+[
+  {
+    "value": "314529403.31",
+    "content": "北京市"
+  },
+  {
+    "value": "293711093.03",
+    "content": "上海市"
+  },
+  {
+    "value": "193691138.91",
+    "content": "山东省"
+  },
+  {
+    "value": "293711093.03",
+    "content": "河南省"
+  },
+  {
+    "value": "193120534.18",
+    "content": "安徽省"
+  }
+]
+
+
+客户端统计：
+[
+  {
+    "x": "Chrome",
+    "y": 29000,
+    "s": "1"
+  },
+  {
+    "x": "Firefox",
+    "y": 4320,
+    "s": "1"
+  },
+  {
+    "x": "QQ",
+    "y": 13000,
+    "s": "1"
+  },
+  {
+    "x": "Safari",
+    "y": 23000,
+    "s": "1"
+  }
+]
+
+
+
+搜索引擎统计
+[
+  {
+    "x": "百度",
+    "y": 14534,
+    "s": "1"
+  },
+  {
+    "x": "搜狗",
+    "y": 8345,
+    "s": "1"
+  },
+  {
+    "x": "雅虎",
+    "y": 4000,
+    "s": "1"
+  },
+  {
+    "x": "微软",
+    "y": 6666,
+    "s": "1"
+  }
+]
+
+运营商统计
+[
+  {
+    "x": "移动",
+    "y": 5
+  },
+  {
+    "x": "联通",
+    "y": 22
+  },
+  {
+    "x": "电信",
+    "y": 22
+  },
+  {
+    "x": "鹏博士",
+    "y": 14
+  },
+  {
+    "x": "铁通",
+    "y": 15
+  },
+  {
+    "x": "其他",
+    "y": 15
+  }
+]
+
+操作系统占比
+[
+  {
+    "x": "iOS",
+    "y": 65000
+  },
+  {
+    "x": "MacOS",
+    "y": 80000
+  },
+  {
+    "x": "Win7",
+    "y": 20000
+  },
+  {
+    "x": "Win10",
+    "y": 40000
+  },
+  {
+    "x": "Android",
+    "y": 70000
+  }
+]
+
+有兴趣的小伙伴，可以把如上的静态数据准备成sql语句，插入到MySQL中去，
+然后在DataV组件上通过sql的方式展示出来。
+
+
+
 

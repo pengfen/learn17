@@ -1,1 +1,209 @@
 
+linux crontab
+	网站：http://tool.lu/crontab
+	每一分钟执行一次的crontab表达式： */1 * * * * 
+
+crontab -e
+	*/1 * * * * /home/hadoop/data/project/log_generator.sh
+
+
+对接python日志产生器输出的日志到Flume
+streaming_project.conf
+
+选型：access.log  ==>  控制台输出
+	exec
+	memory
+	logger
+
+
+exec-memory-logger.sources = exec-source
+exec-memory-logger.sinks = logger-sink
+exec-memory-logger.channels = memory-channel
+
+exec-memory-logger.sources.exec-source.type = exec
+exec-memory-logger.sources.exec-source.command = tail -F /home/hadoop/data/project/logs/access.log
+exec-memory-logger.sources.exec-source.shell = /bin/sh -c
+
+exec-memory-logger.channels.memory-channel.type = memory
+
+exec-memory-logger.sinks.logger-sink.type = logger
+
+exec-memory-logger.sources.exec-source.channels = memory-channel
+exec-memory-logger.sinks.logger-sink.channel = memory-channel
+
+flume-ng agent \
+--name exec-memory-logger \
+--conf $FLUME_HOME/conf \
+--conf-file /home/hadoop/data/project/streaming_project.conf \
+-Dflume.root.logger=INFO,console
+
+
+日志==>Flume==>Kafka
+	启动zk：./zkServer.sh start
+	启动Kafka Server：kafka-server-start.sh -daemon /home/hadoop/app/kafka_2.11-0.9.0.0/config/server.properties 
+	修改Flume配置文件使得flume sink数据到Kafka
+
+streaming_project2.conf
+exec-memory-kafka.sources = exec-source
+exec-memory-kafka.sinks = kafka-sink
+exec-memory-kafka.channels = memory-channel
+
+exec-memory-kafka.sources.exec-source.type = exec
+exec-memory-kafka.sources.exec-source.command = tail -F /home/hadoop/data/project/logs/access.log
+exec-memory-kafka.sources.exec-source.shell = /bin/sh -c
+
+exec-memory-kafka.channels.memory-channel.type = memory
+
+exec-memory-kafka.sinks.kafka-sink.type = org.apache.flume.sink.kafka.KafkaSink
+exec-memory-kafka.sinks.kafka-sink.brokerList = hadoop000:9092
+exec-memory-kafka.sinks.kafka-sink.topic = streamingtopic
+exec-memory-kafka.sinks.kafka-sink.batchSize = 5
+exec-memory-kafka.sinks.kafka-sink.requiredAcks = 1
+
+exec-memory-kafka.sources.exec-source.channels = memory-channel
+exec-memory-kafka.sinks.kafka-sink.channel = memory-channel
+
+flume-ng agent \
+--name exec-memory-kafka \
+--conf $FLUME_HOME/conf \
+--conf-file /home/hadoop/data/project/streaming_project2.conf \
+-Dflume.root.logger=INFO,console
+
+kafka-console-consumer.sh --zookeeper hadoop000:2181 --topic streamingtopic
+
+
+
+
+
+数据清洗操作：从原始日志中取出我们所需要的字段信息就可以了
+
+数据清洗结果类似如下：
+ClickLog(46.30.10.167,20171022151701,128,200,-)
+ClickLog(143.132.168.72,20171022151701,131,404,-)
+ClickLog(10.55.168.87,20171022151701,131,500,-)
+ClickLog(10.124.168.29,20171022151701,128,404,-)
+ClickLog(98.30.87.143,20171022151701,131,404,-)
+ClickLog(55.10.29.132,20171022151701,146,404,http://www.baidu.com/s?wd=Storm实战)
+ClickLog(10.87.55.30,20171022151701,130,200,http://www.baidu.com/s?wd=Hadoop基础)
+ClickLog(156.98.29.30,20171022151701,146,500,https://www.sogou.com/web?query=大数据面试)
+ClickLog(10.72.87.124,20171022151801,146,500,-)
+ClickLog(72.124.167.156,20171022151801,112,404,-)
+
+到数据清洗完为止，日志中只包含了实战课程的日志
+
+
+补充一点：希望你们的机器配置被太低
+	Hadoop/ZK/HBase/Spark Streaming/Flume/Kafka
+	hadoop000: 8Core  8G
+
+
+
+功能1：今天到现在为止 实战课程 的访问量
+
+	yyyyMMdd   courseid
+
+使用数据库来进行存储我们的统计结果
+	Spark Streaming把统计结果写入到数据库里面
+	可视化前端根据：yyyyMMdd   courseid 把数据库里面的统计结果展示出来
+
+
+选择什么数据库作为统计结果的存储呢？
+	RDBMS: MySQL、Oracle...
+		day        course_id  click_count
+		20171111     1            10
+		20171111     2            10
+
+		下一个批次数据进来以后：
+			20171111 + 1   ==> click_count + 下一个批次的统计结果  ==> 写入到数据库中
+
+	NoSQL: HBase、Redis....
+		HBase： 一个API就能搞定，非常方便
+			20171111 + 1 ==> click_count + 下一个批次的统计结果
+		本次课程为什么要选择HBase的一个原因所在
+
+	前提：
+		HDFS
+		Zookeeper
+		HBase
+
+	HBase表设计
+		创建表
+			create 'imooc_course_clickcount', 'info'
+		Rowkey设计
+			day_courseid	
+
+如何使用Scala来操作HBase
+
+
+
+
+功能二：功能一+从搜索引擎引流过来的
+
+
+HBase表设计
+create 'imooc_course_search_clickcount','info'
+rowkey设计：也是根据我们的业务需求来的
+
+20171111 +search+ 1
+
+
+项目打包：mvn clean package -DskipTests
+
+报错：
+[ERROR] /Users/rocky/source/work/sparktrain/src/main/scala/com/imooc/spark/project/dao/CourseClickCountDAO.scala:4: error: object HBaseUtils is not a member 
+of package com.imooc.spark.project.utils
+
+
+
+spark-submit --master local[5] \
+--class com.imooc.spark.project.spark.ImoocStatStreamingApp \
+/home/hadoop/lib/sparktrain-1.0.jar \
+hadoop000:2181 test streamingtopic 1
+
+
+报错：
+Exception in thread "main" java.lang.NoClassDefFoundError: org/apache/spark/streaming/kafka/KafkaUtils$
+	at com.imooc.spark.project.spark.ImoocStatStreamingApp$.main(ImoocStatStreamingApp.scala:31)
+	at com.imooc.spark.project.spark.ImoocStatStreamingApp.main(ImoocStatStreamingApp.scala)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.apache.spark.deploy.SparkSubmit$.org$apache$spark$deploy$SparkSubmit$$runMain(SparkSubmit.scala:755)
+	at org.apache.spark.deploy.SparkSubmit$.doRunMain$1(SparkSubmit.scala:180)
+	at org.apache.spark.deploy.SparkSubmit$.submit(SparkSubmit.scala:205)
+	at org.apache.spark.deploy.SparkSubmit$.main(SparkSubmit.scala:119)
+	at org.apache.spark.deploy.SparkSubmit.main(SparkSubmit.scala)
+Caused by: java.lang.ClassNotFoundException: org.apache.spark.streaming.kafka.KafkaUtils$
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:381)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:424)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:357)
+	... 11 more
+
+
+spark-submit --master local[5] \
+--class com.imooc.spark.project.spark.ImoocStatStreamingApp \
+--packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0 \
+/home/hadoop/lib/sparktrain-1.0.jar \
+hadoop000:2181 test streamingtopic 1
+
+java.lang.NoClassDefFoundError: org/apache/hadoop/hbase/client/HBaseAdmin
+	at com.imooc.spark.project.utils.HBaseUtils.<init>(HBaseUtils.java:30)
+	at com.imooc.spark.project.utils.HBaseUtils.getInstance(HBaseUtils.java:40)
+	at com.imooc.spark.project.dao.CourseClickCountDAO$.save(CourseClickCountDAO.scala:26)
+	at com.imooc.spark.project.spark.ImoocStatStreamingApp$$anonfun$main$4$$anonfun$apply$1.a
+
+
+spark-submit --master local[5] \
+--jars $(echo /home/hadoop/app/hbase-1.2.0-cdh5.7.0/lib/*.jar | tr ' ' ',') \
+--class com.imooc.spark.project.spark.ImoocStatStreamingApp \
+--packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0 \
+/home/hadoop/lib/sparktrain-1.0.jar \
+hadoop000:2181 test streamingtopic 1
+
+
+
+提交作业时，注意事项：
+1）--packages的使用
+2）--jars的使用
+
