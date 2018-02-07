@@ -1,0 +1,43 @@
+
+     data.title = "审批流程图";
+     node_1 = {};
+     node_1.name = "开始";
+     node_1.left = parseInt(84);
+     node_1.top = parseInt(60);
+     node_1.type = "start round mix";
+     node_1.width = parseInt(86);
+     node_1.height = parseInt(50);
+     nodes = {};
+     lines = {};
+     nodes.node_1 = node_1;
+
+     var approv = ["周以时","孙瞿"];
+     for(var i = 0; i < approv.length; i ++) {
+         var index = 2 + i;
+         node = {};
+         node.name = "审批人:" + approv[i];
+         node.left = parseInt(40);
+         node.top = 60 * index;
+         node.type = "task";
+         node.width = parseInt(120);
+         node.height = parseInt(40);
+         nodes["node_" + index] = node;
+         line = {};
+         line.type = "sl";
+         line.from = "node_" + (index - 1);
+         line.to = "node_" + index;
+         line.marked = false;
+         lines["line_" + (index + 2)] = line;
+     }
+     data.nodes = nodes;
+     data.lines = lines;
+     area_8 = {"name":"area_8","left":35,"top":20,"color":"red","width":450,"height":500};
+     //data.areas = area_8;
+
+	   demo.loadData(data);
+     console.log(data);
+     {
+         lines: Object { line_4: {…}, line_5: {…} }
+         nodes: Object { node_1: {…}, node_2: {…}, node_3: {…} }
+         title: "审批流程图"
+     }
