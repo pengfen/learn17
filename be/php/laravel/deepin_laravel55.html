@@ -1,0 +1,158 @@
+deepin 使用 ricky用户安装
+
+php环境安装
+=======================================================================
+ubuntu16 安装 php 环境
+sudo apt-get install nginx
+
+#sudo /etc/init.d/nginx start
+sudo service nginx start
+ps -ef | grep 80
+
+sudo apt-get install php7.1 php7.1-fpm
+sudo vi /etc/nginx/sites-available/default
+
+location ~ \.php$ {
+    include snippets/fastcgi-php.conf;
+    fastcgi_pass unix:/run/php/php7.1-fpm.sock;
+}
+
+sudo vi /etc/php/7.1/fpm/pool.d
+listen = /run/php/php7.1-fpm.sock
+
+php.ini 文件
+/etc/php/7.1/cli/php.ini
+/etc/php/7.1/fpm/php.ini
+
+sudo service nginx restart
+sudo /etc/init.d/php7.1-fpm restart
+
+sudo apt-get -y install mysql-server mysql-client php7.1-mysql
+ps -ef | grep 3306
+
+启动 nginx 服务时报错
+Job for nginx.service failed because the control process exited with error code.
+See "systemctl  status nginx.service" and "journalctl  -xe" for details.
+
+修改的地方少了;分号
+
+laravel框架安装
+=======================================================================
+1. composer 安装
+php -r "copy('https://install.phpcomposer.com/installer', 'composer-setup.php');"
+php composer-setup.php
+php -r "unlink('composer-setup.php');"
+sudo mv composer.phar /usr/local/bin/composer
+composer -v # 查看是否安装成功
+which composer # 查看安装目录
+
+2. 修改 php.ini (php7之前的版本需要删除)
+php7.1 (/etc/php/7.1/fpm/php.ini)
+查找 /disable_function
+删除二函数 proc_open proc_get_status
+
+php -m 查看相关扩展， 如果需要的扩展没有需要手动安装
+如 mbstring 扩展 apt-get install php7.1-mbstring
+xml 扩展 apt-get install php7.1-xml (报错    - phpunit/phpunit 7.1.x-dev requires ext-dom * -> the requested PHP extension dom is missing from your system.)
+
+3. 配置中国镜像(全局配置文件)
+composer config -g repo.packagist composer https://packagist.phpcomposer.com
+
+4. 安装 laravel (默认安装5.0 加5.4会安装laravel5.4) php版本不能太低(安装lnmp1.3以上)
+composer create-project --prefer-dist laravel/laravel laravel "5.5.*"
+composer create-project --prefer-dist laravel/laravel blog (默认安装5.6)
+
+cd laravel #查看项目
+
+5. 部署
+vi /etc/nginx/sites-enabled/default
+server {
+	listen 8888 default_server;
+	listen [::]:8888 default_server;
+
+	root /home/ricky/app/blog/public;
+
+	index index.html index.htm index.php;
+
+	server_name self.admin.yb1v1.com;
+
+	#注意这里注释掉不然 报错500 ，因为引入了php 配置，其中有句 try_files 开启就有报错
+	#include enable-php.conf;
+
+	#新增 支持laravel 优雅链接，在laravel 文档里有说明
+	location / {
+	    try_files $uri $uri/ /index.php?$query_string;
+	}
+
+	#新增 支持php 的配置
+	location ~ \.php$ {
+	    #不能有下面这句 try_files ,不然报错500
+	    # try_files $uri /index.php =404;
+	    fastcgi_split_path_info ^(.+\.php)(/.+)$;
+	    #这句注意 后面是.sock 不是127.0.0..1
+	    fastcgi_pass  unix:/run/php/php7.1-fpm.sock;
+	    fastcgi_index index.php;
+	    include fastcgi_params;
+	    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+	}
+}
+
+vi /etc/hosts
+127.0.0.1 self.admin.yb1v1.com
+
+chmod -R 777 storage/
+chmod -R 777 vendor/
+
+sudo service nginx restart
+
+如果出现502 查看日志 /var/log/nginx/error.log
+
+6. 生成key
+No application encryption key has been specified.
+php artisan key:generate  获取密码，自动保存到 .env
+查看 config/app.php
+
+7. 配置路由
+Route::get("/article", "\App\Http\Controllers\ArticleController@index");
+
+8. 生成控制器
+php artisan make:controller ArticleController 
+编写 index方法
+
+9. 编写测试类
+php artisan make:test ArticleTest
+
+wget https://phar.phpunit.de/phpunit.phar
+ricky@ricky:~/app$ chmod u+x phpunit.phar 
+ricky@ricky:~/app$ sudo mv phpunit.phar /usr/local/bin/phpunit
+[sudo] ricky 的密码：
+ricky@ricky:~/app$ phpunit --version
+PHPUnit 7.0.0 by Sebastian Bergmann and contributors.
+
+编写测试代码
+
+phpunit 运行
+
+
+
+浏览器测试(laravel dusk)
+composer require --dev laravel/dusk "2.*"
+注意： 默认安装版本是3.0支持版本是laravel5.6
+
+错误
+The "/home/ricky/app/laravel/tests/Browser/screenshots" directory does not exist. 
+cd tests
+mkdir Browser
+cd Browser
+mkdir screenshots
+mkdir console
+
+php artisan dusk:install
+
+php artisan dusk:make LoginTest
+php artisan dusk
+
+ChromeDriver 下载
+https://www.cnblogs.com/technologylife/p/5829944.html 查看对应版本
+http://npm.taobao.org/mirrors/chromedriver/ 下载对应版本
+sudo mv chromedriver /usr/bin/chromedriver
