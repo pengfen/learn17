@@ -100,8 +100,8 @@ server {
 vi /etc/hosts
 127.0.0.1 self.admin.yb1v1.com
 
-chmod -R 777 storage/
-chmod -R 777 vendor/
+sudo chmod -R 777 storage/
+sudo chmod -R 777 bootstrap/cache/
 
 sudo service nginx restart
 
@@ -147,6 +147,8 @@ cd Browser
 mkdir screenshots
 mkdir console
 
+注意
+APP_URL=http://self.admin.yb1v1.com:8888 与页面访问地址一致
 php artisan dusk:install
 
 php artisan dusk:make LoginTest
