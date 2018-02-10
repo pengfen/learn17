@@ -134,27 +134,4 @@ PHPUnit 7.0.0 by Sebastian Bergmann and contributors.
 phpunit 运行
 
 
-
-浏览器测试(laravel dusk)
-composer require --dev laravel/dusk "2.*"
-注意： 默认安装版本是3.0支持版本是laravel5.6
-
-错误
-The "/home/ricky/app/laravel/tests/Browser/screenshots" directory does not exist. 
-cd tests
-mkdir Browser
-cd Browser
-mkdir screenshots
-mkdir console
-
-注意
-APP_URL=http://self.admin.yb1v1.com:8888 与页面访问地址一致
-php artisan dusk:install
-
-php artisan dusk:make LoginTest
-php artisan dusk
-
-ChromeDriver 下载
-https://www.cnblogs.com/technologylife/p/5829944.html 查看对应版本
-http://npm.taobao.org/mirrors/chromedriver/ 下载对应版本
-sudo mv chromedriver /usr/bin/chromedriver
+浏览器测试参考 brower.html

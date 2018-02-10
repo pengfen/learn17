@@ -16,4 +16,6 @@ center.html 个人中心
 trait.html  trait
 
 
-deepin_laravel55.html deepin上安装laravel5.5
+deepin_laravel55.html   deepin上安装laravel5.5
+brower.html             浏览器测试用例
+selenium.html               自动化测试
