@@ -57,3 +57,49 @@ profile
 
 centos 环境配置文件 /etc/profile ~/bash_profile
 ubuntu 环境配置文件 ~/.bashrc
+
+
+修改配置文件 (zk安装后 使用非root用户 su hadoop)
+
+1、用hadoop用户操作
+cd /opt/app/zookeeper/conf
+sudo cp zoo_sample.cfg zoo.cfg
+
+2、sudo vi zoo.cfg
+
+3、添加内容：
+dataDir=/opt/app/zookeeper/data
+dataLogDir=/opt/app/zookeeper/log
+server.1=apeng1:2888:3888 (主机名, 心跳端口、数据端口)
+server.2=apeng2:2888:3888
+server.3=apeng3:2888:3888
+
+4、创建文件夹：
+cd /opt/app/zookeeper/
+sudo mkdir -m 755 data
+sudo mkdir -m 755 log
+
+5、在data文件夹下新建myid文件，myid的文件内容为：
+cd data
+sudo vi myid
+添加内容：
+1
+
+6、将集群下发到其他机器上
+su root
+[root@apeng1 app]# scp -r /opt/app/zookeeper/ root@apeng2:/opt/app/
+[root@apeng1 app]# scp -r /opt/app/zookeeper/ root@apeng3:/opt/app/
+
+[root@apeng1 zookeeper]# scp -r /etc/hosts root@apeng2:/etc/
+hosts 100% 228 0.2KB/s 00:00 
+[root@apeng1 zookeeper]# scp -r /etc/hosts root@apeng3:/etc/
+hosts 
+
+7、修改其他机器的配置文件
+ssh apeng2 
+vi /opt/app/zookeeper/data/myid
+
+ssh apeng2 
+vi /opt/app/zookeeper/data/myid
+到apeng2上：修改myid为：2
+到apeng3上：修改myid为：3

@@ -1,0 +1,56 @@
+启动（三台集群）
+1.手动启动
+apeng1, apeng2 apeng3
+zkServer.sh start
+
+zkServer.sh status #查看状态 leader 是主节点 follower 是从节点
+[root@apeng1 bin]# ./zkServer.sh status
+JMX enabled by default
+Using config: /opt/app/zookeeper/bin/../conf/zoo.cfg
+Mode: follower
+
+[root@apeng2 bin]# ./zkServer.sh status
+JMX enabled by default
+Using config: /opt/app/zookeeper/bin/../conf/zoo.cfg
+Mode: leader
+
+[root@apeng3 bin]# ./zkServer.sh status
+JMX enabled by default
+Using config: /opt/app/zookeeper/bin/../conf/zoo.cfg
+Mode: follower
+
+关闭 zkServer.sh stop
+
+export A=1 定义的变量 会对自己所在的shell进程及其子进程生效
+B=1 定义的变量 只对自己所在的shell进程生效
+在script.sh中定义的变量 在当前登录的shell进程中source script.sh时 脚本中定义的变量也会进入当前登录的进程
+
+2.使用脚本启动
+apeng1
+[root@apeng1 app]# vi zk_start.sh
+
+#!/bin/bash
+echo "start zkServer ..."
+
+for i in 1 2 3
+do
+ssh apeng$i "source /etc/profile;/opt/app/zookeeper/bin/zkServer.sh start"
+done
+
+[root@apeng1 app]# chmod +x zk_start.sh
+[root@apeng1 app]# ./zk_start.sh 
+启动 zookeeper 服务 ...
+The authenticity of host 'apeng1 (192.168.179.135)' can't be established.
+RSA key fingerprint is a4:32:48:27:16:61:1d:3d:09:59:d5:c4:b7:16:19:41.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'apeng1,192.168.179.135' (RSA) to the list of known hosts.
+root@apeng1's password: 
+JMX enabled by default
+Using config: /opt/app/zookeeper/bin/../conf/zoo.cfg
+Starting zookeeper ... STARTED
+JMX enabled by default
+Using config: /opt/app/zookeeper/bin/../conf/zoo.cfg
+Starting zookeeper ... already running as process 30954.
+
+ssh apeng2 "source /etc/profile;/opt/app/zookeeper/bin/zkServer.sh start"
+ssh apeng3 "source /etc/profile;/opt/app/zookeeper/bin/zkServer.sh start"
