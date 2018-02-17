@@ -1,0 +1,59 @@
+安装三台主机(apeng1, apeng2, apeng3)
+
+apeng1 内存:2G 硬盘:20G 网络连接方式:NAT
+apeng2 内存:2G 硬盘:20G 网络连接方式:NAT
+apeng3 内存:2G 硬盘:20G 网络连接方式:NAT
+
+vi /etc/sysconfig/network-scripts/ifcfg-eth0
+ONBOOT=yes
+
+service network restart
+apeng1 192.168.179.135
+apeng2 192.168.179.136
+apeng3 192.168.179.137 
+
+配置三台主机无密码登录
+ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa (apeng1,apeng2,apeng3三台主机都执行)
+
+apeng1 vi /etc/hosts #配置主机
+192.168.179.135 apeng1
+192.168.179.136 apeng2
+192.168.179.137 apeng3
+
+cd /root/.ssh/
+scp id_dsa.pub root@apeng3:~
+scp id_dsa.pub root@apeng3:~
+
+apeng2
+cat id_dsa.pub >> ~/.ssh/authorized_keys
+
+apeng3
+cat id_dsa.pub >> ~/.ssh/authorized_keys
+
+apeng1
+ssh apeng2
+ssh apeng3
+
+安装zookeeper集群 (检测是否安装JDK)
+[root@apeng1 jdk1.7.0_45]# scp -r /usr/local/jdk1.7.0_45/ root@apeng2:/usr/local/jdk1.7.0_45
+[root@apeng1 jdk1.7.0_45]# scp -r /usr/local/jdk1.7.0_45/ root@apeng3:/usr/local/jdk1.7.0_45
+
+[root@apeng1 jdk1.7.0_45]# scp -r /etc/profile root@apeng2:/etc/
+profile 100% 1902 1.9KB/s 00:00 
+[root@apeng1 jdk1.7.0_45]# scp -r /etc/profile root@apeng3:/etc/
+
+[root@apeng1 app]# scp -r /opt/app/zookeeper/ root@apeng2:/opt/app/
+[root@apeng1 app]# scp -r /opt/app/zookeeper/ root@apeng3:/opt/app/
+
+[root@apeng1 app]# vi /etc/profile
+export ZOOKEEPER_HOME=/opt/app/zookeeper
+export PATH=$PATH:$ZOOKEEPER_HOME/bin
+
+[root@apeng1 app]# scp -r /etc/profile root@apeng2:/etc/
+profile 100% 1987 1.9KB/s 00:00 
+[root@apeng1 app]# scp -r /etc/profile root@apeng3:/etc/
+profile 
+
+
+centos 环境配置文件 /etc/profile ~/bash_profile
+ubuntu 环境配置文件 ~/.bashrc
