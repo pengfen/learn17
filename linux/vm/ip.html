@@ -1,4 +1,30 @@
-centos6 是ifconfig centos7是ip addr
+第一种：通过Linux图形界面进行修改（强烈推荐）
+进入Linux图形界面 -> 右键点击右上方的两个小电脑 -> 点击Edit connections -> 选中当前网络System eth0 -> 点击edit按钮 -> 选择IPv4 -> method选择为manual -> 点击add按钮 -> 添加IP：192.168.1.101 子网掩码：255.255.255.0 网关：192.168.1.1 -> apply
+第二种：修改配置文件方式（屌丝程序猿专用）
+vi /etc/sysconfig/network-scripts/ifcfg-eth0 # newwork-scripts 网络配置文件目录
+DEVICE=eth0
+TYPE=Ethernet
+ONBOOT=yes #开启自动启用网络连接
+// 以下可以不设置 让系统自动分配
+BOOTPROTO=static # 设置CentOS静态IP地址
+IPADDR=192.168.0.101 #设置IP地址
+PREFIXO0=24  #设置子网掩码
+NETMASK=255.255.255.0 #设置网关
+DNS1=8.8.8.8  #设置主DNS
+DNS2=8.8.4.4  #设置备DNS
+service network restart
+
+setup 手动设置 (常用于nat 连接)
+setup ---> 网络配置 ---> 设备配置 ---> 名称 设备 使用 DHCP (去掉 *) 静态 IP 子网掩码 (255.255.255.0) 默认网关 IP 主 DNS 服务器 第二 DNS 服务器 ---> 确认 
+防火墙设置
+网络配置
+    DNS 配置
+    设备配置
+系统服务
+验证配置
+
+ifconfig (centos6.5,ubuntu)
+ip addr (centos7)
 
 [root@iZ94f2imuwkZ ~]# ifconfig -a # 查看所有的 IP
 eth0      Link encap:Ethernet  HWaddr 00:16:3E:00:2F:9C

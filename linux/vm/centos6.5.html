@@ -1,10 +1,46 @@
-新建虚拟机
-创建新的虚拟机 --- 典型 --- 稍后安装操作系统 --- 选择客户机操作系统(选择linux CentOS 64) ---
-命名虚拟机 --- 指定磁盘容量(选中 将虚拟磁盘存储为单个文件) --- 完成
+新建虚拟机 (参看liunx_ready.html)
+创建新的虚拟机 --- 典型 --- 稍后安装操作系统 --- 选择客户机操作系统(选择linux CentOS 64) ---命名虚拟机 --- 指定磁盘容量(选中 将虚拟磁盘存储为单个文件) --- 完成
 
-安装centos 64位时出现intel VT-x处理禁用问题
-F2 --- configuration --- Intel Virtualization Technology --- Enabled --- Exit(保存退出)
-
+下载镜像文件 https://www.centos.org/download/
 安装centos6.5
-选择DVD盘 --- 选择 install or upgrade an existing system --- 选择skip --- 
-选择中文(简体) --- 
+选择DVD盘 --- 选择 install or upgrade an existing system --- 选择skip --- 选择中文(简体) --- 输入密码 --- 创建分区 ---> 选择 basic server ---> 安装引导程序
+
+
+虚拟机安装 linux 
+CD/DVD 自动检测
+浏览 (选择第一个镜像文件)
+
+开启此虚拟机 (不再显示此提示 进入全屏模式)
+install or upgrade on existing system 安装或升级现在的系统
+install system with basic video driver 安装过程采用基本的显卡驱动
+rescue installed system 进入系统修复模式
+boot from local drive 退出安装从硬盘启动
+memory test 存储介质检测
+选择 skip (是否检测你的盘里内容 tab 键 方向键 -> 都可以) 下一步
+中文简体
+基本存储设备
+主机名
+时区
+密码 (学习时使用最简单的密码 无论如何都使用)
+  密码原则
+  复杂性
+	  八位字符以上 大小写字母 数字 符号
+	  不能是英文单词
+	  不能是和用户相关的内容
+  易记忆性
+  时效性
+创建自定义布局
+选择创建 ---> 标准分区 ---> /boot(挂载点) 200M
+选择创建 ---> 标准分区 ---> swap(文件系统类型) 200M (一般内存的1.5倍至二倍)
+选择创建 ---> 标准分区 ---> / 使用全部可用空间
+在 /dev/sda 中安装引导装载程序
+软件包程序选择 basic server
+  Desktop 桌面
+  Minimal Desktop 最小化桌面
+  Minimal 最小化
+  Basic Server 基本服务器
+  Database Server 数据库服务器
+  Web Server 网页服务器
+  Virtual Host 虚拟主机
+  software development workstation 软件开发工作站
+安装引导程序

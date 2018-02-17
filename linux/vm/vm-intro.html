@@ -16,61 +16,8 @@ CPU 建议主频为 1GHz 以上
 内存 建议 1GB 以上
 硬盘 建议分区空闲空间 8GB 以上
 
-安装虚拟机
-启动 vm
-创建新的虚拟机
-自定义
-稍后安装操作系统 (安装完虚拟机再安装操作系统)
-下一步
-选择 (安装 linux 系统 centos)
-选择安装路径 (d:/files/vm)
-选择处理器 (以下几步可以在虚拟机网络设置中调)
-选择内存
-选择网络连接 (桥接 方便 但占用真实机 nat 使用 vm8虚拟网卡与真实机通信 host-only 使用vm1 虚拟网卡与真实机通信并且不能与外部电脑通信)
-I / O 控制类型 (推荐)
-虚拟磁盘类型 (推荐)
-创建新的虚拟器
-磁盘大小 20 G 选择将虚拟磁盘存储为单个文件
-完成
 
-虚拟机安装 linux 
-CD/DVD 自动检测
-浏览 (选择第一个镜像文件)
 
-开启此虚拟机 (不再显示此提示 进入全屏模式)
-install or upgrade on existing system 安装或升级现在的系统
-install system with basic video driver 安装过程采用基本的显卡驱动
-rescue installed system 进入系统修复模式
-boot from local drive 退出安装从硬盘启动
-memory test 存储介质检测
-选择 skip (是否检测你的盘里内容 tab 键 方向键 -> 都可以) 下一步
-中文简体
-基本存储设备
-主机名
-时区
-密码 (学习时使用最简单的密码 无论如何都使用)
-  密码原则
-  复杂性
-	  八位字符以上 大小写字母 数字 符号
-	  不能是英文单词
-	  不能是和用户相关的内容
-  易记忆性
-  时效性
-创建自定义布局
-选择创建 ---> 标准分区 ---> /boot(挂载点) 200M
-选择创建 ---> 标准分区 ---> swap(文件系统类型) 200M (一般内存的1.5倍至二倍)
-选择创建 ---> 标准分区 ---> / 使用全部可用空间
-在 /dev/sda 中安装引导装载程序
-软件包程序选择 basic server
-  Desktop 桌面
-  Minimal Desktop 最小化桌面
-  Minimal 最小化
-  Basic Server 基本服务器
-  Database Server 数据库服务器
-  Web Server 网页服务器
-  Virtual Host 虚拟主机
-  software development workstation 软件开发工作站
-安装引导程序
   
 login: root # 用户名
 password: 

@@ -1,1 +1,129 @@
+logstash ---> es
+1. 编写配置文件 flow-es.conf
+input {
+	file {
+	    type => "flow"
+	    path => "/var/nginx_logs/*.log"
+	    discover_interval => 5
+	    start_position => "beginning"
+    }
+}
 
+output {
+	if [type] == "flow" {
+	    elasticsearch {
+	        index => "flow-%{+YYYY.MM.dd}"
+	        hosts => ["ricky:9200"]
+	    }
+    }
+}
+
+2. 启动 logstash
+cd /home/ricky/app/logstash-../bin/logstash agent -f flow-es.conf
+
+logstash ---> kafka
+1. 编写配置文件 flow-kafka.conf
+input {
+	file {
+	    path => "/var/nginx_logs/*.log"
+	    discover_interval => 5
+	    start_position => "beginning"
+    }
+}
+
+output {
+	kafka {
+	    topic_id => "access_log"
+	    codec => plain {
+	        format => "%{message}"
+	        charset => "UTF-8"
+	    }
+	    bootstrap_servers => "rikcy:9092"
+    }
+}
+
+2. 启动 logstash
+cd /home/ricky/app/logstash-../bin/logstash agent -f flow-kafka.conf
+
+3. 启动zk
+cd $ZK_HOME
+bin/zkServer.sh start
+
+4. 启动kafka
+cd $KAFKA_HOME
+bin/kafka-server-start.sh
+
+5. 启动kafka
+bin/kafka-server-start.sh -daemon /home/ricky/app/kafka_2.11-0.9.0.0/config/server.properties
+
+6. 创建topic
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic access_log
+
+bin/kafka-topics.sh --list --zookeeper localhost:2181 # 查看topic
+
+
+logstash
+input 读取数据源 相当于flume的source
+filter 可以过滤整理数据
+output 将数据写入到某种存储介质中
+
+
+logstash ---> kafka ---> elasticsearch
+input {
+  kafka {
+    type => "level-one"
+    auto_offset_reset => "smallest"
+    codec => plain {
+      charset => "GB2312"
+    }
+	group_id => "es"
+	topic_id => "itcast"
+	zk_connect => "172.16.0.11:2181,172.16.0.12:2181,172.16.0.13:2181"
+  }
+}
+
+filter {
+  mutate {
+    split => { "message" => "	" }
+      add_field => {
+        "event_type" => "%{message[3]}"
+        "current_map" => "%{message[4]}"
+        "current_X" => "%{message[5]}"
+        "current_y" => "%{message[6]}"
+        "user" => "%{message[7]}"
+        "item" => "%{message[8]}"
+        "item_id" => "%{message[9]}"
+        "current_time" => "%{message[12]}"
+     }
+     remove_field => [ "message" ]
+  } 
+}
+
+output {
+    elasticsearch {
+      index => "level-one-%{+YYYY.MM.dd}"
+	  codec => plain {
+        charset => "GB2312"
+      }
+      hosts => ["172.16.0.14:9200", "172.16.0.15:9200", "172.16.0.16:9200"]
+    } 
+}
+
+2. 启动 logstash
+cd /home/ricky/app/logstash-../bin/logstash agent -f flow-kafka.conf
+
+3. 启动zk
+cd $ZK_HOME
+bin/zkServer.sh start
+
+4. 启动kafka
+cd $KAFKA_HOME
+bin/kafka-server-start.sh
+
+5. 启动kafka
+bin/kafka-server-start.sh -daemon /home/ricky/app/kafka_2.11-0.9.0.0/config/server.properties
+
+6. 创建topic
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic access_log
+
+bin/kafka-topics.sh --list --zookeeper localhost:2181 # 查看topic
