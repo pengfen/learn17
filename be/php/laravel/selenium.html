@@ -1,0 +1,241 @@
+自动化测试
+
+1. 安装selenium
+sudo apt-get install python-pip
+sudo pip install -U selenium
+
+2. 编写脚本
+ricky@ricky:~/script$ cat test_driver.py 
+#coding=utf-8
+from selenium import webdriver
+
+driver = webdriver.Chrome()
+driver.get("https://www.baidu.com")
+
+driver.find_element_by_id("kw").send_keys("Selenium2")
+driver.find_element_by_id("su").click()
+#driver.quit()
+
+3. 运行
+python test_driver.py
+
+火狐浏览器安装 selenium IDE
+1. 安装火狐 (版本 58)
+
+2. 安装IDE
+附加组件 ---> 扩展 ---> 搜索 selenium IDE ---> 安装 ---> 重启火狐
+
+
+测试百度搜索
+#coding=utf-8
+from selenium import webdriver
+import os,time
+
+driver = webdriver.Chrome()
+driver.get("https://www.baidu.com")
+
+driver.find_element_by_id("kw").send_keys("Selenium2")
+driver.find_element_by_id("su").click()
+time.sleep(3)
+
+driver.quit()
+
+注意 (元素定位)
+find_element_by_id("kw")
+find_element_by_xpath("//*[@id='kw']")
+或者
+from selenium.webdriver.common.by import By
+
+find_element(By.ID, "kw")
+find_element(By.XPATH, "//*[@id='kw']")
+
+通过PageFactory模式的实现元素定位
+from pageobject_support import callable_find_by as find_by
+
+find_by(id_="kw")
+find_by(xpath="//*[@id='kw']")
+
+实现 (需要编写pageobject_support类)
+#coding=utf-8
+
+from pageobject_support import callable_find_by as find_by
+from selenium import webdriver
+import time
+
+class BaiduSearchPage(object):
+    def __init__(self, driver):
+        self._driver = driver
+
+    search_box = find_by(id_="kw")
+    search_button = find_by(id_="su")
+
+    def search(self, keywords):
+        self.search_box().clear()
+        self.search_box().send_keys(keywords)
+        self.search_button().click()
+
+if __name__ == '__main__':
+    driver = webdriver.Chrome()
+    driver.get("https://www.baidu.com")
+    BaiduSearchPage(driver).search("selenium")
+    time.sleep(5)
+    driver.close()
+
+
+测试隐藏表单
+1. 编写页面
+<!DOCTYPE html>
+<html>
+<head>
+	<title>测试隐藏输入框</title>
+</head>
+<body>
+	<select style="display: none;">
+		<option value="test1">test1</option>
+		<option value="test2">test2</option>
+		<option value="test3">test3</option>
+		<option value="test4">test4hihi</option>
+	</select>
+</body>
+</html>
+
+2. 编写脚本
+#coding=utf-8
+
+from selenium import webdriver
+from selenium.webdriver.support.select import Select
+import os,time
+
+driver = webdriver.Chrome()
+file_path = "file:///media/ricky/项目/selenium/hidden.html"
+driver.get(file_path)
+
+js = 'document.querySelectorAll("select")[0].style.display="block";'
+driver.execute_script(js)
+
+sel = driver.find_element_by_tag_name("select")
+Select(sel).select_by_value("test1")
+time.sleep(3)
+
+#关闭打开的浏览器
+driver.quit()
+
+3. 运行脚本
+python test_hidden.py
+
+
+测试选择框
+1. 编写页面
+<!DOCTYPE html>
+<html>
+<head>
+	<title>测试选择框</title>
+</head>
+<body>
+	<select id="status" class="form-control valid" name="status">
+		<option value=""></option>
+		<option value="0">未审核</option>
+		<option value="1">初审通过</option>
+		<option value="2">复审通过</option>
+		<option value="3">审核不通过</option>
+	</select>
+</body>
+</html>
+
+2. 编写脚本
+#coding=utf-8
+
+from selenium import webdriver
+from selenium.webdriver.support.select import Select
+import os,time
+
+# 打开chrome浏览器
+driver = webdriver.Chrome()
+file = "file:///media/ricky/项目/selenium/select.html"
+driver.get(file)
+
+sel = driver.find_element_by_xpath("//select[@id='status']")
+Select(sel).select_by_value("0")
+time.sleep(2)
+Select(sel).select_by_value("1")
+time.sleep(2)
+Select(sel).select_by_value("2")
+time.sleep(2)
+Select(sel).select_by_value("3")
+time.sleep(5)
+
+driver.quit()
+
+3. 运行脚本
+python test_select.py
+
+
+页面录制实战
+1. 页面输入
+open https://www.baidu.com
+click id=kw
+click id=kw
+type id=kw selenium
+click id=su
+click id=kw
+click css=ew
+
+2. 导出脚本 ({} Export)
+# -*- coding: utf-8 -*-
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import Select
+from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoAlertPresentException
+import unittest, time, re
+
+class Baidu(unittest.TestCase):
+    def setUp(self):
+        self.driver = webdriver.Chrome()
+        self.driver.implicitly_wait(30)
+        self.base_url = "https://www.katalon.com/"
+        self.verificationErrors = []
+        self.accept_next_alert = True
+    
+    def test_baidu(self):
+        driver = self.driver
+        driver.get("https://www.baidu.com")
+        driver.find_element_by_id("kw").click()
+        driver.find_element_by_id("kw").click()
+        driver.find_element_by_id("kw").clear()
+        driver.find_element_by_id("kw").send_keys("selenium")
+        driver.find_element_by_id("su").click()
+        driver.find_element_by_id("kw").click()
+        driver.find_element_by_css_selector("ew").click()
+    
+    def is_element_present(self, how, what):
+        try: self.driver.find_element(by=how, value=what)
+        except NoSuchElementException as e: return False
+        return True
+    
+    def is_alert_present(self):
+        try: self.driver.switch_to_alert()
+        except NoAlertPresentException as e: return False
+        return True
+    
+    def close_alert_and_get_its_text(self):
+        try:
+            alert = self.driver.switch_to_alert()
+            alert_text = alert.text
+            if self.accept_next_alert:
+                alert.accept()
+            else:
+                alert.dismiss()
+            return alert_text
+        finally: self.accept_next_alert = True
+    
+    def tearDown(self):
+        self.driver.quit()
+        self.assertEqual([], self.verificationErrors)
+
+if __name__ == "__main__":
+    unittest.main()
+
+3. 运行脚本
+python Baidu.py

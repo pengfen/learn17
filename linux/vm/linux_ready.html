@@ -1,0 +1,31 @@
+安装虚拟系统前准备
+
+
+启动 vm
+
+创建新的虚拟机
+
+自定义
+稍后安装操作系统 (安装完虚拟机再安装操作系统)
+下一步
+
+选择 (安装 linux 系统 centos 64位, deepin系统上安装ubuntu)
+
+选择安装路径 (d:/files/vm, deepin系统上选择/home/ricky/vmware)
+命名虚拟机 (ricky1 ...)
+选择处理器 (以下几步可以在虚拟机网络设置中调)
+选择内存
+
+选择网络连接 (桥接 方便 但占用真实机 nat 使用 vm8虚拟网卡与真实机通信 host-only 使用vm1 虚拟网卡与真实机通信并且不能与外部电脑通信)
+
+I / O 控制类型 (推荐)
+虚拟磁盘类型 (推荐)
+
+创建新的虚拟器
+磁盘大小 20 G 选择将虚拟磁盘存储为单个文件
+完成
+
+
+注意选择64位时需要要开启(VT虚拟化技术)  
+安装centos 64位时出现intel VT-x处理禁用问题
+启动系统 ---> F2 --- configuration --- Intel Virtualization Technology --- Enabled --- Exit(保存退出)

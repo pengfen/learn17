@@ -1,0 +1,68 @@
+1. 安装项目
+composer create-project --prefer-dist laravel/laravel laravel "5.5.*"
+
+2. 安装dusk
+浏览器测试(laravel dusk)
+composer require --dev laravel/dusk "2.*"
+注意： 默认安装版本是3.0支持版本是laravel5.6
+
+错误
+The "/home/ricky/app/laravel/tests/Browser/screenshots" directory does not exist. 
+cd tests
+mkdir Browser
+cd Browser
+mkdir screenshots
+mkdir console
+
+php artisan dusk:install
+
+3. 修改配置
+注意
+APP_URL=http://self.admin.yb1v1.com:8889 与页面访问地址一致
+
+4. 修改 DuskTestCase.php
+protected function driver() {
+	return RemoteWebDriver::create(
+        "http://localhost:9515", DesiredCapabilities::chrome()
+	);
+}
+
+5. 测试
+php 
+注册服务
+app/Providers/AppServiceProvider.php
+
+App\Providers\RouteServiceProvider::class,
+Laravel\Dusk\DuskServiceProvider::class,
+
+php artisan dusk:install
+
+2. 配置数据库
+create database laravel
+php artisan migrate
+查看数据库是否创建用户表
+
+php artisan make:auth
+
+3. 创建测试类
+php artisan dusk:make LoginTest
+
+4. 添加测试用户数据
+ricky@ricky:~/app/laravel$ php artisan tinker
+Psy Shell v0.8.17 (PHP 7.1.6-2 — cli) by Justin Hileman
+>>> factory(App\User::class, 10)->create();
+
+php artisan dusk
+
+ChromeDriver 下载
+https://www.cnblogs.com/technologylife/p/5829944.html 查看对应版本
+http://npm.taobao.org/mirrors/chromedriver/ 下载对应版本
+sudo mv chromedriver /usr/bin/chromedriver
+
+
+
+测试ajax调用
+==================================
+1. 创建测试类
+php artisan dusk:make CreateTaskTest
+

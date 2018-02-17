@@ -1,0 +1,87 @@
+查找元素定位
+// python find_element_by_id
+//driver.findElement(By.id("kw")).sendKeys("selenium");
+// python find_element_by_name
+//driver.findElement(By.name("wd")).sendKeys("webdriver");
+// python find_element_by_class_name
+driver.findElement(By.className("s_ipt")).sendKeys("test");
+// python find_element_by_tag_name
+driver.findElement(By.tagName("input")).sendKeys("test");
+// python find_element_by_link_text
+driver.findElement(By.linkText("新闻")).click();
+// python find_element_by_partial_link_text
+driver.findElement(By.partialLinkText("新闻")).click();
+// python find_element_by_xpath
+driver.findElement(By.xpath(".//*[@id='kw']")).sendKeys("selenium");
+// python find_element_by_css_selector
+driver.findElement(By.cssSelector("#kw")).sendKeys("test");
+
+xpath 的使用
+1. 火狐选择安装xpath
+
+2. 安装完xpath插件后重启火狐浏览器
+
+3. 单击xpath按钮后 再单击要查看的元素
+
+1. 通过ID查找元素
+<!DOCTYPE html>
+<html>
+<head>
+	<title>通过ID查找元素-python</title>
+</head>
+<body>
+	<form id="loginForm">
+		<input type="text" name="username">
+		<input type="password" name="password">
+		<input type="submit" name="contiune" value="Login">
+	</form>
+</body>
+</html>
+
+login_form = driver.find_element_by_id("loginForm")
+
+2. 通过name查找
+<html>
+ <body>
+  <form id="loginForm">
+   <input name="username" type="text" />
+   <input name="password" type="password" />
+   <input name="continue" type="submit" value="Login" />
+   <input name="continue" type="button" value="Clear" />
+  </form>
+</body>
+<html>
+
+username = driver.find_element_by_name('username')
+password = driver.find_element_by_name('password')
+
+3. 通过xpath查找
+<html>
+ <body>
+  <form id="loginForm">
+   <input name="username" type="text" />
+   <input name="password" type="password" />
+   <input name="continue" type="submit" value="Login" />
+   <input name="continue" type="button" value="Clear" />
+  </form>
+</body>
+<html>
+
+login_form = driver.find_element_by_xpath("/html/body/form[1]")
+login_form = driver.find_element_by_xpath("//form[1]")
+login_form = driver.find_element_by_xpath("//form[@id='loginForm']")
+
+username = driver.find_element_by_xpath("//form[input/@name='username']")
+username = driver.find_element_by_xpath("//form[@id='loginForm']/input[1]")
+username = driver.find_element_by_xpath("//input[@name='username']")
+
+<html>
+ <body>
+  <p>Are you sure you want to do this?</p>
+  <a href="continue.html">Continue</a>
+  <a href="cancel.html">Cancel</a>
+</body>
+<html>
+
+continue_link = driver.find_element_by_link_text('Continue')
+continue_link = driver.find_element_by_partial_link_text('Conti')

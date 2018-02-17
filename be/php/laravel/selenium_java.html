@@ -1,0 +1,117 @@
+import org.openqa.selenium.*;
+
+public class seleniumTestDemo1 {
+    
+    public static void main(String[] args) {
+        WebDriver driver = new FireFoxDriver();
+        driver.get("http://www.baidu.com");
+        System.out.print("test");
+    }
+}
+
+System.setProperty("webdriver.firefox.bin", "E:\\Firefox\\firefox.exe")
+
+
+public class testDriver {
+    
+    public static void main(String[] args) {
+        WebDriver driver;
+        System.setProperty("webdriver.firefox.bin", "E:\\Firefox\\firefox.exe")
+        // 实例化一个对象firefox
+        driver = new FirefoxDriver()
+        String testUrl = "http://www.baidu.com";
+        driver.get(testUrl);
+        driver.quit();
+    }
+}
+
+public class testDriver {
+    WebDriver driver;
+    System.setProperty("webdriver.chrome.driver", "E:\\webdriver\\chromedriver\\chromedriver.exe");
+    dirver = new ChromeDriver();
+    String testUrl = "http://www.baidu.com";
+    driver.get(testUrl);
+    driver.quit();
+}
+
+public class testDriver {
+    WebDriver driver;
+    System.setProperty("webdriver.ie.driver", "E:\\webdriver\\iedriverserver\\IEDriverServer.exe");
+    dirver = new InternetExplorerDriver();
+    String testUrl = "http://www.baidu.com";
+    driver.get(testUrl);
+    driver.quit();
+}
+
+public class localTest1 {
+    public static void main(String[] args) {
+        WebDriver driver;
+        System.setProperty("webdriver.firefox.bin", "E:\\Firefox\\firefox.exe");
+        driver = new FirefoxDriver();
+        driver.get("http://www.baidu.com");
+        driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+        // python find_element_by_id
+        //driver.findElement(By.id("kw")).sendKeys("selenium");
+        // python find_element_by_name
+        //driver.findElement(By.name("wd")).sendKeys("webdriver");
+        // python find_element_by_class_name
+        driver.findElement(By.className("s_ipt")).sendKeys("test");
+        // python find_element_by_tag_name
+        driver.findElement(By.tagName("input")).sendKeys("test");
+        // python find_element_by_link_text
+        driver.findElement(By.linkText("新闻")).click();
+        // python find_element_by_partial_link_text
+        driver.findElement(By.partialLinkText("新闻")).click();
+        // python find_element_by_xpath
+        driver.findElement(By.xpath(".//*[@id='kw']")).sendKeys("selenium");
+        // python find_element_by_css_selector
+        driver.findElement(By.cssSelector("#kw")).sendKeys("test");
+    }
+}
+
+public class TestTable {
+    public static void main(String[] args) {
+        String str = "第一列第二行";
+        WebDriver driver;
+        System.setProperty("webdriver.firefox.bin", "E:\\Firefox\\firefox.exe");
+        driver = new FirefoxDriver();
+        driver.get("http://www.baidu.com");
+        WebElement Table = driver.findElement(By.tagName("table"));
+        // Table.findElement(By.tagName("tr"));
+        // findElement是定位单一的一个元素的方法 
+        List<WebElement> rows = Table.findElements(By.tagName("tr"));
+        for (WebElement row:rows) {
+            List<WebElement> tds = row.findElements(By.tagName("td"));
+            for (WebElement td:tds) {
+                String value = td.getText(); // value 是一个对象
+                if (value.equals(str)) {
+
+                }
+            }
+        }
+    }
+}
+
+打开地址 Driver.get()  Driver.navigate.to()
+
+Driver.navigate().refresh()
+Driver.navigate().forward()
+Driver.navigate().back()
+Driver.getTitle()
+Driver.getCurrentUrl()
+Driver.manage().window().maximize();
+Driver.quite()
+Driver.close()
+
+// 将driver转换为js的对象
+JavascriptExecutor js = (JavascriptExecutor) dirver;
+js.executeScript("window.scrollTo(0,document.body.scrollHeight)");
+
+// 获取cookie
+getcookie()
+
+输入框操作API
+SendKeys()
+Clear()
+getText()
+Click()
