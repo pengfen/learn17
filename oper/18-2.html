@@ -1,0 +1,26 @@
+wine工具的安装
+
+1. 解决 add-apt-repository 命令无效
+sudo apt-get install python-software-properties
+sudo apt-get update
+
+sudo apt install software-properties-common
+sudo apt-get update
+
+wine2.2 安装
+2. 通过命令添加官方Wine库
+sudo apt-add-repository https://dl.winehq.org/wine-builds/ubuntu/
+
+对于Linux Mint 18.x，请使用以下命令来添加存储库：
+sudo apt-add-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ xenial main'
+
+3.安装GPG密钥以能够接收软件更新：
+wget -nc https://dl.winehq.org/wine-builds/Release.key && sudo apt-key add Release.key
+Wine 2.22发布！ 如何通过PPA进行安装
+
+4. 最后更新并安装最新的Wine开发版本：
+sudo apt-get update
+sudo apt-get install --install-recommends winehq-devel
+
+5. 卸载：要删除wine dev发行版，只需在终端中运行命令：
+sudo apt-get remove --autoremove winehq-devel
