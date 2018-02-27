@@ -1,0 +1,64 @@
+thrift 扩展
+
+1. 下载
+https://thrift.apache.org/download 下载thrift
+http://www.apache.org/dyn/closer.cgi?path=/thrift/0.11.0/thrift-0.11.0.tar.gz
+
+2. 解压安装
+tar -zxvf thrift-0.11.0.tar.gz -C ~/app/
+
+cd ~/app/thrift-0.11.0/
+./bootstrap.sh
+./configure --prefix=/home/ricky/app/thrift --with-php-config=/usr/bin/php-config
+sudo make
+sudo make install
+
+/home/ricky/app/thrift/bin/thrift -verison
+
+3. 生成php与hbase接口文件
+cd ~/app/hbase...
+grep -r Hbase.thrift*
+thrift 生成 thrift   thrift2 生成 thrift2
+/home/ricky/app/thrift/bin/thrift -gen php /home/ricky/app/hbase-1.2.0-cdh5.7.0/hbase-thrift/src/main/resources/org/apache/hadoop/hbase/thrift/Hbase.thrift 
+
+会自动生成gen-php目录
+cd gen-php/Hbase (thrift)
+cd gen-php (thrift2 不会生成 Hbase)
+ls
+
+项目根目录 /home/ricky/app/laravel
+mkdir thrift
+
+4. 复制src下的文件 到thrift
+cp -a /home/ricky/app/thrift-0.11.0/lib/php/src .
+mv src libs
+
+5. 复制lib下的文件 到thrift/libs目录下
+cp -a /home/ricky/app/thrift-0.11.0/lib/php/lib/Thrift .
+
+6. 修改 laravel/thrift/libs/Thrift.php 文件
+819行 导入文件 '/Thrift/Protocol/TProtocol.php','Thrift/Transport/TTransport.php'
+
+7. 导入gen-php下文件
+mkdir packages
+cp -a /home/ricky/script/gen-php/Types.php .
+ricky@ricky:~/app/laravel/thrift/libs/packages$ cp -a /home/ricky/script/gen-php/THBaseService.php .
+
+8. 编译生成php-hbase扩展 (HbaseClient等客户端操作类)
+cd app/thrift-0.11.0/lib/php/src/ext/thrift_protocol/
+/usr/bin/phpize (which phpize, 如果没有phpize ---> 安装 ---> sudo apt-get install php7.1-dev)
+./configure --with-php-config=/usr/bin/php-config --enable-thrift_protocol
+make
+sudo make install
+service nginx restart
+
+9. 编写代码 (注意thrift 与 thrift2的区别)
+
+10. 启动hbase
+start-hbase.sh
+
+11. 启动thrift
+bin/hbase-daemon.sh start thrift --port=9898
+bin/hbase-daemon.sh start thrift2 --port=9898
+
+12.
