@@ -12,6 +12,7 @@ php artisan dusk:install
 APP_URL=http://self.admin.yb1v1.com:8889 与页面访问地址一致
 
 4. 修改 DuskTestCase.php
+// 注意浏览器窗口最大化使用  $browser->maximize();
 protected function driver() {
 	return RemoteWebDriver::create(
         "http://localhost:9515", DesiredCapabilities::chrome()
@@ -44,3 +45,122 @@ Psy Shell v0.8.17 (PHP 7.1.6-2 — cli) by Justin Hileman
 >>> factory(App\User::class, 10)->create();
 
 php artisan dusk
+
+
+
+
+// 测试a链接跳转 <a href="/home">首页</a>
+$browser->loginAs(User::find(1))
+->visit("/article")
+->pause(1000)
+->clickLink("首页")
+->pause(1000);
+
+// 测试断言 assertSeeLink 断言页面中存在指定链接
+$browser->loginAs(User::find(1))
+	->visit("/article")
+	->assertSeeLink("首页")
+	->clickLink("首页");
+
+// 测试断言 assertDontSeeLink 断言页面中不存在指定链接 如果存在会报错 Saw unexpected link [首页] within [body].
+$browser->loginAs(User::find(1))
+	->visit("/article")
+	->assertDontSeeLink("你好");
+
+$browser->loginAs(User::find(1))
+	->visit("/home")
+	->pause(2000);
+
+// 测试点击链接
+$browser->loginAs(User::find(1))
+	->visit("/article")
+	->pause(2000)
+	->clickLink("首页")
+	->pause(1000);
+    
+$browser->loginAs(User::find(1))
+	->visit("/article");
+// 获取值 <input type="text" name="username" class="username" value=""/>
+$val = $browser->value(".username");
+echo PHP_EOL;
+echo $val;
+// 设置值
+$browser->value(".username", "测试设置值")->pause(1000);
+// 获取属性
+$attr = $browser->attribute(".username", "type");
+echo PHP_EOL;
+echo $attr;
+
+// 获取文本值 <div id="div">获取文本值</div>
+$text = $browser->text("#div");
+echo PHP_EOL;
+echo $text;
+
+// 测试输入值 <input type="email" name="email" value="">
+$browser->type("email", "caopeng@163.com")->pause(1000);
+// 测试清除input值
+$browser->clear("email")->pause(1000);
+
+// 测试下拉菜单 test ---> select name
+$sel = $browser->select("test", 2)->pause(1000);
+
+// 测试复选框
+$browser->check("love");
+
+// 测试单选框
+$browser->radio("sex", "男");
+
+// 使用指定账号登录
+$browser->visit("/")
+    ->assertSee("Laravel");
+
+// 使用指定账号登录
+$browser->visit("/login")
+->type('email', "caopeng@163.com")
+        ->type('password', '123456')
+        ->press('Login')
+->assertPathIs('/home')
+->pause(1000);
+
+// 登录
+$browser->loginAs(User::find(1))
+	->visit("/home")
+	->pause(1000);
+
+
+
+$browser->visit("/user_manage/all_users")
+ ->press("ALL")
+ ->select("id_grade", 101)
+ ->select("id_grade", 102)
+ ->click(".td-info")
+ ->pause(500);
+
+
+//$browser->click(".bootstrap-dialog-body .opt-user");
+
+$browser->click(".bootstrap-dialog-header .close"); // 关闭模态框
+
+$browser->visit("/tea_manage/lesson_list")
+ ->press("ALL")
+ ->pause(2000);
+
+
+// 页面 url, 是否有All按钮, select 选择框
+// 模板 ["url" => "", "select" => ["name" => "", "value" => ""]]
+$pages = [
+    ["url" => "/user_manage/all_users", "all" => true, "select" => ["name" => "id_grade", "value" => 102], "click" => ".td-info"],
+    ["url" => "human_resource/index_new", "select" => ["name" => "id_teacher_money_type", "value" => 0], "click" => ".opt-freeze-list"],
+    ["url" => "/authority/manager_list", "select" =>["name" => "id_call_phone_type", "value" => "2"]]
+];
+
+foreach($pages as $item) {
+    $browser->visit($item["url"])->pause(5000);
+    if (isset($item["all"]))
+        $browser->press("ALL");
+    //$browser->select($item["select"]['name'], $item["select"]["value"]);
+    if (isset($item["click"]) && $item["click"])
+        $browser->click($item["click"]);
+    //$browser->pause(5000);
+}
+

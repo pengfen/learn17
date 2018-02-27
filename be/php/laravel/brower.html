@@ -6,6 +6,10 @@ composer create-project --prefer-dist laravel/laravel laravel "5.5.*"
 composer require --dev laravel/dusk "2.*"
 注意： 默认安装版本是3.0支持版本是laravel5.6
 
+the requested PHP extension gd is missing from your system.
+sudo apt-get install php7.1-gd
+service nginx restart
+
 错误
 The "/home/ricky/app/laravel/tests/Browser/screenshots" directory does not exist. 
 cd tests
@@ -14,13 +18,20 @@ cd Browser
 mkdir screenshots
 mkdir console
 
+注册服务 (会自动生成artisan命令 ---> dusk:component, dusk:install, dusk:make, dusk:page)
+app/Providers/AppServiceProvider.php
+
+config/app.php
+App\Providers\RouteServiceProvider::class,
+Laravel\Dusk\DuskServiceProvider::class,
+
 php artisan dusk:install
 
-3. 修改配置
+3. 修改配置 (vi .env)
 注意
 APP_URL=http://self.admin.yb1v1.com:8889 与页面访问地址一致
 
-4. 修改 DuskTestCase.php
+4. 修改 DuskTestCase.php (cd tests)
 protected function driver() {
 	return RemoteWebDriver::create(
         "http://localhost:9515", DesiredCapabilities::chrome()
@@ -28,14 +39,7 @@ protected function driver() {
 }
 
 5. 测试
-php 
-注册服务
-app/Providers/AppServiceProvider.php
-
-App\Providers\RouteServiceProvider::class,
-Laravel\Dusk\DuskServiceProvider::class,
-
-php artisan dusk:install
+php artisan dusk
 
 2. 配置数据库
 create database laravel
