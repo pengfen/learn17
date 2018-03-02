@@ -63,3 +63,26 @@ php artisan dusk
 1. 创建测试类
 php artisan dusk:make CreateTaskTest
 
+
+
+chrome安装
+
+sudo wget https://repo.fdzh.org/chrome/google-chrome.list -P /etc/apt/sources.list.d/
+将下载源加入到系统的源列表
+
+wget -q -O - https://dl.google.com/linux/linux_signing_key.pub  | sudo apt-key add -
+导入谷歌软件的公钥，用于下面步骤中对下载软件进行验证。
+
+sudo apt-get update
+
+sudo apt-get install google-chrome-stable
+执行对谷歌 Chrome 浏览器（稳定版）的安装。
+如果报错 (libnss3 (>= 2:3.22) 但是 2:3.19.2.1-0ubuntu0.14.04.1 正要被安装)
+添加软件库的源信息至sources.list中
+sudo vi /etc/apt/sources.list
+光标移动到文件末端，按i编辑
+deb http://security.ubuntu.com/ubuntu precise-security main
+按esc退出编辑模式，输入：wq保存并退出
+
+/usr/bin/google-chrome-stable
+
