@@ -1,0 +1,18 @@
+localhost:~$ crontab -e
+no crontab for leo - using an empty one
+/bin/sh: 1: vim: not found
+crontab: "vim" exited with status 127
+
+出现此问题是没有安装 vim
+
+ubuntu 14 系统安装vim
+sudo apt install vim
+
+安装完成后再次执行 crontab -e
+
+
+工作中遇到的困难
+每分钟需要执行一个程序检查系统运行状态
+每天凌晨需要对过去一天的业务数据进行统计
+每个星期需要把日志文件备份
+每个月需要把数据库进行备份

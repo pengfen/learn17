@@ -1,0 +1,19 @@
+crontab 的安装
+[root@iZ94f2imuwkZ ~]# crontab -e
+-bash: crontab: command not found
+[root@iZ94f2imuwkZ ~]# yum install crontabs
+
+crontab服务
+服务操作说明：
+/sbin/service crond start //启动服务
+/sbin/service crond stop //关闭服务
+/sbin/service crond restart //重启服务
+/sbin/service crond reload //重新载入配置
+查看crontab服务状态：
+service crond status
+手动启动crontab服务：
+service crond start
+查看crontab服务是否已设置为开机启动，执行命令：
+ntsysv
+加入开机自动启动：
+chkconfig –level 35 crond on

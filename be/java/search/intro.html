@@ -1,0 +1,90 @@
+1. 安装elasticsearh
+
+2. 安装head插件
+
+3. 使用 JSON Editor (https://jsoneditoronline.org/)
+
+{
+	"settings": {
+	    "number_of_replicas": 0
+    },
+	"mappings" : {
+	    "house": {
+	        "dynamic": false,
+	        "properties": {
+	            "title": {
+	                "type": "text",
+	                "index": "analyzed"
+	            },
+	            "price": {
+	                "type": "integer"
+	            },
+	            "area": {
+	                "type": "integer"
+	            },
+	            "createTime": {
+	                "type": "date",
+	                "format": "strict_date_optional_time||epoch_millis"
+	            },
+	            "lastUpdateTime": {
+	                "type": "date",
+	                "format": "strict_date_optional_time||epoch_millis"
+	            },
+	            "cityEnName": {
+	                "type": "keyword"
+	            },
+	            "regionEnName": {
+	                "type": "keyword"
+	            },
+	            "direction": {
+	                "type": "integer"
+	            },
+	            "distanceToSubway": {
+	                "type": "integer"
+	            },
+	            "subwayLineName": {
+	                "type": "keyword"
+	            },
+	            "subwayStationName": {
+	                "type": "keyword"
+	            },
+	            "tags": {
+	                "type": "text"
+	            },
+	            "street": {
+	                "type": "keyword"
+	            },
+	            "description": {
+	                "type": "text",
+	                "index": "analyzed"
+	            },
+	            "layoutDesc": {
+	                "type": "text",
+	                "index": "analyzed"
+	            },
+	            "traffic": {
+	                "type": "text",
+	                "index": "analyzed"
+	            },
+	            "roundService": {
+	                "type": "text",
+	                "index": "analyzed"
+	            },
+	            "rentWay": {
+	                "type": "integer"
+	            }
+	        }
+	    }
+    }
+}
+
+4.　建立索引
+http://localhost:9200/house
+
+5.　创建项目
+com.pengfen
+search
+
+Core Security DevTools
+Web Web
+Template Engines ---> Thymeleaf
