@@ -1,0 +1,36 @@
+Spark Streaming类似于Apache Storm，用于流式数据的处理。根据其官方文档介绍，Spark Streaming有高吞吐量和容错能力强等特点。
+Spark Streaming支持的数据输入源很多，例如：Kafka、Flume、Twitter、ZeroMQ和简单的TCP套接字等等。
+数据输入后可以用Spark的高度抽象原语如：map、reduce、join、window等进行运算。而结果也能保存在很多地方，如HDFS，数据库等。
+另外Spark Streaming也能和MLlib（机器学习）以及Graphx完美融合。
+
+特点
+易用 容错 易整合到spark体系
+
+spark与storm对比
+开发语言：Scala	开发语言：Clojure
+编程模型：DStream	编程模型：Spout/Bolt
+
+3.1.什么是DStream
+Discretized Stream是Spark Streaming的基础抽象，代表持续性的数据流和经过各种Spark原语操作后的结果数据流。
+在内部实现上，DStream是一系列连续的RDD来表示。每个RDD含有一段时间间隔内的数据
+
+对数据的操作也是按照RDD为单位来进行的
+计算过程由Spark engine来完成
+
+DStream上的原语与RDD的类似，分为Transformations（转换）和Output Operations（输出）两种，
+此外转换操作中还有一些比较特殊的原语，如：updateStateByKey()、transform()以及各种Window相关的原语。
+
+1.UpdateStateByKey Operation
+UpdateStateByKey原语用于记录历史记录，上文中Word Count示例中就用到了该特性。若不用UpdateStateByKey来更新状态，
+那么每次数据进来后分析完成后，结果输出后将不在保存
+
+2.Transform Operation
+Transform原语允许DStream上执行任意的RDD-to-RDD函数。通过该函数可以方便的扩展Spark API。此外，MLlib（机器学习）
+以及Graphx也是通过本函数来进行结合的。
+
+3.Window Operations
+Window Operations有点类似于Storm中的State，可以设置窗口的大小和滑动窗口的间隔来动态的获取当前Steaming的允许状态
+
+
+Output Operations可以将DStream的数据输出到外部的数据库或文件系统，当某个Output Operations原语被调用时（与RDD的Action相同），
+streaming程序才会开始真正的计算过程。

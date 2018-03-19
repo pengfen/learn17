@@ -1,0 +1,73 @@
+点击流
+
+点击流日志每天都10T 在业务应用服务器上 需要准实时上传数据仓库(hadoop HDFS)上
+
+需求分析
+一般上传文件都是在凌晨24点操作，由于很多种类的业务数据都要在晚上进行传输，为了减轻服务器的压力，避开高峰期。
+如果需要伪实时的上传，则采用定时上传的方式
+
+
+HDFS SHELL: hadoop fs  –put xxx.tar /data 还可以使用 Java Api
+满足上传一个文件，不能满足定时、周期性传入。
+定时调度器：
+Linux crontab
+crontab -e
+*/5 * * * * $home/bin/command.sh   //五分钟执行一次
+系统会自动执行脚本，每5分钟一次，执行时判断文件是否符合上传规则，符合则上传
+
+
+实现流程
+1. 日志产生程序
+日志产生程序将日志生成后，产生一个一个的文件，使用滚动模式创建文件名。
+
+日志生成的逻辑由业务系统决定，比如在log4j配置文件中配置生成规则，如：当xxxx.log 等于10G时，滚动生成新日志
+log4j.logger.msg=info,msg
+log4j.appender.msg=cn.maoxiangyi.MyRollingFileAppender
+log4j.appender.msg.layout=org.apache.log4j.PatternLayout
+log4j.appender.msg.layout.ConversionPattern=%m%n
+log4j.appender.msg.datePattern='.'yyyy-MM-dd
+log4j.appender.msg.Threshold=info
+log4j.appender.msg.append=true
+log4j.appender.msg.encoding=UTF-8
+log4j.appender.msg.MaxBackupIndex=100
+log4j.appender.msg.MaxFileSize=10GB
+log4j.appender.msg.File=/home/hadoop/logs/log/access.log
+
+细节：
+1、如果日志文件后缀是1\2\3等数字，该文件满足需求可以上传的话。把该文件移动到准备上传的工作区间。
+2、工作区间有文件之后，可以使用hadoop put命令将文件上传。
+阶段问题：
+1、待上传文件的工作区间的文件，在上传完成之后，是否需要删除掉。
+8.4.2伪代码
+使用ls命令读取指定路径下的所有文件信息，
+ls  | while read  line
+//判断line这个文件名称是否符合规则
+if	 line=access.log.* (
+将文件移动到待上传的工作区间
+)
+
+2. 批量上传工作区间的文件
+hadoop fs –put xxx.tar
+
+脚本写完之后，配置linux定时任务，每5分钟运行一次。
+
+
+操作流程
+1. 日志收集文件收集数据　并将数据保存起来
+2. 上传程序通过crontab定时调度
+3. 程序运行时产生的临时文件
+4. hadoop hdfs上查看结果
+
+
+
+
+使用程序采集 需求
+从外部购买数据，数据提供方会实时将数据推送到6台FTP服务器上，我方部署6台接口采集机来对接采集数据，并上传到HDFS中
+
+提供商在FTP上生成数据的规则是以小时为单位建立文件夹(2016-03-11-10)，每分钟生成一个文件（00.dat,01.data,02.dat,........）
+
+提供方不提供数据备份，推送到FTP服务器的数据如果丢失，不再重新提供，且FTP服务器磁盘空间有限，最多存储最近10小时内的数据
+
+由于每一个文件比较小，只有150M左右，因此，我方在上传到HDFS过程中，需要将15分钟时段的数据合并成一个文件上传到HDFS
+
+为了区分数据丢失的责任，我方在下载数据时最好进行校验

@@ -1,0 +1,32 @@
+1. 集群运维测试
+1、Datanode动态上下线
+Datanode动态上下线很简单，步骤如下：
+a)准备一台服务器，设置好环境
+b)部署hadoop的安装包，并同步集群配置
+c)联网上线，新datanode会自动加入集群
+d)如果是一次增加大批datanode，还应该做集群负载重均衡
+
+
+2、Namenode状态切换管理
+使用的命令上hdfs  haadmin
+可用 hdfs  haadmin –help查看所有帮助信息
+
+可以看到，状态操作的命令示例：
+查看namenode工作状态
+hdfs haadmin -getServiceState nn1
+
+将standby状态namenode切换到active
+hdfs haadmin –transitionToActive nn1
+
+将active状态namenode切换到standby
+hdfs haadmin –transitionToStandby nn2
+
+
+3、数据块的balance
+启动balancer的命令：
+start-balancer.sh -threshold 8
+运行之后，会有Balancer进程出现：
+
+上述命令设置了Threshold为8%，那么执行balancer命令的时候，首先统计所有DataNode的磁盘利用率的均值，
+然后判断如果某一个DataNode的磁盘利用率超过这个均值Threshold，那么将会把这个DataNode的block转移到磁盘利用率低的DataNode，
+这对于新节点的加入来说十分有用。Threshold的值为1到100之间，不显示的进行参数设置的话，默认是10。

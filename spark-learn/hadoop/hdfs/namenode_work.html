@@ -1,0 +1,47 @@
+理解namenode的工作机制尤其是元数据管理机制，以增强对HDFS工作原理的理解，及培养hadoop集群运营中“性能调优”、“namenode”故障问题的分析解决能力
+
+1. 问题场景：
+1、集群启动后，可以查看文件，但是上传文件时报错，打开web页面可看到namenode正处于safemode状态，怎么处理？
+2、Namenode服务器的磁盘故障导致namenode宕机，如何挽救集群及数据？
+3、Namenode是否可以有多个？namenode内存要配置多大？namenode跟集群数据存储能力有关系吗？
+4、文件的blocksize究竟调大好还是调小好？
+
+2. NAMENODE职责
+NAMENODE职责：
+负责客户端请求的响应
+元数据的管理（查询，修改）
+
+3. 元数据管理
+namenode对数据的管理采用了三种存储形式：
+内存元数据(NameSystem)
+磁盘元数据镜像文件
+数据操作日志文件（可通过日志运算出元数据）
+
+4. 元数据存储机制
+A、内存中有一份完整的元数据(内存meta data)
+B、磁盘有一个“准完整”的元数据镜像（fsimage）文件(在namenode的工作目录中)
+C、用于衔接内存metadata和持久化元数据镜像fsimage之间的操作日志（edits文件）注：当客户端对hdfs中的文件进行新增或者修改操作，
+操作记录首先被记入edits日志文件中，当客户端操作成功后，相应的元数据会更新到内存meta.data中
+
+5. 元数据手动查看
+可以通过hdfs的一个工具来查看edits中的信息
+bin/hdfs oev -i edits -o edits.xml
+bin/hdfs oiv -i fsimage_0000000000000000087 -p XML -o fsimage.xml
+
+6.  元数据的checkpoint
+每隔一段时间，会由secondary namenode将namenode上积累的所有edits和一个最新的fsimage下载到本地，
+并加载到内存进行merge（这个过程称为checkpoint）
+
+checkpoint操作的触发条件配置参数
+dfs.namenode.checkpoint.check.period=60  #检查触发条件是否满足的频率，60秒
+dfs.namenode.checkpoint.dir=file://${hadoop.tmp.dir}/dfs/namesecondary
+#以上两个参数做checkpoint操作时，secondary namenode的本地工作目录
+dfs.namenode.checkpoint.edits.dir=${dfs.namenode.checkpoint.dir}
+
+dfs.namenode.checkpoint.max-retries=3  #最大重试次数
+dfs.namenode.checkpoint.period=3600  #两次checkpoint之间的时间间隔3600秒
+dfs.namenode.checkpoint.txns=1000000 #两次checkpoint之间最大的操作记录
+
+checkpoint的附带作用
+namenode和secondary namenode的工作目录存储结构完全相同，所以，当namenode故障退出需要重新恢复时，
+可以从secondary namenode的工作目录中将fsimage拷贝到namenode的工作目录，以恢复namenode的元数据

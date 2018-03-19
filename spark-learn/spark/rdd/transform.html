@@ -1,0 +1,161 @@
+start-master.sh 启动主节点
+sbin/start-slaves.sh 启动从节点 (http://localhost:8080/　可以查看当前活着的从节点 Alive Workers: 1)
+
+spark-shell \
+--master spark://ricky:7077 \
+--executor-memory 1g \
+--total-executor-cores 2 \
+--jars /home/ricky/software/mysql-connector-java-5.1.27-bin.jar
+
+#常用Transformation(即转换，延迟加载)
+
+#通过并行化scala集合创建RDD
+val rdd1 = sc.parallelize(Array(1, 2, 3, 4, 5, 6, 7, 8))
+scala> sc.parallelize _
+res3: (Seq[Nothing], Int) => org.apache.spark.rdd.RDD[Nothing] = <function2>
+
+scala> val rdd1 = sc.parallelize(Array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
+rdd1: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[5] at parallelize at <console>:24
+
+#查看该rdd的分区数量
+rdd1.partitions.length
+scala> rdd1.partitions.length
+res0: Int = 2
+
+val rdd1 = sc.parallelize(List(5, 6, 4, 7, 3, 8, 2, 9, 1, 10))
+rdd1: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[1] at parallelize at <console>:24
+
+val rdd2 = sc.parallelize(List(5, 6, 4, 7, 3, 8, 2, 9, 1, 10)).map(_ * 2).sortBy(x => x, true)
+rdd2: org.apache.spark.rdd.RDD[Int] = MapPartitionsRDD[13] at sortBy at <console>:24
+
+val rdd3 = rdd2.filter(_ > 10)
+rdd3: org.apache.spark.rdd.RDD[Int] = MapPartitionsRDD[14] at filter at <console>:26
+
+val rdd2 = sc.parallelize(List(5, 6, 4, 7, 3, 8, 2, 9, 1, 10)).map(_ * 2).sortBy(x => x + "", true)
+rdd2: org.apache.spark.rdd.RDD[Int] = MapPartitionsRDD[21] at sortBy at <console>:24
+
+val rdd2 = sc.parallelize(List(5, 6, 4, 7, 3, 8, 2, 9, 1, 10)).map(_ * 2).sortBy(x => x.toString, true)
+rdd2: org.apache.spark.rdd.RDD[Int] = MapPartitionsRDD[28] at sortBy at <console>:24
+
+val rdd4 = sc.parallelize(Array("a b c", "d e f", "h i j"))
+rdd4: org.apache.spark.rdd.RDD[String] = ParallelCollectionRDD[29] at parallelize at <console>:24
+
+scala> rdd4.flatMap(_.split(" ")).collect
+res0: Array[String] = Array(a, b, c, d, e, f, h, i, j)
+
+val rdd5 = sc.parallelize(List(List("a b c", "a b b"),List("e f g", "a f g"), List("h i j", "a a b")))
+rdd5: org.apache.spark.rdd.RDD[List[String]] = ParallelCollectionRDD[31] at parallelize at <console>:24
+
+scala> rdd5.flatMap(_.flatMap(_.split(" "))).collect
+res1: Array[String] = Array(a, b, c, a, b, b, e, f, g, a, f, g, h, i, j, a, a, b)
+
+
+#union求并集，注意类型要一致
+val rdd6 = sc.parallelize(List(5, 6, 4, 7))
+val rdd7 = sc.parallelize(List(1, 2, 3, 4))
+val rdd8 = rdd6.union(rdd7)
+rdd8.distinct.sortBy(x => x).collect
+scala> val rdd6 = sc.parallelize(List(5, 6, 4, 7))
+rdd6: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[33] at parallelize at <console>:24
+
+scala> val rdd7 = sc.parallelize(List(1, 2, 3, 4))
+rdd7: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[34] at parallelize at <console>:24
+
+scala> val rdd8 = rdd6.union(rdd7)
+rdd8: org.apache.spark.rdd.RDD[Int] = UnionRDD[35] at union at <console>:28
+
+scala> rdd8.distinct.sortBy(x => x).collect
+res2: Array[Int] = Array(1, 2, 3, 4, 5, 6, 7)
+
+#intersection求交集
+val rdd9 = rdd6.intersection(rdd7)
+rdd9: org.apache.spark.rdd.RDD[Int] = MapPartitionsRDD[49] at intersection at <console>:28
+
+val rdd1 = sc.parallelize(List(("tom", 1), ("jerry", 2), ("kitty", 3)))
+val rdd2 = sc.parallelize(List(("jerry", 9), ("tom", 8), ("shuke", 7)))
+scala> val rdd1 = sc.parallelize(List(("tom", 1), ("jerry", 2), ("kitty", 3)))
+rdd1: org.apache.spark.rdd.RDD[(String, Int)] = ParallelCollectionRDD[50] at parallelize at <console>:24
+
+scala> val rdd2 = sc.parallelize(List(("jerry", 9), ("tom", 8), ("shuke", 7)))
+rdd2: org.apache.spark.rdd.RDD[(String, Int)] = ParallelCollectionRDD[51] at parallelize at <console>:24
+
+#join
+val rdd3 = rdd1.join(rdd2)
+val rdd3 = rdd1.leftOuterJoin(rdd2)
+val rdd3 = rdd1.rightOuterJoin(rdd2)
+scala> val rdd3 = rdd1.join(rdd2)
+rdd3: org.apache.spark.rdd.RDD[(String, (Int, Int))] = MapPartitionsRDD[54] at join at <console>:28
+
+scala> val rdd3 = rdd1.leftOuterJoin(rdd2)
+rdd3: org.apache.spark.rdd.RDD[(String, (Int, Option[Int]))] = MapPartitionsRDD[57] at leftOuterJoin at <console>:28
+
+scala> val rdd3 = rdd1.rightOuterJoin(rdd2)
+rdd3: org.apache.spark.rdd.RDD[(String, (Option[Int], Int))] = MapPartitionsRDD[60] at rightOuterJoin at <console>:28
+
+#groupByKey
+val rdd3 = rdd1 union rdd2
+rdd3.groupByKey
+rdd3.groupByKey.map(x=>(x._1,x._2.sum))
+scala> val rdd3 = rdd1 union rdd2
+rdd3: org.apache.spark.rdd.RDD[(String, Int)] = UnionRDD[61] at union at <console>:28
+
+scala> rdd3.groupByKey
+res3: org.apache.spark.rdd.RDD[(String, Iterable[Int])] = ShuffledRDD[62] at groupByKey at <console>:31
+
+scala> rdd3.groupByKey.map(x => (x._1, x._2.sum))
+res4: org.apache.spark.rdd.RDD[(String, Int)] = MapPartitionsRDD[64] at map at <console>:31
+
+#WordCount, 第二个效率低
+sc.textFile("/root/words.txt").flatMap(x=>x.split(" ")).map((_, 1)).reduceByKey(_ + _).sortBy(_._2, false).collect
+sc.textFile("/root/words.txt").flatMap(x=>x.split(" ")).map((_, 1)).groupByKey.map(t => (t._1, t._2.sum)).collect
+
+#cogroup
+val rdd1 = sc.parallelize(List(("tom", 1), ("tom", 2), ("jerry", 3), ("kitty", 2)))
+val rdd2 = sc.parallelize(List(("jerry", 2), ("tom", 1), ("shuke", 2)))
+val rdd3 = rdd1.cogroup(rdd2)
+val rdd4 = rdd3.map(t=>(t._1, t._2._1.sum + t._2._2.sum))
+
+#cartesian笛卡尔积
+val rdd1 = sc.parallelize(List("tom", "jerry"))
+val rdd2 = sc.parallelize(List("tom", "kitty", "shuke"))
+val rdd3 = rdd1.cartesian(rdd2)
+
+###################################################################################################
+
+#spark action
+val rdd1 = sc.parallelize(List(1, 2, 3, 4, 5), 2)
+
+#collect
+rdd1.collect
+scala> rdd1.collect
+res5: Array[Int] = Array(1, 2, 3, 4, 5)
+
+#reduce
+val rdd2 = rdd1.reduce(_+_)
+scala> val rdd2 = rdd1.reduce(_ + _)
+rdd2: Int = 15
+
+#count
+rdd1.count
+scala> rdd1.count
+res6: Long = 5
+
+#top
+rdd1.top(2)
+scala> rdd1.top(2)
+res7: Array[Int] = Array(5, 4)
+
+#take
+rdd1.take(2)
+scala> rdd1.take(2)
+res8: Array[Int] = Array(1, 2)
+
+#first(similer to take(1))
+rdd1.first
+scala> rdd1.first
+res9: Int = 1
+
+#takeOrdered
+rdd1.takeOrdered(3)
+scala> rdd1.takeOrdered(3)
+res10: Array[Int] = Array(1, 2, 3)

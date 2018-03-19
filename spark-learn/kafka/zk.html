@@ -1,0 +1,30 @@
+1.上传zk安装包
+
+2.解压
+
+3.配置（先在一台节点上配置）
+添加一个zoo.cfg配置文件
+$ZOOKEEPER/conf
+mv zoo_sample.cfg zoo.cfg
+
+修改配置文件（zoo.cfg）
+dataDir=/home/ricky/app/tmp/zk
+
+server.5=ricky5:2888:3888
+server.6=ricky6:2888:3888
+server.7=ricky7:2888:3888
+
+在（dataDir=/home/ricky/app/tmp/zk）创建一个myid文件，里面内容是server.N中的N（server.2里面内容为2）
+echo "5" > myid
+
+3.4将配置好的zk拷贝到其他节点
+scp -r /home/ricky/app/zookeeper-3.4.5/ ricky6:~/app/
+scp -r /home/ricky/app/zookeeper-3.4.5/ ricky7:~/app/
+
+3.5注意：在其他节点上一定要修改myid的内容
+在ricky6应该讲myid的内容改为6 （echo "6" > myid）
+在ricky7应该讲myid的内容改为7 （echo "7" > myid）
+
+4.启动集群
+分别启动zk
+./zkServer.sh start

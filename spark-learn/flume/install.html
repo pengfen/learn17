@@ -1,0 +1,45 @@
+Flume的安装部署
+
+1、Flume的安装非常简单，只需要解压即可，当然，前提是已有hadoop环境
+上传安装包到数据源所在节点上
+然后解压  tar -zxvf apache-flume-1.6.0-bin.tar.gz
+然后进入flume的目录，修改conf下的flume-env.sh，在里面配置JAVA_HOME
+
+2、根据数据采集的需求配置采集方案，描述在配置文件中(文件名可任意自定义)
+3、指定采集方案配置文件，在相应的节点上启动flume agent
+
+先用一个最简单的例子来测试一下程序环境是否正常
+1、先在flume的conf目录下新建一个文件
+vi   netcat-logger.conf
+# 定义这个agent中各组件的名字
+a1.sources = r1
+a1.sinks = k1
+a1.channels = c1
+
+# 描述和配置source组件：r1
+a1.sources.r1.type = netcat
+a1.sources.r1.bind = localhost
+a1.sources.r1.port = 44444
+
+# 描述和配置sink组件：k1
+a1.sinks.k1.type = logger
+
+# 描述和配置channel组件，此处使用是内存缓存的方式
+a1.channels.c1.type = memory
+a1.channels.c1.capacity = 1000
+a1.channels.c1.transactionCapacity = 100
+
+# 描述和配置source  channel   sink之间的连接关系
+a1.sources.r1.channels = c1
+a1.sinks.k1.channel = c1
+
+2、启动agent去采集数据
+bin/flume-ng agent -c conf -f conf/netcat-logger.conf -n a1  -Dflume.root.logger=INFO,console
+-c conf   指定flume自身的配置文件所在目录
+-f conf/netcat-logger.con  指定我们所描述的采集方案
+-n a1  指定我们这个agent的名字
+3、测试
+先要往agent采集监听的端口上发送数据，让agent有数据可采
+随便在一个能跟agent节点联网的机器上
+telnet anget-hostname  port   （telnet localhost 44444）
+

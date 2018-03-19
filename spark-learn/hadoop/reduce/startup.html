@@ -1,0 +1,38 @@
+1. 本地运行模式
+（1）mapreduce程序是被提交给LocalJobRunner在本地以单进程的形式运行
+（2）而处理的数据及输出结果可以在本地文件系统，也可以在hdfs上
+（3）怎样实现本地运行？写一个程序，不要带集群的配置文件（本质是你的mr程序的conf中是否有mapreduce.framework.name=local以及yarn.resourcemanager.hostname参数）
+（4）本地模式非常便于进行业务逻辑的debug，只要在eclipse中打断点即可
+
+如果在windows下想运行本地模式来测试程序逻辑，需要在windows中配置环境变量：
+％HADOOP_HOME％  =  d:/hadoop-2.6.1
+%PATH% =  ％HADOOP_HOME％\bin
+并且要将d:/hadoop-2.6.1的lib和bin目录替换成windows平台编译的版本
+
+
+2. 集群运行模式
+（1）将mapreduce程序提交给yarn集群resourcemanager，分发到很多的节点上并发执行
+（2）处理的数据和输出结果应该位于hdfs文件系统
+（3）提交集群的实现步骤：
+A、将程序打成JAR包，然后在集群的任意一个节点上用hadoop命令启动
+$ hadoop jar wordcount.jar cn.itcast.bigdata.mrsimple.WordCountDriver inputpath outputpath
+B、直接在linux的eclipse中运行main方法
+（项目中要带参数：mapreduce.framework.name=yarn以及yarn的两个基本配置）
+C、如果要在windows的eclipse中提交job给集群，则要修改YarnRunner类
+
+3. MAPREDUCE中的Combiner
+[Combiner的使用要非常谨慎 因为combiner在mapreduce过程中可能调用也肯能不调用，可能调一次也可能调多次
+所以：combiner使用的原则是：有或没有都不能影响业务逻辑]
+
+（1）combiner是MR程序中Mapper和Reducer之外的一种组件
+（2）combiner组件的父类就是Reducer
+（3）combiner和reducer的区别在于运行的位置：
+Combiner是在每一个maptask所在的节点运行
+Reducer是接收全局所有Mapper的输出结果；
+(4) combiner的意义就是对每一个maptask的输出进行局部汇总，以减小网络传输量
+具体实现步骤：
+1、自定义一个combiner继承Reducer，重写reduce方法
+2、在job中设置：  job.setCombinerClass(CustomCombiner.class)
+(5) combiner能够应用的前提是不能影响最终的业务逻辑
+而且，combiner的输出kv应该跟reducer的输入kv类型要对应起来
+

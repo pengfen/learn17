@@ -1,0 +1,56 @@
+Scala混合了面向对象和函数式的特性，我们通常将可以做为参数传递到方法中的表达式叫做函数。在函数式编程语言中，函数是“头等公民”
+
+高阶函数包含 作为值的函数 匿名函数 闭包 柯里化
+
+1. 作为值的函数 可以像任何其他数据类型一样被传递和操作的函数 每当你想要给算法传入具体动作时这个特性就会变昨非常有用
+
+scala> val arr = Array(1, 2, 3, 4, 5)
+arr: Array[Int] = Array(1, 2, 3, 4, 5)
+
+scala> val fun1 = (x: Int) => x * 2 // 定义一个函数并将函数赋给变量fun1
+fun1: Int => Int = <function1>
+
+scala> arr.map(fun1) // 将函数作为参数传入map方法中
+res5: Array[Int] = Array(2, 4, 6, 8, 10)
+定义函数时格式 val 变量名 = (输入参数类型和个数) => 函数实现和返回值类型和个数
+= 表示将函数赋给一个变量
+=> 左面表示输入参数名称 类型和个数 右边表示函数的实现和返回值类型和参数个数
+
+2. 匿名函数
+在scala中 你不需要每一个函数命名　没有将函数赋给变量的函数叫做匿名函数
+scala> arr.map((x: Int) => x * 2) // 直接将匿名函数传入到map方法中 效果和前面一样 比较精简一些
+res6: Array[Int] = Array(2, 4, 6, 8, 10)
+// 由于scala可以自动推断出参数的类型　所有可以写的精简一些
+scala> arr.map(x => x * 2)
+res7: Array[Int] = Array(2, 4, 6, 8, 10)
+
+scala> arr.map(_*2) // 神奇下划线
+res8: Array[Int] = Array(2, 4, 6, 8, 10)
+
+3. 将方法转换成函数
+//在scala中 方法和函数是不一样的 最本质的区别是函数可以作为参数传递到方法中 但是方法可以被转换成函数(使用_)
+scala> def m(x: Int) = x * 3 // 定义一个方法
+m: (x: Int)Int
+
+scala> val fun2 = m _ // 下划线将方法转换成了函数
+fun2: Int => Int = <function1>
+
+scala> val arr = Array(1, 2, 3, 4, 5)
+arr: Array[Int] = Array(1, 2, 3, 4, 5)
+
+scala> arr.map(fun2) // 将函数传入map方法中
+res2: Array[Int] = Array(3, 6, 9, 12, 15)
+
+4. 柯里化
+柯里化指的是将原来接受两个参数的方法变成新的接受一个参数的方法的过程
+scala> def m(x: Int) = (y: Int) => x * y // 一个比较奇怪的方法　看起来即像方法又像函数
+m: (x: Int)Int => Int
+
+scala> val func = m(3) // 将一个参数3传进函数后 彻底变成了一个函数 val func = (y: Int) => 3 * y
+func: Int => Int = <function1>
+
+scala> func(5) // 然后在调用这个函数并传递第二个参数 得到最终结果
+res3: Int = 15
+
+scala> m(3)(5) // 简写 def m(x: Int)(y: Int) = x * y
+res4: Int = 15

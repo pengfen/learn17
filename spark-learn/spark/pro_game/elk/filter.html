@@ -1,0 +1,13 @@
+#filter过滤插件grok组件
+
+#日志
+55.3.244.1 GET /index.html 15824 0.043
+
+bin/logstash -e '
+input { stdin {} }
+filter {
+grok {
+match => { "message" => "%{IP:client} %{WORD:method} %{URIPATHPARAM:request} %{NUMBER:bytes} %{NUMBER:duration}" }
+}
+}
+output { stdout {codec => rubydebug} }'

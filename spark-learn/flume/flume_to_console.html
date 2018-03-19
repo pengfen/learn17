@@ -1,0 +1,34 @@
+需求 从指定网络端口采集数据输出到控制台
+
+使用Flume的关键就是写配置文件
+配置Source
+配置Channel
+配置sink
+把以上三个组件串起来
+a1: agent名称
+r1 source的名称
+k1 sink的名称
+c1 channel的名称
+
+1. 编写配置文件 flume_to_console.conf
+
+2. 启动 agent
+flume-ng agent \
+--name a1 \
+--conf $FLUME_HOME/conf \
+--conf-file $FLUME_HOME/conf/flume_to_console.conf \
+-Dflume.root.logger=INFO,console
+
+3. 测试 (启动telnet)
+[hadoop@base ~]$ telnet ricky 44444
+Trying 192.168.179.141...
+Connected to ricky.
+Escape character is '^]'.
+welcome
+OK
+to
+OK
+the
+OK
+
+4. 观察flume控制台

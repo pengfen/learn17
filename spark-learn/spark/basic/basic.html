@@ -1,0 +1,246 @@
+Spark是一种快速、通用、可扩展的大数据分析引擎，2009年诞生于加州大学伯克利分校AMPLab，2010年开源，2013年6月成为Apache孵化项目，2014年2月成为Apache顶级项目。
+目前，Spark生态系统已经发展成为一个包含多个子项目的集合，其中包含SparkSQL、Spark Streaming、GraphX、MLlib等子项目，Spark是基于内存计算的大数据并行计算框架。
+Spark基于内存计算，提高了在大数据环境下数据处理的实时性，同时保证了高容错性和高可伸缩性，允许用户将Spark部署在大量廉价硬件之上，形成集群。
+Spark得到了众多大数据公司的支持，这些公司包括Hortonworks、IBM、Intel、Cloudera、MapR、Pivotal、百度、阿里、腾讯、京东、携程、优酷土豆。
+当前百度的Spark已应用于凤巢、大搜索、直达号、百度大数据等业务；阿里利用GraphX构建了大规模的图计算和图挖掘系统，实现了很多生产系统的推荐算法；
+腾讯Spark集群达到8000台的规模，是当前已知的世界上最大的Spark集群。
+
+中间结果输出：基于MapReduce的计算引擎通常会将中间结果输出到磁盘上，进行存储和容错。出于任务管道承接的，考虑，当一些查询翻译到MapReduce任务时，往往会产生多个Stage，
+而这些串联的Stage又依赖于底层文件系统（如HDFS）来存储每一个Stage的输出结果
+
+Spark是MapReduce的替代方案，而且兼容HDFS、Hive，可融入Hadoop的生态系统，以弥补MapReduce的不足。
+
+spark特点
+快 易用 通用 兼容性
+与Hadoop的MapReduce相比，Spark基于内存的运算要快100倍以上，基于硬盘的运算也要快10倍以上。Spark实现了高效的DAG执行引擎，可以通过基于内存来高效处理数据流。
+
+Spark支持Java、Python和Scala的API，还支持超过80种高级算法，使用户可以快速构建不同的应用。而且Spark支持交互式的Python和Scala的shell，
+可以非常方便地在这些shell中使用Spark集群来验证解决问题的方法。
+
+Spark提供了统一的解决方案。Spark可以用于批处理、交互式查询（Spark SQL）、实时流处理（Spark Streaming）、机器学习（Spark MLlib）和图计算（GraphX）。
+这些不同类型的处理都可以在同一个应用中无缝使用。Spark统一的解决方案非常具有吸引力，毕竟任何公司都想用统一的平台去处理遇到的问题，
+减少开发和维护的人力成本和部署平台的物力成本。
+
+Spark可以非常方便地与其他的开源产品进行融合。比如，Spark可以使用Hadoop的YARN和Apache Mesos作为它的资源管理和调度器，器，并且可以处理所有Hadoop支持的数据，
+包括HDFS、HBase和Cassandra等。这对于已经部署Hadoop集群的用户特别重要，因为不需要做任何数据迁移就可以使用Spark的强大处理能力。Spark也可以不依赖于第三方的
+资源管理和调度器，它实现了Standalone作为其内置的资源管理和调度框架，这样进一步降低了Spark的使用门槛，使得所有人都可以非常容易地部署和使用Spark。此外，
+Spark还提供了在EC2上部署Standalone的Spark集群的工具。
+
+运行spark第一个程序 ---> 该算法是利用蒙特　卡罗算法求PI
+spark-submit \
+--class org.apache.spark.examples.SparkPi \
+--master yarn-cluster \
+--executor-memory 1G \
+--num-executors 1 \
+/home/ricky/app/spark-2.2.0-bin-2.6.0-cdh5.7.0/examples/jars/spark-examples_2.11-2.2.0.jar \
+4
+
+启动spakr shell
+spark-shell是spark自带的交互式shell程序　方便用户进行交互式编程　用户可以在该命令行下用scala编写spark程序
+spark-shell \
+--master spark://ricky:7077 \
+--executor-memory 2g \
+--total-executor-cores 2
+--master spark://ricky:7077 指定Master的地址
+--executor-memory 2g 指定每个worker可用内存为2G
+--total-executor-cores 2 指定整个集群使用的cup核数为2个
+
+注意
+如果启动spark-shell时没有指定master地址 但是也可以正常启动spark-shell和执行spark-shell中的程序
+其实是启动了spark的local模式　该模式仅在本机启动一个进程　没有与集群建立联系
+spark shell中已经默认将SparkContext类初始化为对象sc 用户代码如果需要用到 则直接应用sc即可
+
+在spark-shell中编写WordCount程序
+1. 首先启动hdfs
+2. 向hdfs上传一个文件到hdfs://ricky:9000/words.txt
+3. 在spark-shell中用scala语言编写spark程序
+sc.textFile("hdfs://ricky:9000/words.txt").flatMap(_.split(" ")).map((_, 1)).reduceByKey(_+_)
+.saveAsTextFile("hdfs://ricky:9000/our")
+4. 使用hdfs命令查看结果
+hadoop fs -ls /out/part* (hdfs dfs -ls hdfs://ricky:9000/out/part*)
+sc 是SparkContext对象　该对象是提交spark程序的入口 (spark1.6)
+textFile(hdfs://ricky:9000/words.txt) 从hdfs中读取数据
+flatMap(_.split(" ")) 先map再压平
+map((_, 1)) 将单词和1构成元组
+reduceByKey(_+_)按照key进行reduce　并将value累加
+saveAsTextFile("hdfs://ricky:9000/out") 将结果写入到hdfs中
+
+
+安装 spark
+tar -zxvf spark-...tgz -C ~/app/
+
+配置spark
+cd $SPARK_HOME
+cd conf/
+mv spark-env.sh.template spark-env.sh
+vi spark-env.sh
+export JAVA_HOME=
+export SPARK_MASTER_IP=ricky (注意)
+export SPARK_MASTER_PORT=7077
+
+zk接管服务就不配置 SPARK_MASTER_IP
+export SPARK_DAEMON_JAVA_OPTS="-Dspark.deploy.recoveryMode=ZOOKEEPER -Dspark.deploy.zookeeper.url=zk1,zk2 -Dspark.deploy.zookeeper.dir=/spark"
+
+配置从节点
+mv slaves.template slaves
+vi slaves
+node2.ricky
+
+scp -r spark/ node2.ricky:~/app/spark
+spark 启动
+bin/spark-shell --master spark://ricky:7077 --executor-memory 512m --total-executor-cores 2
+
+/usr/local/spark-1.5.2-bin-hadoop2.6/bin/spark-shell \
+--master spark://ricky:7077 \
+--executor-memory 2g \
+--total-executor-cores 2
+
+参数说明：
+--master spark://ricky:7077 指定Master的地址
+--executor-memory 2g 指定每个worker可用内存为2G
+--total-executor-cores 2 指定整个集群使用的cup核数为2个
+
+配置无密
+ssh-keygen -t rsa
+cat id_dsa.pub >> ~/.ssh/authorized_keys
+start-dfs.sh
+bin/spark-shell --master local[2]
+bin/spark-shell --master local[2] --jars /home/ricky/software/mysql-connector-java-5.1.27-bin.jar
+scala> sc
+res0: org.apache.spark.SparkContext = org.apache.spark.SparkContext@6892d403
+// rdd 延迟加载
+scala> sc.textFile("/home/ricky/data/spark/basic/words.txt")
+res0: org.apache.spark.rdd.RDD[String] = /home/ricky/data/spark/basic/words.txt MapPartitionsRDD[1] at textFile at <console>:25
+
+sc.textFile("hdfs://ricky:9000/wc").flatMap(_.split(" ")).map((_, 1)).reduceByKey(_+_).sortBy(_._2, false).collect
+sc.textFile("hdfs://ricky:9000/wc").flatMap(_.split(" ")).map((_, 1)).reduceByKey(_+_).sortBy(_._2, false).saveAtTextFile("hdfs://ricky:9000/out")
+
+scala> val rdd1 = sc.parallelize(List(5, 6, 4, 7, 3, 8, 2, 9, 1, 10))
+rdd1: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[0] at parallelize at <console>:24
+
+scala> rdd1.map(_*10).sortBy(x => x, true)
+res1: org.apache.spark.rdd.RDD[Int] = MapPartitionsRDD[6] at sortBy at <console>:27
+
+scala> rdd1.map(_*10).sortBy(x => x, true).collect
+res2: Array[Int] = Array(10, 20, 30, 40, 50, 60, 70, 80, 90, 100)
+
+scala> rdd1.map(_*10).sortBy(x => x + "", true).collect
+res3: Array[Int] = Array(10, 100, 20, 30, 40, 50, 60, 70, 80, 90)
+
+scala> rdd1.map(_*10).sortBy(x => x + "", true).filter(_>10).collect
+res4: Array[Int] = Array(100, 20, 30, 40, 50, 60, 70, 80, 90)
+
+scala> val rdd4 = sc.parallelize(Array("a b c", "d e f", "h i j"))
+rdd4: org.apache.spark.rdd.RDD[String] = ParallelCollectionRDD[26] at parallelize at <console>:24
+
+scala> rdd4.flatMap(_.split(" "))
+res5: org.apache.spark.rdd.RDD[String] = MapPartitionsRDD[27] at flatMap at <console>:27
+
+scala> res5.collect
+res6: Array[String] = Array(a, b, c, d, e, f, h, i, j)
+
+scala> val rdd5 = sc.parallelize(List(List("a b c", "a b b"), List("e f g", "a f g"), List("h i j", "a a b")))
+rdd5: org.apache.spark.rdd.RDD[List[String]] = ParallelCollectionRDD[28] at parallelize at <console>:24
+
+scala> rdd5.flatMap(_.flatMap(_.split(" "))).collect
+res7: Array[String] = Array(a, b, c, a, b, b, e, f, g, a, f, g, h, i, j, a, a, b)
+
+scala> val rdd6 = sc.parallelize(List(5, 6, 4, 7)) // 使用spark://ricky:7077
+rdd6: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[30] at parallelize at <console>:24
+
+scala> val rdd7 = sc.parallelize(List(1, 2, 3, 4))
+rdd7: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[31] at parallelize at <console>:24
+
+scala> val rdd8 = rdd6.union(rdd7)
+rdd8: org.apache.spark.rdd.RDD[Int] = UnionRDD[32] at union at <console>:28
+
+scala> rdd8.collect
+res8: Array[Int] = Array(5, 6, 4, 7, 1, 2, 3, 4)
+
+scala> val rdd9 = rdd6.intersection(rdd7)
+rdd9: org.apache.spark.rdd.RDD[Int] = MapPartitionsRDD[38] at intersection at <console>:28
+
+scala> val rdd1 = sc.parallelize(List(("tom", 1), ("jerry", 2), ("kitty", 3)))
+rdd1: org.apache.spark.rdd.RDD[(String, Int)] = ParallelCollectionRDD[39] at parallelize at <console>:24
+
+scala> rdd9.collect
+res9: Array[Int] = Array(4)
+
+scala> val rdd2 = sc.parallelize(List(("jerry", 9), ("tom", 6), ("shuke", 7)))
+rdd2: org.apache.spark.rdd.RDD[(String, Int)] = ParallelCollectionRDD[40] at parallelize at <console>:24
+
+scala> rdd1.intersection(rdd2)
+res11: org.apache.spark.rdd.RDD[(String, Int)] = MapPartitionsRDD[46] at intersection at <console>:29
+
+scala> res11.collect
+res12: Array[(String, Int)] = Array()
+
+scala> val rdd3 = rdd1.join(rdd2)
+rdd3: org.apache.spark.rdd.RDD[(String, (Int, Int))] = MapPartitionsRDD[49] at join at <console>:28
+
+scala> rdd3.collect
+res13: Array[(String, (Int, Int))] = Array((tom,(1,6)), (jerry,(2,9)))
+
+scala> val rdd2 = sc.parallelize(List(("jerry", 9), ("tom", 8), ("shuke", 7), ("tom", 2)))
+rdd2: org.apache.spark.rdd.RDD[(String, Int)] = ParallelCollectionRDD[50] at parallelize at <console>:24
+
+scala> val rdd3 = rdd1.join(rdd2)
+rdd3: org.apache.spark.rdd.RDD[(String, (Int, Int))] = MapPartitionsRDD[53] at join at <console>:28
+
+scala> rdd3.collect
+res14: Array[(String, (Int, Int))] = Array((tom,(1,8)), (tom,(1,2)), (jerry,(2,9)))
+
+scala> val rdd3 = rdd1.rightOuterJoin(rdd2)
+rdd3: org.apache.spark.rdd.RDD[(String, (Option[Int], Int))] = MapPartitionsRDD[56] at rightOuterJoin at <console>:28
+
+scala> rdd3.collect
+res15: Array[(String, (Option[Int], Int))] = Array((tom,(Some(1),8)), (tom,(Some(1),2)), (jerry,(Some(2),9)), (shuke,(None,7)))
+
+scala> val rdd3 = rdd1 union rdd2
+rdd3: org.apache.spark.rdd.RDD[(String, Int)] = UnionRDD[57] at union at <console>:28
+
+scala> rdd3.collect
+res16: Array[(String, Int)] = Array((tom,1), (jerry,2), (kitty,3), (jerry,9), (tom,8), (shuke,7), (tom,2))
+
+scala> rdd3.groupByKey
+res17: org.apache.spark.rdd.RDD[(String, Iterable[Int])] = ShuffledRDD[58] at groupByKey at <console>:31
+
+scala> val rdd4 = rdd3.groupByKey
+rdd4: org.apache.spark.rdd.RDD[(String, Iterable[Int])] = ShuffledRDD[59] at groupByKey at <console>:30
+
+scala> rdd4.collect
+res18: Array[(String, Iterable[Int])] = Array((tom,CompactBuffer(1, 8, 2)), (jerry,CompactBuffer(2, 9)), (shuke,CompactBuffer(7)), (kitty,CompactBuffer(3)))
+
+scala> val rdd1 = sc.parallelize(List("tom", "jerry"))
+rdd1: org.apache.spark.rdd.RDD[String] = ParallelCollectionRDD[62] at parallelize at <console>:24
+
+scala> val rdd2 = sc.parallelize(List("tom", "kitty", "shuke"))
+rdd2: org.apache.spark.rdd.RDD[String] = ParallelCollectionRDD[63] at parallelize at <console>:24
+
+scala> val rdd3 = rdd1.cartesian(rdd2)
+rdd3: org.apache.spark.rdd.RDD[(String, String)] = CartesianRDD[64] at cartesian at <console>:28
+
+scala> rdd3.collect
+res21: Array[(String, String)] = Array((tom,tom), (tom,kitty), (tom,shuke), (jerry,tom), (jerry,kitty), (jerry,shuke))
+
+scala> val rdd1 = sc.parallelize(List(1, 2, 3, 4, 5), 2)
+rdd1: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[65] at parallelize at <console>:24
+
+scala> val rdd2 = rdd1.reduce(_+_)
+rdd2: Int = 15
+
+scala> rdd1.count
+res22: Long = 5
+
+scala> rdd1.take(2)
+res25: Array[Int] = Array(1, 2)
+
+scala> rdd1.top(2)
+res26: Array[Int] = Array(5, 4)
+
+scala> rdd1.first
+res27: Int = 1
+
+scala> rdd1.takeOrdered(3)
+res28: Array[Int] = Array(1, 2, 3)
+

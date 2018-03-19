@@ -1,0 +1,177 @@
+1.下载maven（apache-maven-3.3.3-bin.tar.gz）
+http://archive.apache.org/dist/maven/maven-3/3.3.3/binaries/apache-maven-3.3.3-bin.tar.gz
+
+2.安装maven
+tar -zxvf apache-maven-3.3.3-bin.tar.gz -C ~/app/
+
+3.添加环境变量
+vim /etc/profile (centos) .bashrc (ubuntu)
+
+export JAVA_HOME=/home/ricky/app/jdk1.7.0_45
+export MAVEN_HOME=/home/ricky/app/apache-maven-3.3.3
+export PATH=$PATH:$JAVA_HOME/bin:$MAVEN_HOME/bin
+
+4.加载环境变量
+source /etc/proflie
+mvn -version
+
+5.下载protobuf（https://code.google.com/p/protobuf/downloads/list 或
+https://protobuf.googlecode.com/files/protobuf-2.5.0.tar.gz）
+
+6.安装protobuf编译依赖，为了编译安装protoc，需要使用YUM下载几个依赖的工具
+yum install -y gcc gcc-c++ make
+
+7.解压安装protobuf
+tar -zxvf  protobuf-2.5.0.tar.gz -C /usr/local/src
+cd /usr/local/src/protobuf-2.5.0
+./configure --prefix=/usr/local/protobuf
+make && make install
+
+8将protobuf添加到环境变量
+vim /etc/profile
+
+export PATH=$PATH:$JAVA_HOME/bin:$HADOOP_HOME/bin:
+$HADOOP_HOME/sbin:$MAVEN_HOME/bin:
+/usr/local/protobuf/bin
+
+source /etc/profile
+
+protoc --version
+
+9.安装其他编译依赖
+yum install -y cmake openssl-devel ncurses-devel zlib-devel
+yum install -y snappy snappy-devel bzip2 bzip2-devel lzo lzo-devel lzop openssl openssl-devel
+
+10.编译hadoop（进入文件夹里面，里面有一个文件BUILDINT.txt，打开即可看见里面关于编译hadoop的一些环境要求）
+tar -zxvf hadoop-2.6.4-src.tar.gz -C /usr/local/src/
+cd /usr/local/src/hadoop-2.6.4-src
+
+
+mvn package -Pdist,native -DskipTests -Dtar
+
+12.查看编译好的安装包
+cd /usr/local/src/hadoop-2.6.4-src/hadoop-dist/target
+
+
+#出现问题
+INFO util.NativeCodeLoader - Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+
+在/etc/profile中添加
+export HADOOP_OPTS="-Djava.library.path=$HADOOP_HOME/lib/native"
+
+#查看可用的本地库
+hadoop checknative -a
+
+# 编译hadoop成功
+[INFO] Reactor Summary:
+[INFO]
+[INFO] Apache Hadoop Main ................................. SUCCESS [ 27.217 s]
+[INFO] Apache Hadoop Build Tools .......................... SUCCESS [ 23.012 s]
+[INFO] Apache Hadoop Project POM .......................... SUCCESS [  2.956 s]
+[INFO] Apache Hadoop Annotations .......................... SUCCESS [  4.479 s]
+[INFO] Apache Hadoop Assemblies ........................... SUCCESS [  0.469 s]
+[INFO] Apache Hadoop Project Dist POM ..................... SUCCESS [  2.211 s]
+[INFO] Apache Hadoop Maven Plugins ........................ SUCCESS [  6.681 s]
+[INFO] Apache Hadoop MiniKDC .............................. SUCCESS [  8.654 s]
+[INFO] Apache Hadoop Auth ................................. SUCCESS [  7.140 s]
+[INFO] Apache Hadoop Auth Examples ........................ SUCCESS [  3.477 s]
+[INFO] Apache Hadoop Common ............................... SUCCESS [  08:23 h]
+[INFO] Apache Hadoop NFS .................................. SUCCESS [ 11.203 s]
+[INFO] Apache Hadoop KMS .................................. SUCCESS [02:14 min]
+[INFO] Apache Hadoop Common Project ....................... SUCCESS [  0.055 s]
+[INFO] Apache Hadoop HDFS ................................. SUCCESS [32:38 min]
+[INFO] Apache Hadoop HttpFS ............................... SUCCESS [01:43 min]
+[INFO] Apache Hadoop HDFS BookKeeper Journal .............. SUCCESS [08:23 min]
+[INFO] Apache Hadoop HDFS-NFS ............................. SUCCESS [  4.741 s]
+[INFO] Apache Hadoop HDFS Project ......................... SUCCESS [  0.064 s]
+[INFO] hadoop-yarn ........................................ SUCCESS [  0.063 s]
+[INFO] hadoop-yarn-api .................................... SUCCESS [01:28 min]
+[INFO] hadoop-yarn-common ................................. SUCCESS [06:50 min]
+[INFO] hadoop-yarn-server ................................. SUCCESS [  0.076 s]
+[INFO] hadoop-yarn-server-common .......................... SUCCESS [02:18 min]
+[INFO] hadoop-yarn-server-nodemanager ..................... SUCCESS [09:48 min]
+[INFO] hadoop-yarn-server-web-proxy ....................... SUCCESS [  3.809 s]
+[INFO] hadoop-yarn-server-applicationhistoryservice ....... SUCCESS [  7.973 s]
+[INFO] hadoop-yarn-server-resourcemanager ................. SUCCESS [ 21.016 s]
+[INFO] hadoop-yarn-server-tests ........................... SUCCESS [  6.767 s]
+[INFO] hadoop-yarn-client ................................. SUCCESS [ 10.137 s]
+[INFO] hadoop-yarn-applications ........................... SUCCESS [  0.027 s]
+[INFO] hadoop-yarn-applications-distributedshell .......... SUCCESS [  3.214 s]
+[INFO] hadoop-yarn-applications-unmanaged-am-launcher ..... SUCCESS [  2.202 s]
+[INFO] hadoop-yarn-site ................................... SUCCESS [  0.045 s]
+[INFO] hadoop-yarn-registry ............................... SUCCESS [  6.430 s]
+[INFO] hadoop-yarn-project ................................ SUCCESS [  4.585 s]
+[INFO] hadoop-mapreduce-client ............................ SUCCESS [  0.244 s]
+[INFO] hadoop-mapreduce-client-core ....................... SUCCESS [ 25.090 s]
+[INFO] hadoop-mapreduce-client-common ..................... SUCCESS [ 19.114 s]
+[INFO] hadoop-mapreduce-client-shuffle .................... SUCCESS [  4.884 s]
+[INFO] hadoop-mapreduce-client-app ........................ SUCCESS [ 12.286 s]
+[INFO] hadoop-mapreduce-client-hs ......................... SUCCESS [  9.938 s]
+[INFO] hadoop-mapreduce-client-jobclient .................. SUCCESS [01:25 min]
+[INFO] hadoop-mapreduce-client-hs-plugins ................. SUCCESS [  2.183 s]
+[INFO] Apache Hadoop MapReduce Examples ................... SUCCESS [  8.036 s]
+[INFO] hadoop-mapreduce ................................... SUCCESS [  2.959 s]
+[INFO] Apache Hadoop MapReduce Streaming .................. SUCCESS [01:32 min]
+[INFO] Apache Hadoop Distributed Copy ..................... SUCCESS [10:48 min]
+[INFO] Apache Hadoop Archives ............................. SUCCESS [  2.664 s]
+[INFO] Apache Hadoop Rumen ................................ SUCCESS [  7.003 s]
+[INFO] Apache Hadoop Gridmix .............................. SUCCESS [  5.003 s]
+[INFO] Apache Hadoop Data Join ............................ SUCCESS [  3.278 s]
+[INFO] Apache Hadoop Ant Tasks ............................ SUCCESS [  2.411 s]
+[INFO] Apache Hadoop Extras ............................... SUCCESS [  3.407 s]
+[INFO] Apache Hadoop Pipes ................................ SUCCESS [  6.749 s]
+[INFO] Apache Hadoop OpenStack support .................... SUCCESS [  5.984 s]
+[INFO] Apache Hadoop Amazon Web Services support .......... SUCCESS [13:47 min]
+[INFO] Apache Hadoop Client ............................... SUCCESS [  7.072 s]
+[INFO] Apache Hadoop Mini-Cluster ......................... SUCCESS [  0.796 s]
+[INFO] Apache Hadoop Scheduler Load Simulator ............. SUCCESS [  6.554 s]
+[INFO] Apache Hadoop Tools Dist ........................... SUCCESS [  9.042 s]
+[INFO] Apache Hadoop Tools ................................ SUCCESS [  0.035 s]
+[INFO] Apache Hadoop Distribution ......................... SUCCESS [ 32.347 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 10:02 h
+[INFO] Finished at: 2018-01-18T10:31:19+08:00
+[INFO] Final Memory: 101M/452M
+[INFO] ------------------------------------------------------------------------
+
+
+
+cdh版本编译
+1.maven 3.3.9 版本 jdk 7版本
+2.export MAVEN_OPTS="-Xmx2g -Xx:ReservedCodeCacheSize=512m"
+
+下载源码包 (2.
+Choose a Spark release: 2.2.1
+
+Choose a package type: source code
+
+Download Spark: spark-2.2.1.tgz
+
+[root@apeng1 download]# tar -xvf spark-2.2.1.tgz -C /opt/app/
+[root@apeng1 download]# cd /opt/app/spark-2.2.1/
+
+http://spark.apache.org/docs/latest/
+点击 More --- Build spark
+
+echo $HADOP_HOME 查看hadoop版本
+
+./dev/make-distribution.sh --name 2.6.0-cdh5.7.0 --tgz -Pyarn -Phadoop-2.6 -Phive -Phive-thriftserver -Dhadoop.version=2.6.0-cdh5.7.0
+
+t/app/spark-2.1.0/build/mvn help:evaluate -Dexpression=project.version -Pyarn -Phadoop-2.6 -Phive -Phive-thriftserver -Dhadoop.version=2.6.0-cdh5.7.0
+[root@apeng1 spark-2.1.0]#
+[root@apeng1 spark-2.1.0]# ./build/mvn -Pyarn -Phadoop-2.6 -Phive -Phive-thriftserver -Dhadoop.version=2.6.0-cdh5.7.0 -DskipTests clean package
+exec: curl --progress-bar -L https://downloads.typesafe.com/zinc/0.3.9/zinc-0.3.9.tgz
+################################ 44.8%
+
+
+问题1：[ERROR] Failed to execute goal on project spark-launcher_2.11: Could not resolve dependencies for project org.apache.spark:spark-launcher_2.11:jar:2.2.0: Failure to find org.apache.hadoop:hadoop-client:jar:2.6.0-cdh5.7.0 in https://repo1.maven.org/maven2 was cached in the local repository, resolution will not be reattempted until the update interval of central has elapsed or updates are forced -> [Help 1]
+这是因为默认的是apache的仓库，但是我们hadoop的版本写的是CDH，这时要将CDH的仓库配进来，打开spark目录下的pom.xml文件，将CDH的仓库配进去
+vi /usr/local/spark-test/app/spark-2.2.0/pom.xml 添加如下
+<repository>
+    <id>cloudera</id>
+    <name>cloudera Repository</name>
+    <url>https://repository.cloudera.com/artifactory/cloudera-repos</url>
+</repository>
+这个下面就有要的jar包，没事可以看下 https://repository.cloudera.com/artifactory/cloudera-repos/org/apache/hadoop/hadoop-client/2.6.0-cdh5.7.0/

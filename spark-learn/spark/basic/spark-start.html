@@ -1,0 +1,25 @@
+spark启动流程
+
+sbin/start-all.sh   ->  start-master.sh   -> start-slaves.sh
+
+
+sbin/start-master.sh  ->  先读取变量  sbin/spark-daemon.sh start org.apache.spark.deploy.master.Master 1 --ip $SPARK_MASTER_IP --port $SPARK_MASTER_PORT --webui-port $SPARK_MASTER_WEBUI_PORT
+
+
+sbin/spark-daemon.sh  ->  /bin/spark-class $command "$@"
+
+
+/bin/spark-class   ->     exec "$RUNNER" -cp "$CLASSPATH" $JAVA_OPTS "$@"
+
+-------------------------------------------------------------------------------------------------------------
+
+spark提交任务的过程
+
+bin/spark-submit --class cn.itcast.spark.WordCount  --master spark://node-1.itcast.cn:7077 --executor-memory 2g --total-executor-cores 4
+
+
+exec "$SPARK_HOME"/bin/spark-class org.apache.spark.deploy.SparkSubmit  -> exec "$RUNNER" -cp "$CLASSPATH" $JAVA_OPTS "$@"
+
+
+重点来开一下spark-class org.apache.spark.deploy.SparkSubmit -》submit -》 doRunMain （args class cn.itcast.spark.WordCount ...）
+--> Class.forName通过反射调用自定义类的main方法（只有一个进程）

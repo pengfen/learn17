@@ -1,0 +1,22 @@
+1.集群环境准备
+安装相关软件
+同步集群时间
+ntpdate 0.centos.pool.ntp.org
+
+
+#启动ES集群
+/bigdata/elasticsearch-2.3.1/bin/elasticsearch -d
+#启动日志点击流系统
+#启动nginx
+#启动logstash收集日志
+/bigdata/logstash-2.3.1/bin/logstash -f /bigdata/flow-es.conf
+
+#启动所有zk
+/bigdata/zookeeper-3.4.8/bin/zkServer.sh start
+
+#启动所有kafa
+/bigdata/kafka_2.10-0.8.2.1/bin/kafka-server-start.sh /bigdata/kafka_2.10-0.8.2.1/config/server.properties > /dev/null 2>&1 &
+
+#启动游戏服务器(GS)
+
+#在GS上启动Logstash收集GS产生的日志

@@ -1,0 +1,46 @@
+1.从TCP端口中读取数据
+yum install -y nc
+nc -lk 9000
+#注意：要指定并行度，如在本地运行设置setMaster("local[2]")，相当于启动两个线程，一个给receiver，一个给computer。
+#如果是在集群中运行，必须要求集群中可用core数大于1
+
+#提交spark-streaming任务
+bin/spark-submit --class spark.stream.FileWordCount /home/ricky/spark-jar/spark-learn-1.0.jar
+
+
+2.结合flume
+2.1 flume push方式
+#首先启动spark-streaming应用程序
+bin/spark-submit --class spark.stream.FlumeWordCount /home/ricky/spark-jar/spark-learn-1.0.jar
+#再启动flmue
+bin/flume-ng agent -n a1 -c conf/ -f conf/flume-push.conf -Dflume.root.logger=WARN,console
+
+2.2 flume poll方式
+#首先将下载好的spark-streaming-flume-sink_2.10-1.6.1.jar和scala-library-2.10.5.jar还有commons-lang3-3.3.2.jar三个包放入到flume的lib目录下
+#启动flume
+bin/flume-ng agent -n a1 -c conf/ -f conf/flume-poll.conf -Dflume.root.logger=WARN,console
+#再启动spark-streaming应用程序
+bin/spark-submit --class spark.stream.FlumePollWordCount /home/ricky/spark-jar/spark-learn-1.0.jar
+
+
+3.结合kafka
+#首先启动zk
+bin/kafka-server-start.sh config/server.properties
+#创建topic
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic wordcount
+#查看主题
+bin/kafka-topics.sh --list --zookeeper localhost:2181
+#启动一个生产者发送消息
+bin/kafka-console-producer.sh --broker-list local:9092 --topic wordcount
+#启动spark-streaming应用程序
+bin/spark-submit --class spark.stream.KafkaWordCount /home/ricky/spark-jar/spark-learn-1.0.jar ricky:2181 group1 wordcount 1
+
+
+bin/spark-submit \
+--class spark.stream.UrlCount \
+--master spark://ricky:7077 \
+--executor-memory 1G \
+--total-executor-cores 2 \
+/home/ricky/spark-jar/spark-learn-1.0.jar \
+ricky5:2181,ricky6:2181,ricky7:2181 group1 weblog 2
+

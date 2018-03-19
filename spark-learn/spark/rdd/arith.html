@@ -1,0 +1,51 @@
+spark程序流程
+
+1. 启动spark-shell
+cd $SPARK_HOME
+bin/spark-shell --master spark://ricky:7077 --executor-memory 512m --total-executor-cores 2 (先启动start-master.sh)
+bin/spark-shell --master local[2]
+
+2. 上传文件到hdfs上
+cd $HADOOP_HOME
+sbin/start-dfs.sh
+hadoop fs -mkdir /wc/
+hadoop fs -put test.txt /wc/
+
+3. 在spark-shell中编写spark程序
+scala> sc.textFile("hdfs://ricky:9200/wc").flatMap(_.split(" ")).map((_, 1)).reduceByKey(_+_).sortBy(_._2, false).collect()
+res31: Array[(String, Int)] = Array((welcome,5), (world,5), (to,5), (kafka,1), (spark,1), (hadoop,1), (flume,1), (hdfs,1))
+
+sc.textFile("hdfs://ricky:9200/wc").flatMap(_.split(" ")).map((_, 1)).reduceByKey(_+_).sortBy(_._2, false).saveAsTextFile("hdfs://ricky:9200/out")
+
+
+spark的算子分为两类
+一类叫做Transformation (转换)
+一类叫做Action (动作)
+
+Transformation延迟执行 Transformation会记录元数据信息 当计算任务触发Action时 再会真正开妈计算
+
+scala> sc.textFile("hdfs://ricky:9200/wc")
+res33: org.apache.spark.rdd.RDD[String] = hdfs://ricky:9200/wc MapPartitionsRDD[83] at textFile at <console>:25
+
+scala> sc.textFile("hdfs://ricky:9200/wc").map((_, 1))
+res34: org.apache.spark.rdd.RDD[(String, Int)] = MapPartitionsRDD[86] at map at <console>:25
+
+scala> sc.textFile("hdfs://ricky:9200/wc").map(x => (x, 1))
+res35: org.apache.spark.rdd.RDD[(String, Int)] = MapPartitionsRDD[89] at map at <console>:25
+
+scala> sc.textFile("hdfs://ricky:9200/wc").map(x => (x, 1)).count // count(action) 开始计算
+res36: Long = 5
+
+scala> sc.textFile("hdfs://ricky:9200/wc").map(x => (x, 1)).collect
+res37: Array[(String, Int)] = Array((welcome to hadoop world,1), (welcome to hdfs world,1), (welcome to spark world,1), (welcome to flume world,1), (welcome to kafka world,1))
+
+scala> sc.textFile("hdfs://ricky:9200/wc").flatMap(_.split(" ")).map(x => (x, 1)).collect
+res38: Array[(String, Int)] = Array((welcome,1), (to,1), (hadoop,1), (world,1), (welcome,1), (to,1), (hdfs,1), (world,1), (welcome,1), (to,1), (spark,1), (world,1), (welcome,1), (to,1), (flume,1), (world,1), (welcome,1), (to,1), (kafka,1), (world,1))
+
+scala> sc.textFile("hdfs://ricky:9200/wc").flatMap(_.split(" ")).map(x => (x, 1)).count
+res39: Long = 20
+
+创建RDD有两种方式
+1. 通过HDFS支持的文件系统创建RDD RDD里面没有真正要计算的数据 只记录了一下元数据
+2. 通过scala集合或数组以并行化的方式创建RDD
+

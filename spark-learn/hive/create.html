@@ -1,0 +1,30 @@
+创建员工表
+create table emp(
+empno int,
+ename string,
+job string,
+mgr int,
+hiredate string,
+sal double,
+comm double,
+deptno int
+) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t';
+
+创建部门表
+create table dept(
+deptno int,
+dname string,
+location string
+) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t';
+
+cd ~/app/hive
+bin/hive
+
+select * from emp;
+select * form dept;
+
+load data local inpath '/home/ricky/data/hive/emp.txt' into table emp;
+load data local inpath '/home/ricky/data/hive/dept.txt' into table dept;
+
+ricky:8088
+select depno, count(1) from emp order by depno;

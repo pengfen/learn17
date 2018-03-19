@@ -1,0 +1,29 @@
+scala actor介绍
+actor是scala2.10.x版本及以前版本的actor
+scala在2.11.x版本中将Akka加入其中 作为其默认的Actor 废弃老版本的actor
+
+scala中的actor能够实现并行编程的强大功能　它是基于事件模型的并发机制
+scala是运用消息(message)的发送　接收来实现多线程的 使用scala能够更容易地实现多线程应用的开发
+
+Java内置线程模型                                Scala actor模型
+"共享数据-锁"模型(share data and lock)          share nothing
+每个object有一个monitor 监视多线程对共享数据的访问  不共享数据 actor之间通过message通讯
+如锁的代码段 用synchronized标识
+死锁问题
+每个线程内部是顺序执行的                          每个actor内部是顺序执行的
+
+对于Java，我们都知道它的多线程实现需要对共享资源（变量、对象等）使用synchronized 关键字进行代码块同步、对象锁互斥等等。
+而且，常常一大块的try…catch语句块中加上wait方法、notify方法、notifyAll方法是让人很头疼的。原因就在于Java中多数使用的是可变状态的对象资源，
+对这些资源进行共享来实现多线程编程的话，控制好资源竞争与防止对象状态被意外修改是非常重要的，而对象状态的不变性也是较难以保证的。
+而在Scala中，我们可以通过复制不可变状态的资源（即对象，Scala中一切都是对象，连函数、方法也是）的一个副本，再基于Actor的消息发送、接收机制进行并行编程
+
+Actor方法执行顺序
+1. 首先调用start()方法启动Actor
+2. 调用start()方法后其act()方法会被执行
+3. 向Actor发送消息
+
+发送消息的方式
+!   发送异步消息 没有返回值
+!?  发送同步消息 等待返回值
+!!  发送异步消息 返回值是Future[Any]
+

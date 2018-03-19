@@ -1,0 +1,38 @@
+scala 多范式的编程语言 集成面向对象编程和函数式编程的各种特性
+scala 运行于java平台(java虚拟机 --> jvm) 并兼容现有的java程序
+
+scala是一门以java虚拟机为目标运行环境并将面向对象和函数式编程语言的最佳特性结合在一起的编程语言　
+使用scala可编写出更加精简优雅的程序
+scala的并发非常强大
+scala可以访问任何java类库
+
+特性
+1. 优雅
+2. 速度快　开发速度快 静态编译
+3. 能融合到Hadoop生态圉　Hadoop现在是大数据事实标准 spark并不是要取代Hadoop 而是要完善Hadoop生态
+scala 的安装
+
+1. 下载scala
+http://www.scala-lang.org/download/2.11.8.html
+百度云下载 https://pan.baidu.com/s/1o92QyHs
+
+2. 解压安装scala
+tar -zxvf scala-2.11.8.tgz -C ~/app/
+
+3. 配置环境变量
+vi .bashrc (centos vi /etc/profile .bash_profile)
+export SCALA_HOME=/home/ricky/app/scala-2.11.8
+export PATH=$PATH:$SCALA_HOME/bin
+
+4. 检测
+scala
+
+5. 删除无用命令
+删除所有 *.bat ---> cd bin ---> rm -rf *.bat
+
+object HelloScala {
+    def main(args: Array[String]) {
+        println("welcome")
+    }
+}
+编译 scalac HelloScala.scala

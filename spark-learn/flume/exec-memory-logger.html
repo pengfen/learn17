@@ -1,0 +1,18 @@
+需求二 监控一个文件实时采集新增的数据输出到控制台
+
+1. 编写配置文件 exec-memory-logger.conf
+
+2. 启动 agent
+flume-ng agent \
+--name a1 \
+--conf $FLUME_HOME/conf \
+--conf-file $FLUME_HOME/conf/exec-memory-logger.conf \
+-Dflume.root.logger=INFO,console
+
+3. 添加测试数据
+localhost:~/data$ echo welcome >> data.log
+localhost:~/data$ echo to >> data.log
+localhost:~/data$ echo flume >> data.log
+localhost:~/data$ echo world >> data.log
+
+4. 查看flume控制台

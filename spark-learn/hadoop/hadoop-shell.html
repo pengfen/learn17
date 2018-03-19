@@ -1,0 +1,16 @@
+处理安全模式
+[root@peng1 hadoop1.2]# ./bin/hadoop fs -rmr /user/input/
+rmr: org.apache.hadoop.hdfs.server.namenode.SafeModeException: Cannot delete /user/input. Name node is in safe mode.
+[root@peng1 hadoop1.2]#
+[root@peng1 hadoop1.2]# ./bin/hadoop dfsadmin -safemode leave
+Safe mode is OFF
+
+http://peng1:50070/dfshealth.jsp
+http://peng1:50030/jobtracker.jsp
+
+
+hdfs的使用
+1、查看集群状态 ---> hdfs  dfsadmin  –report
+2、查看HDFS中的目录信息 ---> hadoop  fs  –ls  /
+3、上传文件 ---> hadoop  fs  -put  ./ scala-2.10.6.tgz  to  /
+4、从HDFS下载文件 ---> hadoop  fs  -get  /yarn-site.xml

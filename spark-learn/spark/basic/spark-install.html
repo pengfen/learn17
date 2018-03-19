@@ -1,0 +1,66 @@
+1. 下载
+[百度云下载](https://pan.baidu.com/s/1dFYaCM1)
+
+2. 解压安装
+tar -zxvf spark-2.2.0-bin-2.6.0-cdh5.7.0.tgz -C ~/app/
+
+3. 配置Spark
+进入到Spark安装目录
+cd $SPARK_HOME
+
+进入conf目录并重命名并修改spark-env.sh.template文件
+cd conf/
+mv spark-env.sh.template spark-env.sh
+
+vi spark-env.sh
+在该配置文件中添加如下配置
+export JAVA_HOME=/usr/java/jdk1.8.0_144
+export SPARK_MASTER_IP=ricky
+export SPARK_MASTER_PORT=7077
+保存退出
+
+重命名并修改slaves.template文件
+mv slaves.template slaves
+vi slaves
+在该文件中添加子节点所在的位置（Worker节点）
+ricky2
+ricky3
+ricky4
+保存退出
+
+
+将配置好的Spark拷贝到其他节点上
+scp -r spark-2.2.0-bin-2.6.0-cdh5.7.0// ricky2:~/app/
+scp -r spark-2.2.0-bin-2.6.0-cdh5.7.0// ricky3:~/app/
+scp -r spark-2.2.0-bin-2.6.0-cdh5.7.0// ricky4:~/app/
+
+Spark集群配置完毕，目前是1个Master，3个Work，在ricky上启动Spark集群
+start-dfs.sh (hadoop/sbin)
+start-master.sh (spark/sbin)
+
+启动后执行jps命令，主节点上有Master进程，其他子节点上有Work进行，登录Spark管理界面查看集群状态（主节点）：http://ricky:8080/
+
+
+到此为止，Spark集群安装完毕，但是有一个很大的问题，那就是Master节点存在单点故障，要解决此问题，就要借助zookeeper，并且启动至少两个Master节点来实现高可靠，配置方式比较简单：
+Spark集群规划：ricky,ricky2是Master；
+ricky3,ricky4,ricky5是Worker
+安装配置zk集群，并启动zk集群
+
+停止spark所有服务，修改配置文件spark-env.sh，在该配置文件中删掉SPARK_MASTER_IP并添加如下配置
+export SPARK_DAEMON_JAVA_OPTS="-Dspark.deploy.recoveryMode=ZOOKEEPER -Dspark.deploy.zookeeper.url=zk1,zk2,zk3 -Dspark.deploy.zookeeper.dir=/spark"
+
+1.在ricky节点上修改slaves配置文件内容指定worker节点
+2.在ricky上执行sbin/start-all.sh脚本，然后在ricky2上执行sbin/start-master.sh启动第二个Master
+
+
+spark集群启动过程
+Master节点                Worker节点               Worker节点
+192.168.1.128            192.168.1.128            192.168.1.128
+spark-env.sh             spark-env.sh             spark-env.sh
+master_ip 192.168.1.128  master_ip 192.168.1.128  master_ip 192.168.1.128
+slaves
+192.168.1.129
+192.168.1.130
+
+sbin/start-all.sh
+sbin/start-master.sh     sbin/start-slaves.sh

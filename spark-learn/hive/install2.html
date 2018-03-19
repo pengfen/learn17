@@ -1,0 +1,94 @@
+hive安装(三种模式)
+内嵌模式：元数据保持在内嵌的derby模式，只允许一个会话连接
+本地独立模式：在本地安装Mysql，吧元数据放到mySql内
+远程模式：元数据放置在远程的Mysql数据库
+
+1、下载Hive安装包
+wget http://archive.cloudera.com/cdh5/chd/5/hive-1.1.0-cdh5.7.0.tar.gz
+百度云下载 https://pan.baidu.com/s/1zy8_BIYyFWHIYB7pIQUIww
+
+2、将hive文件上传到HADOOP集群，并解压 (将文件上传到：/home/ricky/software)
+tar -zxvf apache-hive-1.2.1-bin.tar.gz -C ~/app/
+cd ~/app/
+ln -s apache-hive-1.2.1-bin hive
+
+3、配置环境变量，编辑/etc/profile (ubuntu .bashrc)
+#set hive env
+export HIVE_HOME=/home/ricky/app/hive
+export PATH=${HIVE_HOME}/bin:$PATH
+
+#让环境变量生效
+source /etc/profile
+
+4、修改hive配置文件
+进入配置文件的目录
+cd /home/ricky/app/hive/conf/
+
+修改hive-env.sh文件
+cp hive-env.sh.template hive-env.sh
+
+将以下内容写入到hive-env.sh文件中
+export JAVA_HOME=/home/ricky/app/jdk
+export HADOOP_HOME=/home/ricky/app/hadoop
+export HIVE_HOME=/home/ricky/app/hive
+
+修改log4j文件
+cp hive-log4j.properties.template hive-log4j.properties
+
+将EventCounter修改成org.apache.hadoop.log.metrics.EventCounter
+#log4j.appender.EventCounter=org.apache.hadoop.hive.shims.HiveEventCounter
+log4j.appender.EventCounter=org.apache.hadoop.log.metrics.EventCounter
+
+5. 配置远程登录模式
+touch hive-site.xml
+将以下信息写入到hive-site.xml文件中
+<configuration>
+            <property>
+                    <name>javax.jdo.option.ConnectionURL</name>
+                    <value>jdbc:mysql://ricky:3306/hivedb?createDatabaseIfNotExist=true</value>
+            </property>
+            <property>
+                    <name>javax.jdo.option.ConnectionDriverName</name>
+                    <value>com.mysql.jdbc.Driver</value>
+            </property>
+            <property>
+                    <name>javax.jdo.option.ConnectionUserName</name>
+                    <value>root</value>
+            </property>
+            <property>
+                    <name>javax.jdo.option.ConnectionPassword</name>
+                    <value>root</value>
+            </property>
+</configuration>
+
+6、安装mysql并配置hive数据库及权限
+安装mysql数据库及客户端
+yum install mysql-server
+yum install mysql
+service mysqld start
+配置hive元数据库
+mysql -u root -p 
+create database hivedb;
+对hive元数据库进行赋权，开放远程连接，开放localhost连接
+grant all privileges on *.* to root@"%" identified by "root" with grant option;
+grant all privileges on *.* to root@"localhost" identified by "root" with grant option;
+
+7、运行hive命令即可启动hive
+hive
+
+附录1：如果报错Terminal initialization failed; falling back to unsupported
+将/home/ricky/app/hive/lib 里面的jline2.12替换了hadoop 中/home/ricky/app/hadoop/hadoop-2.6.1/share/hadoop/yarn/lib/jline-0.09*.jar
+
+附录2：jdbc驱动类
+        
+附录3：异常信息
+    Logging initialized using configuration in jar:file:/home/ricky/app/apache-hive-2.0.0-bin/lib/hive-common-2.0.0.jar!/hive-log4j2.properties
+Exception in thread "main" java.lang.RuntimeException: Hive metastore database is not initialized. 
+Please use schematool (e.g. ./schematool -initSchema -dbType ...) to create the schema. If needed, 
+don't forget to include the option to auto-create the underlying database in your JDBC connection 
+string (e.g. ?createDatabaseIfNotExist=true for mysql)
+ 
+处理方法：
+     schematool -dbType mysql -initSchema
+
+

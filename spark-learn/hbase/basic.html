@@ -1,0 +1,67 @@
+启动 hbase 服务
+cd $HBASE_HOME
+bin/start-hbase.sh
+
+操作 hbase
+bin/hbase shell
+version
+status
+create 'member','info','address'
+list #查看所有表
+desc
+describe
+describe 'member' #查看表结构
+scan 'member' #查看表数据
+
+create 'test','info' #创建表名为test列名为info
+list #显示所有表
+hbase(main):016:0> put 'test','0001','info:username','ricky' #put添加数据
+
+hbase(main):017:0> scan 'test'
+ROW                               COLUMN+CELL
+0001                             column=info:username, timestamp=1519055035664, value=ricky
+
+hbase(main):018:0> put 'test','0001','info:age','20'
+
+hbase(main):019:0> scan 'test'
+ROW                               COLUMN+CELL
+0001                             column=info:age, timestamp=1519055146476, value=20
+0001                             column=info:username, timestamp=1519055035664, value=ricky
+
+先禁用再删除
+hbase(main):022:0> disable 'test'
+
+hbase(main):024:0> is_enabled 'test'
+false
+
+hbase(main):025:0> drop 'test'
+
+count 统计
+hbase(main):029:0* count 'member'
+0 row(s) in 0.0220 seconds
+
+=> 0
+
+put 添加数据
+hbase(main):030:0> put 'member','0001','info:name','ricky'
+0 row(s) in 0.0120 seconds
+
+get 获取数据
+hbase(main):031:0> get 'member','0001','info:name'
+COLUMN                            CELL
+info:name                        timestamp=1519055461119, value=ricky
+
+delete 删除数据
+hbase(main):036:0> delete 'member','0001','info:name'
+0 row(s) in 0.0050 seconds
+
+hbase(main):037:0> scan 'member'
+ROW                               COLUMN+CELL
+0 row(s) in 0.0220 seconds
+
+truncate 重置
+hbase(main):038:0> truncate 'member'
+Truncating 'member' table (it may take a while):
+- Disabling table...
+- Truncating table...
+

@@ -1,0 +1,39 @@
+1. 问题场景：
+1、集群容量不够，怎么扩容？
+2、如果有一些datanode宕机，该怎么办？
+3、datanode明明已启动，但是集群中的可用datanode列表中就是没有，怎么办？
+
+以上这类问题的解答，有赖于对datanode工作机制的深刻理解
+
+2. Datanode工作职责：
+存储管理用户的文件块数据
+定期向namenode汇报自身所持有的block信息（通过心跳信息上报）
+（这点很重要，因为，当集群中发生某些block副本失效时，集群如何恢复block初始副本数量的问题）
+
+<property>
+    <name>dfs.blockreport.intervalMsec</name>
+    <value>3600000</value>
+    <description>Determines block reporting interval in milliseconds.</description>
+</property>
+
+3. Datanode掉线判断时限参数
+datanode进程死亡或者网络故障造成datanode无法与namenode通信，namenode不会立即把该节点判定为死亡，要经过一段时间，这段时间暂称作超时时长。HDFS默认的超时时长为10分钟+30秒。如果定义超时时间为timeout，则超时时长的计算公式为：
+timeout  = 2 * heartbeat.recheck.interval + 10 * dfs.heartbeat.interval。
+而默认的heartbeat.recheck.interval 大小为5分钟，dfs.heartbeat.interval默认为3秒。
+需要注意的是hdfs-site.xml 配置文件中的heartbeat.recheck.interval的单位为毫秒，dfs.heartbeat.interval的单位为秒。所以，举个例子，如果heartbeat.recheck.interval设置为5000（毫秒），dfs.heartbeat.interval设置为3（秒，默认），则总的超时时间为40秒。
+
+
+<property>
+    <name>heartbeat.recheck.interval</name>
+    <value>2000</value>
+</property>
+<property>
+    <name>dfs.heartbeat.interval</name>
+    <value>1</value>
+</property>
+
+4. 观察验证DATANODE功能
+上传一个文件，观察文件的block具体的物理存放情况：
+
+在每一台datanode机器上的这个目录中能找到文件的切块：
+/home/hadoop/app/hadoop-2.4.1/tmp/dfs/data/current/BP-193442119-192.168.2.120-1432457733977/current/finalized

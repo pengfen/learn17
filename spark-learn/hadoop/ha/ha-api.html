@@ -1,0 +1,13 @@
+HA下hdfs-api变化
+客户端需要nameservice的配置信息，其他不变
+
+编写 UploadFile
+
+
+Federation下 mr程序运行的staging提交目录问题
+<property>
+    <name>yarn.app.mapreduce.am.staging-dir</name>
+    <value>/bi/tmp/hadoop-yarn/staging</value>
+    <description>The staging dir used while submitting jobs.
+    </description>
+</property>

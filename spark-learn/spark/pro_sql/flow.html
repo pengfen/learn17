@@ -1,0 +1,162 @@
+spark sql 离线处理
+
+1. 准备日志
+ricky@ricky:~/data$ cp /media/ricky/资料/spark/data/access.20161111.log.gz .
+ricky@ricky:~/data$ zcat access.20161111.log.gz > access.20161111.log
+head -10000 access.20161111.log >> 10000_access.log
+
+2. 清洗日志文件 (初始清洗)
+运行 SparkStatFormatJob
+
+3. 查看清洗后的文件
+more output/part-0*
+
+4. 处理 IP
+src/main 目录下创建目录 resources
+ricky@ricky:~/software/ipdatabase/src/main/resources$ pwd
+/home/ricky/software/ipdatabase/src/main/resources
+ricky@ricky:~/software/ipdatabase/src/main/resources$ cp ipDatabase.csv /home/ricky/IdeaProjects/spark-learn/src/main/resources/
+ricky@ricky:~/software/ipdatabase/src/main/resources$ cp ipRegion.xlsx /home/ricky/IdeaProjects/spark-learn/src/main/resources/
+
+5. 对日志文件进行二次清洗
+运行 SparkStatCleanJob
+
+6. 使用数据库
+mysql -uroot -p
+
+use resource
+
+create table resource_day_video_access_topn_stat (
+   day varchar(8) not null,
+   cms_id bigint(10) not null,
+   times bigint(10) not null,
+   primary key (day, cms_id)
+);
+
+create table resource_day_video_city_access_topn_stat(
+   day varchar(8) not null,
+   cms_id bigint(10) not null,
+   city varchar(20) not null,
+   times bigint(10) not null,
+   times_rank int not null,
+   primary key (day, cms_id, city)
+);
+
+create table resource_day_video_traffics_topn_stat (
+    day varchar(8) not null,
+    cms_id bigint(10) not null,
+    traffics bigint(20) not null,
+    primary key (day, cms_id)
+);
+
+6. 修改配置 MySQLUtils
+jdbc:mysql://localhost:3306/resource?user=root&password=123456
+
+7. 统计入库
+运行 TopNStatJob
+
+8. 查看数据库
+select * from resource_day_video_access_topn_stat;
+select * from resource_day_video_city_access_topn_stat;
+select * from resource_day_video_traffics_topn_stat;
+
+9. 数据可视化 (video.html)
+
+10. 使用php读取数据后再可视化
+
+11. 编写模型
+class Dayvideoaccess extends ActiveRecord {
+
+// 定义对应的表名
+public static function tableName() {
+return '{{%day_video_access_topn_stat}}';
+}
+
+// 校验规则
+public function rules() {
+return [
+];
+}
+}
+
+12. 编写控制器
+use backend\models\Dayvideoaccess;
+
+public function actionAccess()
+{
+$courses = ["4000" => "MySQL优化", "4500" =>  "Crontab", "4600" => "Swift", "14540" => "SpringData", "14704" => "R",
+"14390" => "机器学习", "14322" => "redis", "14390" => "神经网络", "14623" => "Docker"];
+$access = Dayvideoaccess::find()->select('cms_id, times')->orderBy('day desc')->asArray()->all();
+$info = [];
+foreach ($access as $key => $value) {
+$info[$key]["value"] = intval($value["times"]);
+$info[$key]['name'] = $courses[$value["cms_id"]];
+}
+
+//Log::log("technarticle,action:index,文章列表"); // 记录日志
+return $this->render('access', [
+'info' => $info,
+]);
+}
+
+13. 编写视图
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Echarts HelloWorld</title>
+
+    <!-- 引入 ECharts 文件 -->
+    <script src="/js/echarts.min.js"></script>
+    <SCRIPT src="/js/jquery.js"></SCRIPT>
+</head>
+<body>
+
+<!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+<div id="main" style="width: 600px;height:400px;"></div>
+
+<script type="text/javascript">
+	var info = <?php echo json_encode($info);?>;
+
+    // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(document.getElementById('main'));
+
+    // 指定图表的配置项和数据
+    var option = {
+        title : {
+            text: '主站最受欢迎的TopN课程',
+            x:'center'
+        },
+        tooltip : {
+            trigger: 'item',
+            formatter: "{a} <br/>{b} : {c} ({d}%)"
+        },
+        legend: {
+            orient: 'vertical',
+            left: 'left',
+            data: []
+        },
+        series : [
+            {
+                name: '访问次数',
+                type: 'pie',
+                radius : '55%',
+                center: ['50%', '60%'],
+                data: info,
+                itemStyle: {
+                    emphasis: {
+                        shadowBlur: 10,
+                        shadowOffsetX: 0,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                    }
+                }
+            }
+        ]
+    };
+
+
+    // 使用刚指定的配置项和数据显示图表。
+    myChart.setOption(option);
+</script>
+</body>
+</html>

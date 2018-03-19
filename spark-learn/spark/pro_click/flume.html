@@ -1,0 +1,78 @@
+数据采集
+3.1 需求
+数据采集的需求广义上来说分为两大部分。
+1）是在页面采集用户的访问行为，具体开发工作：
+1、开发页面埋点js，采集用户访问行为
+2、后台接受页面js请求记录日志
+此部分工作也可以归属为“数据源”，其开发工作通常由web开发团队负责
+
+2）是从web服务器上汇聚日志到HDFS，是数据分析系统的数据采集，此部分工作由数据分析平台建设团队负责，具体的技术实现有很多方式：
+Shell脚本
+优点：轻量级，开发简单
+缺点：对日志采集过程中的容错处理不便控制
+Java采集程序
+优点：可对采集过程实现精细控制
+缺点：开发工作量大
+Flume日志采集框架
+成熟的开源日志采集系统，且本身就是hadoop生态体系中的一员，与hadoop体系中的各种框架组件具有天生的亲和力，可扩展性强
+
+3.2 技术选型
+在点击流日志分析这种场景中，对数据采集部分的可靠性、容错能力要求通常不会非常严苛，因此使用通用的flume日志采集框架完全可以满足需求。
+本项目即使用flume来实现日志采集。
+
+3.3 Flume日志采集系统搭建
+1、数据源信息
+本项目分析的数据用nginx服务器所生成的流量日志，存放在各台nginx服务器上，如：
+/var/log/httpd/access_log.2015-11-10-13-00.log
+/var/log/httpd/access_log.2015-11-10-14-00.log
+/var/log/httpd/access_log.2015-11-10-15-00.log
+/var/log/httpd/access_log.2015-11-10-16-00.log
+
+2、数据内容样例
+数据的具体内容在采集阶段其实不用太关心。
+58.215.204.118 - - [18/Sep/2013:06:51:35 +0000] "GET /wp-includes/js/jquery/jquery.js?ver=1.10.2 HTTP/1.1" 304 0 "
+http://blog.fens.me/nodejs-socketio-chat/" "Mozilla/5.0 (Windows NT 5.1; rv:23.0) Gecko/20100101 Firefox/23.0"
+字段解析：
+1、访客ip地址：   58.215.204.118
+2、访客用户信息：  - -
+3、请求时间：[18/Sep/2013:06:51:35 +0000]
+4、请求方式：GET
+5、请求的url：/wp-includes/js/jquery/jquery.js?ver=1.10.2
+6、请求所用协议：HTTP/1.1
+7、响应码：304
+8、返回的数据流量：0
+9、访客的来源url：http://blog.fens.me/nodejs-socketio-chat/
+10、访客所用浏览器：Mozilla/5.0 (Windows NT 5.1; rv:23.0) Gecko/20100101 Firefox/23.0
+
+
+3、日志文件生成规律
+
+基本规律为：
+当前正在写的文件为access_log；
+文件体积达到256M，或时间间隔达到60分钟，即滚动重命名切换成历史日志文件；
+形如： access_log.2015-11-10-13-00.log
+
+当然，每个公司的web服务器日志策略不同，可在web程序的log4j.properties中定义，如下：
+log4j.appender.logDailyFile = org.apache.log4j.DailyRollingFileAppender
+log4j.appender.logDailyFile.layout = org.apache.log4j.PatternLayout
+log4j.appender.logDailyFile.layout.ConversionPattern = [%-5p][%-22d{yyyy/MM/dd HH:mm:ssS}][%l]%n%m%n
+log4j.appender.logDailyFile.Threshold = DEBUG
+log4j.appender.logDailyFile.ImmediateFlush = TRUE
+log4j.appender.logDailyFile.Append = TRUE
+log4j.appender.logDailyFile.File = /var/logs/access_log
+log4j.appender.logDailyFile.DatePattern = '.'yyyy-MM-dd-HH-mm'.log'
+log4j.appender.logDailyFile.Encoding = UTF-8
+
+
+
+4、Flume采集实现
+Flume采集系统的搭建相对简单：
+1、在个web服务器上部署agent节点，修改配置文件
+2、启动agent节点，将采集到的数据汇聚到指定的HDFS目录中
+如下图：
+
+
+版本选择：apache-flume-1.6.0
+采集规则设计：
+1、采集源：nginx服务器日志目录
+2、存放地：hdfs目录/home/hadoop/weblogs/

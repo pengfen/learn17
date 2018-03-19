@@ -1,0 +1,50 @@
+Insert 添加数据
+
+将查询结果插入Hive表
+语法结构
+INSERT OVERWRITE TABLE tablename1 [PARTITION (partcol1=val1, partcol2=val2 ...)] select_statement1 FROM from_statement
+
+Multiple inserts:
+FROM from_statement
+INSERT OVERWRITE TABLE tablename1 [PARTITION (partcol1=val1, partcol2=val2 ...)] select_statement1
+[INSERT OVERWRITE TABLE tablename2 [PARTITION ...] select_statement2] ...
+
+Dynamic partition inserts:
+INSERT OVERWRITE TABLE tablename PARTITION (partcol1[=val1], partcol2[=val2] ...) select_statement FROM from_statement
+
+具体实例
+1、基本模式插入。
+
+
+
+
+
+
+
+
+
+
+2、多插入模式。
+
+
+3、自动分区模式。
+
+
+导出表数据
+语法结构
+INSERT OVERWRITE [LOCAL] DIRECTORY directory1 SELECT ... FROM ...
+
+
+multiple inserts:
+FROM from_statement
+INSERT OVERWRITE [LOCAL] DIRECTORY directory1 select_statement1
+[INSERT OVERWRITE [LOCAL] DIRECTORY directory2 select_statement2] ...
+
+具体实例
+1、导出文件到本地。
+
+
+说明：
+数据写入到文件系统时进行文本序列化，且每列用^A来区分，\n为换行符。用more命令查看时不容易看出分割符，可以使用: sed -e 's/\x01/|/g' filename[]来查看。
+
+2、导出数据到HDFS。

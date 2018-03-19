@@ -1,0 +1,61 @@
+########################################
+alter database hive character set latin1;
+ALTER TABLE hive.* DEFAULT CHARACTER SET latin1;
+########################################
+
+1.安装hive
+CREATE USER 'hive'@'%' IDENTIFIED BY '123456';
+GRANT all privileges ON hive.* TO 'hive'@'%';
+flush privileges;
+
+2.将配置好的hive-site.xml放入$SPARK-HOME/conf目录下
+
+
+1.安装hive
+CREATE USER 'hive'@'%' IDENTIFIED BY '123456';
+GRANT all privileges ON hive.* TO 'hive'@'%';
+flush privileges;
+
+2.将配置好的hive-site.xml放入$SPARK-HOME/conf目录下
+
+3.启动spark-shell时指定mysql连接驱动位置
+bin/spark-shell \
+--master spark://ricky:7077 \
+--executor-memory 1g \
+--total-executor-cores 2 \
+--driver-class-path /home/ricky/software/mysql-connector-java-5.1.27-bin.jar
+
+4.使用sqlContext.sql调用HQL
+sqlContext.sql("select * from spark.person limit 2")
+
+或使用org.apache.spark.sql.hive.HiveContext
+import org.apache.spark.sql.hive.HiveContext
+val hiveContext = new HiveContext(sc)
+hiveContext.sql("select * from spark.person")
+
+
+bin/spark-sql \
+--master spark://ricky:7077 \
+--executor-memory 1g \
+--total-executor-cores 2 \
+--driver-class-path /home/ricky/software/mysql-connector-java-5.1.27-bin.jar
+
+
+1.安装hive
+
+2.将配置好的hive-site.xml放入$SPARK-HOME/conf目录下
+
+3.启动spark-shell时指定mysql连接驱动位置
+bin/spark-shell \
+--master spark://ricky:7077 \
+--executor-memory 1g \
+--total-executor-cores 2 \
+--driver-class-path /home/ricky/software/mysql-connector-java-5.1.27-bin.jar
+
+4.使用sqlContext.sql调用HQL
+sqlContext.sql("select * from spark.person limit 2")
+
+或使用org.apache.spark.sql.hive.HiveContext
+import org.apache.spark.sql.hive.HiveContext
+val hiveContext = new HiveContext(sc)
+hiveContext.sql("select * from spark.person")

@@ -1,0 +1,83 @@
+Hadoop2.4.0  重新编译 64 位本地库
+
+环境：操作系统 64 位 CentOS 6.4
+
+下载重新编译需要的软件包
+apache-ant-1.9.4-bin.tar.gz
+findbugs-3.0.0.tar.gz
+protobuf-2.5.0.tar.gz
+apache-maven-3.0.5-bin.tar.gz
+
+下载 hadoop2.4.0 的源码包
+hadoop-2.4.0-src.tar.gz
+压解源码包
+[grid@hadoopMaster01 ~]$ tar -zxvf hadoop-2.4.0-src.tar.gz
+
+安装编译所需软件
+安装 MAVEN
+压解 apache-maven-3.0.5-bin.tar.gz 到/opt/目录
+[root@hadoopMaster01 grid]# tar -zxvf apache-maven-3.0.5-bin.tar.gz -C /opt/
+修改/etc/profile 配置，增加 MAVEN 环境配置M2_HOME   PATH
+保存后使用 source /etc/profile 使修改配置即时生效
+[root@hadoopMaster01 apache-maven-3.0.5]# source /etc/profile
+使用 mvn -v 命令进行验证，如图所示表示安装配置成功
+
+安装 ANT
+压解 apache-ant-1.9.4-bin.tar.gz 到/opt/目录
+[root@hadoopMaster01 grid]# tar -zxvf apache-ant-1.9.4-bin.tar.gz -C /opt/
+修改/etc/profile 配置，增加 ANT 环境配置 ANT_HOME   PATH
+保存后使用 source /etc/profile 使修改配置即时生效
+[root@hadoopMaster01 apache-ant-1.9.4]# source /etc/profile
+使用 ant-version 命令进行验证，如图所示表示安装配置成功
+
+安装 FINDBUGS
+压解 findbugs-3.0.0.tar.gz 到/opt/目录
+[root@hadoopMaster01 grid]# tar -zxvf findbugs-3.0.0.tar.gz -C /opt/
+修改/etc/profile 配置，增加 FINDBUGS 环境配置
+保存后使用 source /etc/profile 使修改配置即时生效
+[root@hadoopMaster01 apache-ant-1.9.4]# source /etc/profile
+使用 findbugs-version 命令进行验证，如图所示表示安装配置成功
+
+安装 PROTOBUF
+编译 Hadoop 2.4.0，需要 protobuf 的编译器protoc，一定要是 protobuf 2.5.0 以上
+直接压解 protobuf-2.5.0.tar.gz
+[root@hadoopMaster01 grid]# tar -zxvf protobuf-2.5.0.tar.gz
+
+安装 protobuf，依次执行如下命令
+[root@hadoopMaster01 grid]# cd protobuf-2.5.0
+[root@hadoopMaster01 protobuf-2.5.0]# ls
+aclocal.m4 config.guess configure COPYING.txt examples
+install-sh ltmain.sh Makefile.in protobuf.pc.in src
+autogen.sh config.h.in configure.ac depcomp generate_descriptor_proto.sh
+INSTALL.txt m4 missing python vsprojects
+CHANGES.txt config.sub CONTRIBUTORS.txt editors gtest
+java Makefile.am protobuf-lite.pc.in README.txt
+[root@hadoopMaster01 protobuf-2.5.0]# ./configure
+[root@hadoopMaster01 protobuf-2.5.0]# make
+[root@hadoopMaster01 protobuf-2.5.0]# make check
+[root@hadoopMaster01 protobuf-2.5.0]# make install
+使用 protoc --version 命令进行验证，如图所示表示安装配置成功
+
+安装 依赖包
+安装 cmake,openssl-devel,ncurses-devel  依赖包(root  用户且能够连上互联网)
+[root@hadoopMaster01 ~]# yum install cmake
+如下图表示安装成功
+[root@hadoopMaster01 ~]# yum install openssl-devel
+如下图表示安装成功
+[root@hadoopMaster01 ~]# yum install ncurses-devel
+
+编译 64  位本地库
+进入已压解的 hadoop 源码目录
+[grid@hadoopMaster01 ~]$ cd hadoop-2.4.0-src
+[grid@hadoopMaster01 hadoop-2.4.0-src]$ pwd
+/home/grid/hadoop-2.4.0-src
+执行 mvn clean install -DskipTests 命令，等待完成(会自动联网下载很多东西)
+[grid@hadoopMaster01 hadoop-2.4.0-src]$ mvn clean install -DskipTests
+
+执行 mvn package -Pdist,native -DskipTests -Dtar 命令，开始编译，等待完成
+
+grid@hadoopMaster01 hadoop-2.4.0-src]$ mvn package -Pdist,native -DskipTests -Dtar
+表示编译成功
+进入/home/grid/hadoop-2.4.0-src/hadoop-dist/target/hadoop-2.4.0/lib/native 检查，使用 file *命
+令，如下图已经成功将编译 64 本地库
+将 64 位的 native 文件夹替换原 32 位的文件夹即可

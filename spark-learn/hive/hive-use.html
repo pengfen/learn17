@@ -1,0 +1,19 @@
+Hive交互shell ---> bin/hive
+
+Hive thrift服务
+
+启动方式，（假如是在hadoop01上）：
+启动为前台：bin/hiveserver2
+启动为后台：nohup bin/hiveserver2 1>/var/log/hiveserver.log 2>/var/log/hiveserver.err &
+
+启动成功后，可以在别的节点上用beeline去连接
+方式（1）
+hive/bin/beeline  回车，进入beeline的命令界面
+输入命令连接hiveserver2
+beeline> !connect jdbc:hive2//mini1:10000
+（hadoop01是hiveserver2所启动的那台主机名，端口默认是10000）
+方式（2）
+或者启动就连接：
+bin/beeline -u jdbc:hive2://mini1:10000 -n hadoop
+
+接下来就可以做正常sql查询了

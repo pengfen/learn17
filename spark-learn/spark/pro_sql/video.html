@@ -1,0 +1,359 @@
+1. 创建项目
+new --- project --- maven --- org.apache.maven.archetypes: maven-archetype-webapp
+GroupId: com.apeng
+ArtifactId: web
+
+2. 添加依赖
+<dependencies>
+    <!-- servlet 依赖 -->
+    <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>servlet-api</artifactId>
+        <version>2.5</version>
+    </dependency>
+
+    <!-- jsp 依赖 -->
+    <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>jsp-api</artifactId>
+        <version>2.0</version>
+    </dependency>
+
+    <!-- jdbc mysql 依赖 -->
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>5.1.38</version>
+    </dependency>
+
+    <!-- json 依赖 -->
+    <dependency>
+        <groupId>net.sf.json-lib</groupId>
+        <artifactId>json-lib</artifactId>
+        <version>2.4</version>
+        <classifier>jdk15</classifier>
+    </dependency>
+</dependencies>
+<build>
+    <finalName>web</finalName>
+</build>
+
+1. 编写 VideoAccessTopNServlet
+import com.spark.dao.VideoAccessTopNDAO;
+import com.spark.domain.VideoAccessTopN;
+import net.sf.json.JSONArray;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
+
+/**
+* 最受欢迎的TOPN课程
+*
+* Web ==> Service ==> DAO
+*/
+public class VideoAccessTopNServlet extends HttpServlet{
+
+    private VideoAccessTopNDAO dao;
+
+    @Override
+    public void init() throws ServletException {
+        dao = new VideoAccessTopNDAO();
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String day = req.getParameter("day");
+
+        List<VideoAccessTopN> results =  dao.query(day);
+        JSONArray json = JSONArray.fromObject(results);
+
+        resp.setContentType("text/html;charset=utf-8");
+
+        PrintWriter writer = resp.getWriter();
+        writer.println(json);
+        writer.flush();
+        writer.close();
+
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        this.doGet(req, resp);
+    }
+}
+
+
+2. 编写 VideoAccessTopNDAO
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+* 面向接口编程
+*/
+public class VideoAccessTopNDAO {
+
+
+static Map<String,String> courses = new HashMap<String,String>();
+    static {
+        courses.put("4000", "MySQL优化");
+        courses.put("4500", "Crontab");
+        courses.put("4600", "Swift");
+        courses.put("14540", "SpringData");
+        courses.put("14704", "R");
+        courses.put("14390", "机器学习");
+        courses.put("14322", "redis");
+        courses.put("14390", "神经网络");
+        courses.put("14623", "Docker");
+    }
+
+    /**
+    * 根据课程编号查询课程名称
+    */
+    public String getCourseName(String id) {
+        return courses.get(id);
+    }
+
+
+    /**
+    * 根据day查询当天的最受欢迎的Top5课程
+    * @param day
+    */
+    public List<VideoAccessTopN> query(String day) {
+        List<VideoAccessTopN> list = new ArrayList<VideoAccessTopN>();
+
+        Connection connection = null;
+        PreparedStatement psmt = null;
+        ResultSet rs = null;
+
+        try {
+            connection = MySQLUtils.getConnection();
+            String sql = "select cms_id ,times  from  day_video_access_topn_stat where day =? order by times desc limit 5";
+            psmt = connection.prepareStatement(sql);
+            psmt.setString(1, day);
+
+            rs = psmt.executeQuery();
+
+            VideoAccessTopN domain = null;
+            while(rs.next()) {
+                domain = new VideoAccessTopN();
+                /**
+                * TODO... 在页面上应该显示的是课程名称，而我们此时拿到的是课程编号
+                *
+                * 如何根据课程编号去获取课程名称呢？
+                * 编号和名称是有一个对应关系的，一般是存放在关系型数据库
+                */
+                domain.setName(getCourseName(rs.getLong("cms_id")+""));
+                domain.setValue(rs.getLong("times"));
+
+                list.add(domain);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            MySQLUtils.release(connection, psmt, rs);
+        }
+        return list;
+    }
+
+    public static void main(String[] args) {
+        VideoAccessTopNDAO dao = new VideoAccessTopNDAO();
+        List<VideoAccessTopN> list = dao.query("20170511");
+        for(VideoAccessTopN result: list) {
+            System.out.println(result.getName() + " , " + result.getValue());
+        }
+    }
+
+}
+
+3. 编写 MySQLUtils
+import java.sql.*;
+
+/**
+* 操作MySQL的工具类
+*/
+public class MySQLUtils {
+
+    private static final String USERNAME = "root";
+
+    private static final String PASSWORD = "123456";
+
+    private static final String DRIVERCLASS = "com.mysql.jdbc.Driver";
+
+    private static final String URL = "jdbc:mysql://localhost:3306/resource";
+
+
+    /**
+    * 获取数据库连接
+    */
+    public static Connection getConnection() {
+        Connection connection = null;
+        try {
+            Class.forName(DRIVERCLASS);
+            connection = DriverManager.getConnection(URL,USERNAME,PASSWORD);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return connection;
+    }
+
+
+    /**
+    * 释放资源
+    */
+    public static void release(Connection connection, PreparedStatement pstmt, ResultSet rs) {
+        if(rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if(pstmt != null) {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if(connection != null) {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(getConnection());
+    }
+
+}
+
+4. 编写 VideoAccessTopN
+package com.spark.domain;
+
+public class VideoAccessTopN {
+
+    private String name;
+    private long value ;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public long getValue() {
+        return value;
+    }
+
+    public void setValue(long value) {
+        this.value = value;
+    }
+}
+
+5. 添加js
+jquery.js https://pan.baidu.com/s/1kWXytdt 密码: 2cmf
+echarts.min.js https://pan.baidu.com/s/1sm956qT
+
+6. 编写 web.xml
+<servlet>
+    <servlet-name>stat</servlet-name>
+    <servlet-class>com.spark_sql.web.VideoAccessTopNServlet</servlet-class>
+</servlet>
+
+<servlet-mapping>
+    <servlet-name>stat</servlet-name>
+    <url-pattern>/stat</url-pattern>
+</servlet-mapping>
+
+7. 编写topn.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Echarts HelloWorld</title>
+
+    <!-- 引入 ECharts 文件 -->
+    <script src="js/echarts.min.js"></script>
+    <SCRIPT src="js/jquery.js"></SCRIPT>
+</head>
+<body>
+
+<!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+<div id="main" style="width: 600px;height:400px;"></div>
+
+<script type="text/javascript">
+    // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(document.getElementById('main'));
+
+    // 指定图表的配置项和数据
+    var option = {
+        title : {
+            text: '主站最受欢迎的TopN课程',
+            x:'center'
+        },
+        tooltip : {
+            trigger: 'item',
+            formatter: "{a} <br/>{b} : {c} ({d}%)"
+        },
+        legend: {
+            orient: 'vertical',
+            left: 'left',
+            data: []
+        },
+        series : [
+            {
+                name: '访问次数',
+                type: 'pie',
+                radius : '55%',
+                center: ['50%', '60%'],
+                data:(function(){
+                    var courses = [];
+                    $.ajax({
+                        type:"GET",
+                        url:"/stat?day=20170511",
+                        dataType:'json',
+                        async:false,
+                        success:function(result) {
+                            for(var i=0;i<result.length; i++){
+                                courses.push({"value": result[i].value,"name":result[i].name});
+                            }
+                        }
+                    })
+                    return courses;
+                })(),
+                itemStyle: {
+                    emphasis: {
+                        shadowBlur: 10,
+                        shadowOffsetX: 0,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                    }
+                }
+            }
+        ]
+    };
+
+
+    // 使用刚指定的配置项和数据显示图表。
+    myChart.setOption(option);
+</script>
+</body>
+</html>

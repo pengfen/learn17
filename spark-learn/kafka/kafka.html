@@ -1,0 +1,23 @@
+1.安装zk集群 (zk.html)
+
+2.config/server.properties
+添加zk地址:zookeeper.connect=ricky5:2181,ricky6:2181,ricky7:2181
+修改broker.id(唯一的)：broker.id=0
+
+3.启动
+/bin/kafka-server-start.sh  config/server.properties > /dev/null 2>&1 &
+
+4.创建topic
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 3 --topic test
+
+5.列出所有topic
+bin/kafka-topics.sh --list --zookeeper localhost:2181
+
+6.向topic中写入数据
+bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test
+
+7.消费数据
+bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic test --from-beginning
+
+8.查看指定topic的详情
+bin/kafka-topics.sh --describe --zookeeper localhost:2181 --topic test

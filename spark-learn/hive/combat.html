@@ -1,0 +1,169 @@
+Hive 实战案例1——数据ETL
+需求：
+对web点击流日志基础数据表进行etl（按照仓库模型设计）
+按各时间维度统计来源域名top10
+已有数据表 “t_orgin_weblog” ：
++------------------+------------+----------+--+
+|     col_name     | data_type  | comment  |
++------------------+------------+----------+--+
+| valid            | string     |          |
+| remote_addr      | string     |          |
+| remote_user      | string     |          |
+| time_local       | string     |          |
+| request          | string     |          |
+| status           | string     |          |
+| body_bytes_sent  | string     |          |
+| http_referer     | string     |          |
+| http_user_agent  | string     |          |
++------------------+------------+----------+--+
+
+
+
+
+数据示例：
+| true|1.162.203.134| - | 18/Sep/2013:13:47:35| /images/my.jpg                        | 200| 19939 | "http://www.angularjs.cn/A0d9"                      | "Mozilla/5.0 (Windows   |
+
+| true|1.202.186.37 | - | 18/Sep/2013:15:39:11| /wp-content/uploads/2013/08/windjs.png| 200| 34613 | "http://cnodejs.org/topic/521a30d4bee8d3cb1272ac0f" | "Mozilla/5.0 (Macintosh;|
+
+
+
+
+实现步骤：
+1、对原始数据进行抽取转换
+--将来访url分离出host  path  query  query id
+drop table if exists t_etl_referurl;
+create table t_etl_referurl as
+SELECT a.*,b.*
+FROM t_orgin_weblog a LATERAL VIEW parse_url_tuple(regexp_replace(http_referer, "\"", ""), 'HOST', 'PATH','QUERY', 'QUERY:id') b as host, path, query, query_id
+
+
+3、从前述步骤进一步分离出日期时间形成ETL明细表“t_etl_detail”    day tm
+drop table if exists t_etl_detail;
+create table t_etl_detail as
+select b.*,substring(time_local,0,11) as daystr,
+substring(time_local,13) as tmstr,
+substring(time_local,4,3) as month,
+substring(time_local,0,2) as day,
+substring(time_local,13,2) as hour
+from t_etl_referurl b;
+
+
+
+3、对etl数据进行分区(包含所有数据的结构化信息)
+drop table t_etl_detail_prt;
+create table t_etl_detail_prt(
+valid                   string,
+remote_addr            string,
+remote_user            string,
+time_local               string,
+request                 string,
+status                  string,
+body_bytes_sent         string,
+http_referer             string,
+http_user_agent         string,
+host                   string,
+path                   string,
+query                  string,
+query_id               string,
+daystr                 string,
+tmstr                  string,
+month                  string,
+day                    string,
+hour                   string)
+partitioned by (mm string,dd string);
+
+
+
+
+导入数据
+insert into table t_etl_detail_prt partition(mm='Sep',dd='18')
+select * from t_etl_detail where daystr='18/Sep/2013';
+
+insert into table t_etl_detail_prt partition(mm='Sep',dd='19')
+select * from t_etl_detail where daystr='19/Sep/2013';
+
+分个时间维度统计各referer_host的访问次数并排序
+create table t_refer_host_visit_top_tmp as
+select referer_host,count(*) as counts,mm,dd,hh from t_display_referer_counts group by hh,dd,mm,referer_host order by hh asc,dd asc,mm asc,counts desc;
+
+
+4、来源访问次数topn各时间维度URL
+取各时间维度的referer_host访问次数topn
+select * from (select referer_host,counts,concat(hh,dd),row_number() over (partition by concat(hh,dd) order by concat(hh,dd) asc) as od from t_refer_host_visit_top_tmp) t where od<=3;
+
+
+
+
+
+
+Hive 实战案例2——访问时长统计
+需求：
+从web日志中统计每日访客平均停留时间
+实现步骤：
+1、由于要从大量请求中分辨出用户的各次访问，逻辑相对复杂，通过hive直接实现有困难，因此编写一个mr程序来求出访客访问信息（详见代码）
+启动mr程序获取结果：
+[hadoop@hdp-node-01 ~]$ hadoop jar weblog.jar cn.itcast.bigdata.hive.mr.UserStayTime /weblog/input /weblog/stayout
+
+
+2、将mr的处理结果导入hive表
+drop table t_display_access_info_tmp;
+create table t_display_access_info_tmp(remote_addr string,firt_req_time string,last_req_time string,stay_long bigint)
+row format delimited fields terminated by '\t';
+
+load data inpath '/weblog/stayout4' into table t_display_access_info_tmp;
+
+3、得出访客访问信息表 "t_display_access_info"
+由于有一些访问记录是单条记录，mr程序处理处的结果给的时长是0，所以考虑给单次请求的停留时间一个默认市场30秒
+drop table t_display_access_info;
+create table t_display_access_info as
+select remote_addr,firt_req_time,last_req_time,
+case stay_long
+when 0 then 30000
+else stay_long
+end as stay_long
+from t_display_access_info_tmp;
+
+
+4、统计所有用户停留时间平均值
+select avg(stay_long) from t_display_access_info;
+
+
+
+
+Hive实战案例3——级联求和
+需求：
+有如下访客访问次数统计表 t_access_times
+访客	月份	访问次数
+A	2015-01-02	5
+A	2015-01-03	15
+B	2015-01-01	5
+A	2015-01-04	8
+B	2015-01-05	25
+A	2015-01-06	5
+A	2015-02-02	4
+A	2015-02-06	6
+B	2015-02-06	10
+B	2015-02-07	5
+……	……	……
+
+需要输出报表：t_access_times_accumulate
+访客	月份	月访问总计	累计访问总计
+A	2015-01	33	33
+A	2015-02	10	43
+…….	…….	…….	…….
+B	2015-01	30	30
+B	2015-02	15	45
+…….	…….	…….	…….
+
+实现步骤
+可以用一个hql语句即可实现：
+select A.username,A.month,max(A.salary) as salary,sum(B.salary) as accumulate
+from
+(select username,month,sum(salary) as salary from t_access_times group by username,month) A
+inner join
+(select username,month,sum(salary) as salary from t_access_times group by username,month) B
+on
+A.username=B.username
+where B.month <= A.month
+group by A.username,A.month
+order by A.username,A.month;

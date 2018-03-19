@@ -1,0 +1,33 @@
+1. 启动hadoop
+start-dfs.sh
+
+2. 启动 yarn
+start-yarn.sh
+
+3. 启动zk
+cd $ZK_HOME
+bin/zkServer.sh start
+
+4. 启动Kafka
+script/kafka.sh
+
+5. 启动flume
+flume-ng agent \
+--name exec-memory-kafka \
+--conf $FLUME_HOME/conf \
+--conf-file /home/ricky/app/flume-1.6.0-cdh5.7.0/conf/streaming_project2.conf \
+-Dflume.root.logger=INFO,console
+
+6. 启动 hbase
+start-hbase.sh
+
+7. 启动程序
+spark-submit --master local[2] \
+--jars $(echo /home/ricky/app/hbase-1.2.0-cdh5.7.0/lib/*.jar | tr ' ' ',') \
+--class com.stream_project.ImoocStatStreamingApp \
+--packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0 \
+/home/ricky/spark-jar/spark-learn-1.0.jar \
+ricky:2181 test streamingtopic 1
+
+see resolution messages for details
+将 repository下的jar包复制到 .m2/repository中

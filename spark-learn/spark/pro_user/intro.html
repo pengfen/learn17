@@ -1,0 +1,44 @@
+家庭工作地址判断需要说明
+
+通过用户经常连接的基站信息，判断用户的家庭地址和工作地址。
+现在有两张表分别是“CS域位置信令”和“基站工参”“CS域位置信令”是用户的通话信息。“基站公参”存放的是基站的基础数据，比如坐标等。
+两张表通过信令开始的LAC“First_LAC”和信令结束的LAC“Current_LAC”join基站公参表中的 LAC字段，进行关联。
+然后判断出某一段时间内夜晚8点到12点之间出现最多的坐标为家庭地址，再判断某一段时间内上午10到下午5点之间出现最多的坐标为工作地址，存入MySQL数据库。
+
+CS域位置信令
+序号　字段名　字段说明　字段类型　使用说明
+1    msisdn msisdn  varchar(32)
+2    imsi   imsi    varchar(32)
+3    mcc    国家码   varchar(10)
+4    mnc    网络码   varchar(10)
+5    imei_tac imei号前八位 varchar(32)
+6    cell_technology_id 接入网类型　tinyint 0.未知 1.3G 2.2G 6.4G
+
+基站工参
+longitude  numeric      x经度
+latitude   numeric      y纬度
+
+统计后
+msisdn     varchar(32)  加密的手机号
+longitude  numeric      x经度
+latitude   numeric      y纬度
+home_work  smallint     1.家庭地址 2.工作地址
+
+lac(位置区码)
+LAC:location area code 位置区码 （移动通信系统中）,是为寻呼而设置的一个区域，覆盖一片地理区域，
+初期一般按行政区域划分（一个县或一个区）,现在很灵活了，按寻呼量划分。当一个LAC下的寻呼量达到一个预警门限，就必须拆分。
+为了确定移动台的位置，每个GSMPLMN的覆盖区都被划分成许多位置区，位置区码(LAC)则用于标识不同的位置区。
+一个位置区可以包含一个或多个小区
+
+lai(位置区识别码)
+LAI是用来识别位置区的，其号码结构是：MCC+MNC+LAC
+其中：MCC和MNC同IMSI的MCC和MNC。
+
+LAC为位置区域码，它是唯一地识别我国数字PLMN中每个位置区的，是一个2字节16进制的BCD码，
+表示为L1L2L3L4（范围0000～FFFF，可定义65536个不同的位置区。）
+
+LAC在每个小区广播信道上的系统消息中发送。移动台在开机、插入SIM卡或发现当前小区的LAC与其原来储存的内容不同时，
+通过IMSI结合(IMSIAttach)或位置更新过程向网络通告其当前所在的位置区。网络储存每个移动台的位置区，并作为将来寻呼该移动台的位置信息。
+
+
+编写 MobileLocation

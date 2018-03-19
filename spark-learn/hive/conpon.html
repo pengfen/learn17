@@ -1,0 +1,14 @@
+1. 基本组成
+用户接口：包括 CLI、JDBC/ODBC、WebGUI。
+元数据存储：通常是存储在关系数据库如 mysql , derby中。
+解释器、编译器、优化器、执行器。
+
+2. 各组件的基本功能
+用户接口主要由三个：CLI、JDBC/ODBC和WebGUI。其中，CLI为shell命令行；JDBC/ODBC是Hive的JAVA实现，与传统数据库JDBC类似；
+WebGUI是通过浏览器访问Hive。
+元数据存储：Hive 将元数据存储在数据库中。Hive 中的元数据包括表的名字，表的列和分区及其属性，表的属性（是否为外部表等），表的数据所在目录等。
+解释器、编译器、优化器完成 HQL 查询语句从词法分析、语法分析、编译、优化以及查询计划的生成。生成的查询计划存储在 HDFS 中，
+并在随后有 MapReduce 调用执行。
+
+3. Hive与Hadoop的关系
+Hive利用HDFS存储数据，利用MapReduce查询数据

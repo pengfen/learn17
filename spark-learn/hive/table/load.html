@@ -1,0 +1,39 @@
+Load 加载数据
+
+语法结构
+LOAD DATA [LOCAL] INPATH 'filepath' [OVERWRITE] INTO
+TABLE tablename [PARTITION (partcol1=val1, partcol2=val2 ...)]
+
+说明：
+1、Load 操作只是单纯的复制/移动操作，将数据文件移动到 Hive 表对应的位置。
+2、filepath：
+相对路径，例如：project/data1
+绝对路径，例如：/user/hive/project/data1
+包含模式的完整 URI，列如：
+hdfs://namenode:9000/user/hive/project/data1
+3、LOCAL关键字
+如果指定了 LOCAL， load 命令会去查找本地文件系统中的 filepath。
+如果没有指定 LOCAL 关键字，则根据inpath中的uri[如果指定了 LOCAL，那么：
+load 命令会去查找本地文件系统中的 filepath。如果发现是相对路径，则路径会被解释为相对于当前用户的当前路径。
+load 命令会将 filepath中的文件复制到目标文件系统中。目标文件系统由表的位置属性决定。被复制的数据文件移动到表的数据对应的位置。
+
+如果没有指定 LOCAL 关键字，如果 filepath 指向的是一个完整的 URI，hive 会直接使用这个 URI。 否则：如果没有指定 schema 或者 authority，Hive 会使用在 hadoop 配置文件中定义的 schema 和 authority，fs.default.name 指定了 Namenode 的 URI。
+如果路径不是绝对的，Hive 相对于/user/进行解释。
+Hive 会将 filepath 中指定的文件内容移动到 table （或者 partition）所指定的路径中。]查找文件
+
+
+4、OVERWRITE 关键字
+如果使用了 OVERWRITE 关键字，则目标表（或者分区）中的内容会被删除，然后再将 filepath 指向的文件/目录中的内容添加到表/分区中。
+如果目标表（分区）已经有一个文件，并且文件名和 filepath 中的文件名冲突，那么现有的文件会被新文件所替代。
+
+具体实例
+1、加载相对路径数据。
+
+
+2、加载绝对路径数据。
+
+
+3、加载包含模式数据。
+
+
+4、OVERWRITE关键字使用。

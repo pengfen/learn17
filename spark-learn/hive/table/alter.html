@@ -1,0 +1,36 @@
+修改表
+增加/删除分区
+语法结构
+ALTER TABLE table_name ADD [IF NOT EXISTS] partition_spec [ LOCATION 'location1' ] partition_spec [ LOCATION 'location2' ] ...
+partition_spec:
+: PARTITION (partition_col = partition_col_value, partition_col = partiton_col_value, ...)
+
+ALTER TABLE table_name DROP partition_spec, partition_spec,...
+具体实例
+alter table student_p add partition(part='a') partition(part='b');
+
+
+
+
+重命名表
+语法结构
+ALTER TABLE table_name RENAME TO new_table_name
+具体实例
+
+增加/更新列
+语法结构
+ALTER TABLE table_name ADD|REPLACE COLUMNS (col_name data_type [COMMENT col_comment], ...)
+
+注：ADD是代表新增一字段，字段位置在所有列后面(partition列前)，REPLACE则是表示替换表中所有字段。
+
+ALTER TABLE table_name CHANGE [COLUMN] col_old_name col_new_name column_type [COMMENT col_comment] [FIRST|AFTER column_name]
+具体实例
+
+
+显示命令
+show tables
+show databases
+show partitions
+show functions
+desc extended t_name;
+desc formatted table_name;
