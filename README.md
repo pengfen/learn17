@@ -32,4 +32,6 @@ oper        操作记录
 server      服务(lnmp docker ... 等服务)   
 res.sql     资料备份数据
 
-linux-learn linux系统学习资料
+(linux-learn)[https://github.com/pengfen/linux-learn] linux系统学习资料
+(php-learn)[https://github.com/pengfen/php-learn] php学习资料
+(spark-learn)[https://github.com/pengfen/spark-learn] 大数据(hadoop spark flume kafka)
