@@ -8,6 +8,8 @@ off-line.html 离线流程
 
 hadoop.md hadoop单节点
 
+hadoop-three.html hadoop安装(三节点)
+
 hadoop-quest.html hadoop相关问题
 
 hadoop-many.html hadoop集群
