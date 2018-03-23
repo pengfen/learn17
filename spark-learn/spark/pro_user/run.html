@@ -1,0 +1,22 @@
+1. 启动dfs start-dfs.sh
+
+NameNode DataNode SecondaryNameNode
+
+2. 启动yarn start-yarn.sh
+
+ResourceManager NodeManager
+
+3. 启动spark master节点
+cd app/spark
+sbin/start-master.sh
+
+Master
+
+4. 启动spark slave节点
+sbin/start-slaves.sh
+
+Worker
+
+5. 运行作业
+cd script/spark/basic
+./move_bs_user.sh
