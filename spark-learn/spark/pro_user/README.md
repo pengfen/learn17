@@ -25,6 +25,8 @@
 
 10. 编写 move_bs_user.sh (数据移动后运行spark进行清理入库)
 
-11. 部署上线 (UserLocationYARN)
+11. 编写 (UserLocationYARN)　线上运行
 
 12. 可视化显示 (visual.html)
+
+13. 线上运行 run.html
