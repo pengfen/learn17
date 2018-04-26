@@ -1,0 +1,23 @@
+需求
+1. 点击菜单时展开当前菜单的子菜单
+2. 再次点击菜单时 (如果子菜单还有子菜单　则展开所有的子菜单) 隐藏子菜单
+
+function zTreeOnClick(event, treeId, treeNode) {
+    var treeObj = $.fn.zTree.getZTreeObj("treeDemo"); // 获取菜单树根节点
+
+    if (treeNode.open == true) { // 判断当前节点为展开状态
+        // 判断子节点是否打开
+        var child = treeNode.children;
+        var flag = true;
+        for(var i = 0; i < child.length; i ++) {
+            // 判断子节点是否为父节点　子节点是否隐藏状态
+            if (child[i].isParent == true && child[i].open == false) {
+                flag = false;
+            }
+        }
+        if (flag == true) treeObj.expandNode(treeNode, false, true, true); //　隐藏子节点
+        else treeObj.expandNode(treeNode, true, true, true); // 展开子节点
+    } else {
+        treeObj.expandNode(treeNode, true, false, true); // 展示子节点
+    }
+}
