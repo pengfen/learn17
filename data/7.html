@@ -149,6 +149,8 @@ InnoDB 事务级存储引擎 完美支持行级锁 事务ACID特性
 4 数据库参数配置
 5 数据库结构设计和SQL语句
 
+
+
 CPU资源和可用内存大小
 热数据 (会出现I/O瓶颈)
 网络 (也是另一种I/O)
@@ -574,6 +576,10 @@ max_connections控制允许的最大连接数
 在OLTP环境中使用不恰当的分区表
 使用外键保证数据的完整性
 
+
+
+
+
 什么是基准测试
 基准测试是一种测量和评估软件性能指标的活动用于建立某个时刻的性能基准
 以便当系统发生软硬件变化时重新进行基准测试以评佑变化对性能的影响
@@ -658,6 +664,12 @@ sysbench --test=./oltp.lua --mysql-table-engine=innodb --oltp-table-size=10000 -
 --mysql-user=sbest --mysql-password=123456 --oltp-tables-count=10 --mysql-socket=/usr/local/mysql/data/mysql.sock
 
 show progresslist;
+
+
+
+
+
+－＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
 
 数据库结构设计的步骤
 
@@ -751,6 +763,9 @@ MRG_MYISAM   不支持  支持并发插入的表级锁  分段归档 数据仓�
 innodb       支持    支持MVCC的行级锁      事务处理                      无
 Archive      不支持  行级锁                日志记录 只支持insert select  需要随机读取 更新 删除
 Ndb cluster  支持    行级锁                高可用性                      大部分应用
+
+
+
 
 为表中的字段选择合适的数据类型
 当一个列可以选择多种数据类型时 应该优先考虑数字类型 其次是日期或二进制类型
@@ -853,6 +868,16 @@ Innodb的主键和业务主键可以不同
 数据库结构 (查询性能要求 范式化要求)
 如何从数据库架构方面优化数据库
 维护和优化放到索引和sql优化部分讲解
+
+
+
+
+
+
+
+
+
+
 
 数据库设计简介
 什么是数据库设计
@@ -1231,6 +1256,12 @@ Monitor 监控插件
 Filter&Logging 日志和过滤插件
 
 
+
+
+
+
+
+
 MySQL支持的索引类型
 
 B-tree索引的特点
@@ -1339,6 +1370,12 @@ where index_name is not null and count_star = 0 order by object_schema,object_na
 
 更新索引统计信息及减少索引碎片 analyze table table_name
 使用不当会导致锁表 optimize table table_name
+
+
+
+
+
+
 
 SQL查询优化
 
